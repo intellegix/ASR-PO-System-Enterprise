@@ -1,0 +1,362 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model division_leaders {
+  id             String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id        String       @db.Uuid
+  name           String       @db.VarChar(100)
+  email          String       @db.VarChar(255)
+  phone          String?      @db.VarChar(20)
+  division_code  String       @unique @db.VarChar(2)
+  division_id    String       @db.Uuid
+  qb_class_name  String?      @db.VarChar(100)
+  approval_limit Decimal?     @default(25000.00) @db.Decimal(12, 2)
+  is_active      Boolean?     @default(true)
+  created_at     DateTime?    @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime?    @default(now()) @db.Timestamptz(6)
+  divisions      divisions    @relation(fields: [division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users          users        @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  po_headers     po_headers[]
+
+  @@index([division_code], map: "idx_division_leaders_code")
+  @@index([division_id], map: "idx_division_leaders_division")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model divisions {
+  id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  division_name        String                 @db.VarChar(100)
+  division_code        String                 @unique @db.VarChar(2)
+  qb_class_name        String?                @db.VarChar(100)
+  cost_center_prefix   String?                @db.VarChar(3)
+  is_active            Boolean?               @default(true)
+  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  division_leaders     division_leaders[]
+  po_approvals         po_approvals[]
+  po_headers           po_headers[]
+  projects             projects[]
+  users                users[]
+  work_order_sequences work_order_sequences[]
+  work_orders          work_orders[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model gl_account_mappings {
+  id                  String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  gl_code_short       String       @unique @db.VarChar(2)
+  gl_account_number   String       @db.VarChar(4)
+  gl_account_name     String       @db.VarChar(100)
+  gl_account_category gl_category? @default(OpEx)
+  is_taxable_default  Boolean?     @default(true)
+  qb_sync_enabled     Boolean?     @default(true)
+  is_active           Boolean?     @default(true)
+  created_at          DateTime?    @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime?    @default(now()) @db.Timestamptz(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model po_approvals {
+  id                String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  po_id             String?         @db.Uuid
+  work_order_id     String?         @db.Uuid
+  action            approval_action
+  actor_user_id     String?         @db.Uuid
+  actor_division_id String?         @db.Uuid
+  status_before     String?         @db.VarChar(50)
+  status_after      String?         @db.VarChar(50)
+  notes             String?
+  ip_address        String?         @db.VarChar(45)
+  user_agent        String?
+  timestamp         DateTime?       @default(now()) @db.Timestamptz(6)
+  divisions         divisions?      @relation(fields: [actor_division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users             users?          @relation(fields: [actor_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  po_headers        po_headers?     @relation(fields: [po_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  work_orders       work_orders?    @relation(fields: [work_order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([action], map: "idx_po_approvals_action")
+  @@index([actor_user_id], map: "idx_po_approvals_actor")
+  @@index([po_id], map: "idx_po_approvals_po")
+  @@index([timestamp], map: "idx_po_approvals_timestamp")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model po_headers {
+  id                                           String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  po_number                                    String            @unique @db.VarChar(15)
+  po_number_sequence                           Int?
+  division_leader_id                           String?           @db.Uuid
+  division_id                                  String            @db.Uuid
+  project_id                                   String            @db.Uuid
+  work_order_id                                String?           @db.Uuid
+  vendor_id                                    String            @db.Uuid
+  po_leader_code                               String?           @db.VarChar(2)
+  po_gl_code                                   String?           @db.VarChar(2)
+  po_work_order_num                            Int?
+  po_vendor_code                               String?           @db.VarChar(2)
+  cost_center_code                             String?           @db.VarChar(15)
+  terms_code                                   String?           @default("Net30") @db.VarChar(20)
+  tax_rate                                     Decimal?          @default(0.0800) @db.Decimal(5, 4)
+  subtotal_amount                              Decimal?          @default(0) @db.Decimal(12, 2)
+  tax_amount                                   Decimal?          @default(0) @db.Decimal(12, 2)
+  total_amount                                 Decimal           @default(0) @db.Decimal(12, 2)
+  status                                       po_status?        @default(Draft)
+  required_by_date                             DateTime?         @db.Date
+  requested_by_user_id                         String?           @db.Uuid
+  approved_by_user_id                          String?           @db.Uuid
+  approved_at                                  DateTime?         @db.Timestamptz(6)
+  issued_at                                    DateTime?         @db.Timestamptz(6)
+  issued_to_vendor_email                       String?           @db.VarChar(255)
+  notes_internal                               String?
+  notes_vendor                                 String?
+  created_at                                   DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at                                   DateTime?         @default(now()) @db.Timestamptz(6)
+  deleted_at                                   DateTime?         @db.Timestamptz(6)
+  po_approvals                                 po_approvals[]
+  users_po_headers_approved_by_user_idTousers  users?            @relation("po_headers_approved_by_user_idTousers", fields: [approved_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  divisions                                    divisions         @relation(fields: [division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  division_leaders                             division_leaders? @relation(fields: [division_leader_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projects                                     projects          @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_po_headers_requested_by_user_idTousers users?            @relation("po_headers_requested_by_user_idTousers", fields: [requested_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  vendors                                      vendors           @relation(fields: [vendor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  work_orders                                  work_orders?      @relation(fields: [work_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  po_line_items                                po_line_items[]
+
+  @@index([created_at], map: "idx_po_headers_created")
+  @@index([division_id], map: "idx_po_headers_division")
+  @@index([po_leader_code], map: "idx_po_headers_leader_code")
+  @@index([po_number], map: "idx_po_headers_number")
+  @@index([project_id], map: "idx_po_headers_project")
+  @@index([status], map: "idx_po_headers_status")
+  @@index([vendor_id], map: "idx_po_headers_vendor")
+  @@index([work_order_id], map: "idx_po_headers_work_order")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model po_line_items {
+  id                String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  po_id             String            @db.Uuid
+  line_number       Int
+  item_description  String            @db.VarChar(500)
+  quantity          Decimal           @db.Decimal(10, 2)
+  unit_of_measure   String?           @default("EA") @db.VarChar(20)
+  unit_price        Decimal           @db.Decimal(12, 2)
+  line_subtotal     Decimal           @db.Decimal(12, 2)
+  gl_account_code   String?           @db.VarChar(2)
+  gl_account_number String?           @db.VarChar(4)
+  gl_account_name   String?           @db.VarChar(100)
+  is_taxable        Boolean?          @default(true)
+  status            line_item_status? @default(Pending)
+  quantity_received Decimal?          @default(0) @db.Decimal(10, 2)
+  received_at       DateTime?         @db.Timestamptz(6)
+  created_at        DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?         @default(now()) @db.Timestamptz(6)
+  po_headers        po_headers        @relation(fields: [po_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([po_id, line_number])
+  @@index([gl_account_number], map: "idx_po_line_items_gl")
+  @@index([po_id], map: "idx_po_line_items_po")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model projects {
+  id                  String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  project_code        String          @unique @db.VarChar(15)
+  project_name        String          @db.VarChar(200)
+  customer_id         String?         @db.Uuid
+  property_address    String?         @db.VarChar(300)
+  district_code       String?         @db.VarChar(2)
+  district_name       String?         @db.VarChar(100)
+  primary_division_id String?         @db.Uuid
+  status              project_status? @default(Active)
+  start_date          DateTime?       @db.Date
+  end_date            DateTime?       @db.Date
+  budget_total        Decimal?        @db.Decimal(14, 2)
+  budget_actual       Decimal?        @default(0) @db.Decimal(14, 2)
+  po_count            Int?            @default(0)
+  created_at          DateTime?       @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime?       @default(now()) @db.Timestamptz(6)
+  po_headers          po_headers[]
+  divisions           divisions?      @relation(fields: [primary_division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  work_orders         work_orders[]
+
+  @@index([project_code], map: "idx_projects_code")
+  @@index([primary_division_id], map: "idx_projects_division")
+  @@index([status], map: "idx_projects_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model users {
+  id                                                String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email                                             String             @unique @db.VarChar(255)
+  password_hash                                     String?            @db.VarChar(255)
+  first_name                                        String             @db.VarChar(100)
+  last_name                                         String             @db.VarChar(100)
+  phone                                             String?            @db.VarChar(20)
+  role                                              user_role
+  division_id                                       String?            @db.Uuid
+  is_active                                         Boolean?           @default(true)
+  last_login_at                                     DateTime?          @db.Timestamptz(6)
+  created_at                                        DateTime?          @default(now()) @db.Timestamptz(6)
+  updated_at                                        DateTime?          @default(now()) @db.Timestamptz(6)
+  division_leaders                                  division_leaders[]
+  po_approvals                                      po_approvals[]
+  po_headers_po_headers_approved_by_user_idTousers  po_headers[]       @relation("po_headers_approved_by_user_idTousers")
+  po_headers_po_headers_requested_by_user_idTousers po_headers[]       @relation("po_headers_requested_by_user_idTousers")
+  divisions                                         divisions?         @relation(fields: [division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  work_orders                                       work_orders[]
+
+  @@index([division_id], map: "idx_users_division")
+  @@index([email], map: "idx_users_email")
+  @@index([role], map: "idx_users_role")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model vendors {
+  id                    String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  vendor_name           String       @db.VarChar(200)
+  vendor_code           String       @unique @db.VarChar(2)
+  vendor_type           vendor_type? @default(Material)
+  contact_name          String?      @db.VarChar(100)
+  contact_phone         String?      @db.VarChar(20)
+  contact_email         String?      @db.VarChar(255)
+  address_line_1        String?      @db.VarChar(200)
+  address_line_2        String?      @db.VarChar(100)
+  city                  String?      @db.VarChar(100)
+  state                 String?      @db.VarChar(2)
+  zip                   String?      @db.VarChar(10)
+  phone_main            String?      @db.VarChar(20)
+  payment_terms_default String?      @default("Net30") @db.VarChar(20)
+  tax_id                String?      @db.VarChar(20)
+  is_active             Boolean?     @default(true)
+  is_1099_required      Boolean?     @default(false)
+  w9_on_file            Boolean?     @default(false)
+  preferred_divisions   Json?
+  notes                 String?
+  created_at            DateTime?    @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime?    @default(now()) @db.Timestamptz(6)
+  po_headers            po_headers[]
+
+  @@index([is_active], map: "idx_vendors_active")
+  @@index([vendor_code], map: "idx_vendors_code")
+  @@index([vendor_name], map: "idx_vendors_name")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model work_order_sequences {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  division_id   String    @db.Uuid
+  year          Int
+  last_sequence Int?      @default(0)
+  updated_at    DateTime? @default(now()) @db.Timestamptz(6)
+  divisions     divisions @relation(fields: [division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([division_id, year])
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model work_orders {
+  id                 String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  work_order_number  String             @db.VarChar(10)
+  division_id        String             @db.Uuid
+  project_id         String             @db.Uuid
+  title              String             @db.VarChar(200)
+  description        String?
+  primary_trade      String?            @db.VarChar(50)
+  status             work_order_status? @default(Pending)
+  budget_estimate    Decimal?           @db.Decimal(12, 2)
+  budget_actual      Decimal?           @default(0) @db.Decimal(12, 2)
+  start_date_planned DateTime?          @db.Date
+  start_date_actual  DateTime?          @db.Date
+  end_date_planned   DateTime?          @db.Date
+  end_date_actual    DateTime?          @db.Date
+  created_by_user_id String?            @db.Uuid
+  created_at         DateTime?          @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?          @default(now()) @db.Timestamptz(6)
+  po_approvals       po_approvals[]
+  po_headers         po_headers[]
+  users              users?             @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  divisions          divisions          @relation(fields: [division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projects           projects           @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([work_order_number, division_id])
+  @@index([division_id], map: "idx_work_orders_division")
+  @@index([work_order_number], map: "idx_work_orders_number")
+  @@index([project_id], map: "idx_work_orders_project")
+  @@index([status], map: "idx_work_orders_status")
+}
+
+enum approval_action {
+  Created
+  Submitted
+  Approved
+  Rejected
+  Issued
+  Received
+  Invoiced
+  Paid
+  Cancelled
+  WO_Created
+}
+
+enum gl_category {
+  COGS
+  OpEx
+  Other
+  CreditCard
+}
+
+enum line_item_status {
+  Pending
+  PartialReceived
+  Received
+  Cancelled
+}
+
+enum po_status {
+  Draft
+  PendingApproval
+  Approved
+  Rejected
+  Issued
+  Received
+  Invoiced
+  Paid
+  Cancelled
+}
+
+enum project_status {
+  Active
+  Completed
+  OnHold
+  Cancelled
+}
+
+enum user_role {
+  MAJORITY_OWNER
+  DIVISION_LEADER
+  OPERATIONS_MANAGER
+  ACCOUNTING
+}
+
+enum vendor_type {
+  Material
+  Labor
+  Equipment
+  Subcontractor
+  Other
+}
+
+enum work_order_status {
+  Pending
+  InProgress
+  Completed
+  OnHold
+  Cancelled
+}

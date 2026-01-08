@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(psql:*)",
+      "Bash(where psql:*)",
+      "Bash(choco --version:*)",
+      "Bash(\"C:/Program Files/PostgreSQL/16/bin/psql.exe\" --version)",
+      "Bash(sc query:*)",
+      "Bash(net start:*)",
+      "Bash(PGPASSWORD=postgres \"C:/Program Files/PostgreSQL/16/bin/psql.exe\":*)",
+      "Bash(mkdir:*)",
+      "Bash(node --version:*)",
+      "Bash(npm:*)",
+      "Bash(PGPASSWORD=asr_secure_123 \"C:/Program Files/PostgreSQL/16/bin/psql.exe\":*)",
+      "Bash(npx create-next-app:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma init)",
+      "Bash(npx prisma:*)",
+      "Bash(npm run db:seed:*)",
+      "Bash(sqlite3:*)",
+      "Bash(cat:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx tsx:*)",
+      "Bash(node:*)",
+      "Bash(dir /s \"C:\\\\Users\\\\AustinKidwell\\\\ASR Dropbox\\\\Austin Kidwell\\\\08_Financial_PayrollOperations\\\\P.O System\\\\web\\\\src\\\\components\" /b)",
+      "Bash(dir \"C:\\\\Users\\\\AustinKidwell\\\\ASR Dropbox\\\\Austin Kidwell\\\\08_Financial_PayrollOperations\\\\P.O System\\\\web\\\\src\\\\app\" /s /b)",
+      "Bash(findstr:*)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout:*)",
+      "Bash(npx next dev --port 3000)",
+      "Bash(npx next dev --port 3005)",
+      "Bash(ping:*)",
+      "Bash(netstat:*)",
+      "Bash(tasklist:*)",
+      "Bash(test:*)",
+      "Bash(git init:*)",
+      "Bash(git reset:*)"
+    ]
+  }
+}
