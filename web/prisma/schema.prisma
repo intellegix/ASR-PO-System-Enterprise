@@ -262,34 +262,42 @@ model work_order_sequences {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model work_orders {
-  id                 String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  work_order_number  String             @db.VarChar(10)
-  division_id        String             @db.Uuid
-  project_id         String             @db.Uuid
-  title              String             @db.VarChar(200)
-  description        String?
-  primary_trade      String?            @db.VarChar(50)
-  status             work_order_status? @default(Pending)
-  budget_estimate    Decimal?           @db.Decimal(12, 2)
-  budget_actual      Decimal?           @default(0) @db.Decimal(12, 2)
-  start_date_planned DateTime?          @db.Date
-  start_date_actual  DateTime?          @db.Date
-  end_date_planned   DateTime?          @db.Date
-  end_date_actual    DateTime?          @db.Date
-  created_by_user_id String?            @db.Uuid
-  created_at         DateTime?          @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime?          @default(now()) @db.Timestamptz(6)
-  po_approvals       po_approvals[]
-  po_headers         po_headers[]
-  users              users?             @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  divisions          divisions          @relation(fields: [division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  projects           projects           @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                        String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  work_order_number         String                 @db.VarChar(10)
+  division_id               String                 @db.Uuid
+  project_id                String                 @db.Uuid
+  title                     String                 @db.VarChar(200)
+  description               String?
+  primary_trade             String?                @db.VarChar(50)
+  status                    work_order_status?     @default(Pending)
+  budget_estimate           Decimal?               @db.Decimal(12, 2)
+  budget_actual             Decimal?               @default(0) @db.Decimal(12, 2)
+  start_date_planned        DateTime?              @db.Date
+  start_date_actual         DateTime?              @db.Date
+  end_date_planned          DateTime?              @db.Date
+  end_date_actual           DateTime?              @db.Date
+  priority_level            work_order_priority?   @default(Medium)
+  work_order_type           String?                @db.VarChar(50)
+  estimated_completion_date DateTime?              @db.Date
+  po_count                  Int?                   @default(0)
+  total_po_amount           Decimal?               @default(0.00) @db.Decimal(12, 2)
+  created_by_user_id        String?                @db.Uuid
+  created_at                DateTime?              @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime?              @default(now()) @db.Timestamptz(6)
+  po_approvals              po_approvals[]
+  po_headers                po_headers[]
+  users                     users?                 @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  divisions                 divisions              @relation(fields: [division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projects                  projects               @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@unique([work_order_number, division_id])
   @@index([division_id], map: "idx_work_orders_division")
   @@index([work_order_number], map: "idx_work_orders_number")
   @@index([project_id], map: "idx_work_orders_project")
   @@index([status], map: "idx_work_orders_status")
+  @@index([priority_level], map: "idx_work_orders_priority")
+  @@index([work_order_type], map: "idx_work_orders_type")
+  @@index([estimated_completion_date], map: "idx_work_orders_completion_date")
 }
 
 enum approval_action {
@@ -355,6 +363,24 @@ enum vendor_type {
 enum work_order_status {
   Pending
   InProgress
+  Completed
+  OnHold
+  Cancelled
+}
+
+enum work_order_priority {
+  Low
+  Medium
+  High
+  Critical
+}
+
+enum work_order_status_enhanced {
+  Planned
+  Approved
+  InProgress
+  ReadyForPO
+  POIssued
   Completed
   OnHold
   Cancelled

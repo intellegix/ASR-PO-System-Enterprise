@@ -1,14 +1,21 @@
 {
-  "name": "p.o-system",
-  "version": "1.0.0",
-  "description": "",
+  "name": "asr-po-system",
+  "version": "2.0.0",
+  "description": "ASR Purchase Order System with Work Order Management",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "cd web && npm install && npx prisma generate && npm run build",
+    "start": "cd web && npm start",
+    "dev": "cd web && npm run dev",
+    "test": "cd web && npm test",
+    "db:migrate": "node apply-migration.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["purchase-order", "work-order", "construction", "management"],
+  "author": "Austin Kidwell - ASR Inc",
   "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "dotenv": "^17.2.3",
     "pg": "^8.16.3"
