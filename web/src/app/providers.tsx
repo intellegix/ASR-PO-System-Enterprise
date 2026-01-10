@@ -3,6 +3,21 @@
 import { SessionProvider } from 'next-auth/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
+import { ServiceWorkerRegistration, useIsPWA, useOfflineStatus, useInstallPrompt } from '@/components/PWA/ServiceWorkerRegistration';
+
+function PWAProvider({ children }: { children: ReactNode }) {
+  // Initialize PWA hooks
+  useIsPWA();
+  useOfflineStatus();
+  useInstallPrompt();
+
+  return (
+    <>
+      <ServiceWorkerRegistration />
+      {children}
+    </>
+  );
+}
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -19,7 +34,9 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <SessionProvider>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <PWAProvider>{children}</PWAProvider>
+      </QueryClientProvider>
     </SessionProvider>
   );
 }

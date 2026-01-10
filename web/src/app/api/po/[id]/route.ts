@@ -18,8 +18,18 @@ export async function GET(
       where: { id, deleted_at: null },
       include: {
         po_line_items: {
-          include: {
-            gl_accounts: true,
+          select: {
+            id: true,
+            line_number: true,
+            item_description: true,
+            quantity: true,
+            unit_of_measure: true,
+            unit_price: true,
+            gl_account_code: true,
+            gl_account_number: true,
+            gl_account_name: true,
+            is_taxable: true,
+            created_at: true,
           },
           orderBy: { line_number: 'asc' },
         },
@@ -27,16 +37,16 @@ export async function GET(
         projects: true,
         divisions: true,
         work_orders: true,
-        users_po_headers_requested_by_idTousers: {
-          select: { id: true, name: true, email: true },
+        users_po_headers_requested_by_user_idTousers: {
+          select: { id: true, first_name: true, last_name: true, email: true },
         },
-        users_po_headers_approved_by_idTousers: {
-          select: { id: true, name: true, email: true },
+        users_po_headers_approved_by_user_idTousers: {
+          select: { id: true, first_name: true, last_name: true, email: true },
         },
         po_approvals: {
           include: {
             users: {
-              select: { id: true, name: true, email: true },
+              select: { id: true, first_name: true, last_name: true, email: true },
             },
           },
           orderBy: { timestamp: 'desc' },
@@ -157,8 +167,8 @@ export async function DELETE(
     await prisma.po_approvals.create({
       data: {
         po_id: id,
-        action: 'POCancelled',
-        actor_id: session.user.id,
+        action: 'Cancelled',
+        actor_user_id: session.user.id,
         status_before: currentPO.status,
         status_after: 'Cancelled',
         notes: 'PO deleted',

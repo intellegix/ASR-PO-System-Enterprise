@@ -9,7 +9,10 @@ import {
   vendorPOEmail,
 } from './templates';
 import prisma from '@/lib/db';
-import { generatePOPdfBuffer } from '@/lib/pdf/po-pdf';
+import { generatePOPdf } from '@/lib/pdf/po-pdf';
+import { generatePDFSafely, generateFallbackPDF } from '@/lib/pdf/error-handler';
+import { transformPOForPDF } from '@/lib/types/pdf';
+import { logPDFOperation } from '@/lib/pdf/config';
 
 interface SendEmailOptions {
   to: string | string[];
@@ -20,7 +23,7 @@ interface SendEmailOptions {
 }
 
 // Send email helper
-async function sendEmail(options: SendEmailOptions): Promise<boolean> {
+export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
   if (!isEmailEnabled()) {
     console.log('Email disabled, skipping:', options.subject);
     return false;
@@ -54,14 +57,14 @@ async function sendEmail(options: SendEmailOptions): Promise<boolean> {
 }
 
 // Get PO data for email templates
-async function getPOEmailData(poId: string): Promise<POEmailData | null> {
+export async function getPOEmailData(poId: string): Promise<POEmailData | null> {
   const po = await prisma.po_headers.findUnique({
     where: { id: poId },
     include: {
       vendors: true,
       projects: true,
       divisions: true,
-      users_po_headers_requested_by_idTousers: true,
+      users_po_headers_requested_by_user_idTousers: true,
     },
   });
 
@@ -73,15 +76,17 @@ async function getPOEmailData(poId: string): Promise<POEmailData | null> {
     vendor_name: po.vendors?.vendor_name || 'Unknown Vendor',
     project_name: po.projects?.project_name || 'Unknown Project',
     division_name: po.divisions?.division_name || 'Unknown Division',
-    total_amount: po.total_amount,
+    total_amount: po.total_amount.toString(),
     required_by_date: po.required_by_date?.toISOString() || null,
-    requester_name: po.users_po_headers_requested_by_idTousers?.name || 'Unknown',
-    requester_email: po.users_po_headers_requested_by_idTousers?.email || '',
+    requester_name: po.users_po_headers_requested_by_user_idTousers
+      ? `${po.users_po_headers_requested_by_user_idTousers.first_name} ${po.users_po_headers_requested_by_user_idTousers.last_name}`
+      : 'Unknown',
+    requester_email: po.users_po_headers_requested_by_user_idTousers?.email || '',
   };
 }
 
 // Get approvers who should be notified
-async function getApproversForPO(poId: string): Promise<Array<{ name: string; email: string }>> {
+export async function getApproversForPO(poId: string): Promise<Array<{ first_name: string; last_name: string; email: string }>> {
   const po = await prisma.po_headers.findUnique({
     where: { id: poId },
     include: { divisions: true },
@@ -101,7 +106,7 @@ async function getApproversForPO(poId: string): Promise<Array<{ name: string; em
         role: 'MAJORITY_OWNER',
         is_active: true,
       },
-      select: { name: true, email: true },
+      select: { first_name: true, last_name: true, email: true },
     });
   } else {
     // Division leaders of this division, ops manager, and owners
@@ -117,7 +122,7 @@ async function getApproversForPO(poId: string): Promise<Array<{ name: string; em
           },
         ],
       },
-      select: { name: true, email: true },
+      select: { first_name: true, last_name: true, email: true },
     });
   }
 
@@ -137,7 +142,8 @@ export async function sendApprovalNeededEmails(poId: string): Promise<void> {
   const approvers = await getApproversForPO(poId);
 
   for (const approver of approvers) {
-    const email = approvalNeededEmail(poData, approver.name);
+    const approverName = `${approver.first_name} ${approver.last_name}`;
+    const email = approvalNeededEmail(poData, approverName);
     await sendEmail({
       to: approver.email,
       ...email,
@@ -221,8 +227,8 @@ export async function sendPOToVendor(poId: string): Promise<boolean> {
       projects: true,
       divisions: true,
       work_orders: true,
-      users_po_headers_requested_by_idTousers: true,
-      users_po_headers_approved_by_idTousers: true,
+      users_po_headers_requested_by_user_idTousers: true,
+      users_po_headers_approved_by_user_idTousers: true,
     },
   });
 
@@ -236,8 +242,74 @@ export async function sendPOToVendor(poId: string): Promise<boolean> {
     return false;
   }
 
-  // Generate PDF
-  const pdfBuffer = generatePOPdfBuffer(po as Parameters<typeof generatePOPdfBuffer>[0]);
+  // Transform and generate PDF with error handling
+  const pdfData = transformPOForPDF(po);
+
+  logPDFOperation({
+    level: 'info',
+    message: 'Generating PDF for vendor email',
+    po_number: pdfData.po_number,
+    metadata: { vendorEmail: po.vendors.contact_email },
+  });
+
+  // Generate PDF with comprehensive error handling
+  const result = await generatePDFSafely(
+    pdfData,
+    generatePOPdf,
+    {
+      maxRetries: 3, // More retries for email attachments
+      skipValidation: false,
+      returnBuffer: true,
+    }
+  );
+
+  let pdfBuffer: Buffer;
+  let pdfFilename = `PO-${po.po_number.replace(/\s+/g, '-')}.pdf`;
+
+  if (!result.success || !result.buffer) {
+    logPDFOperation({
+      level: 'warn',
+      message: 'Primary PDF generation failed for vendor email, using fallback',
+      po_number: pdfData.po_number,
+      error: result.error,
+    });
+
+    try {
+      // Generate fallback PDF for vendor
+      const fallbackDoc = generateFallbackPDF(pdfData);
+      const arrayBuffer = fallbackDoc.output('arraybuffer');
+      pdfBuffer = Buffer.from(arrayBuffer);
+      pdfFilename = `PO-${po.po_number.replace(/\s+/g, '-')}-BASIC.pdf`;
+
+      logPDFOperation({
+        level: 'info',
+        message: 'Fallback PDF generated successfully for vendor email',
+        po_number: pdfData.po_number,
+      });
+    } catch (fallbackError) {
+      logPDFOperation({
+        level: 'error',
+        message: 'Both primary and fallback PDF generation failed for vendor email',
+        po_number: pdfData.po_number,
+        error: fallbackError,
+      });
+
+      console.error('Failed to generate PDF for vendor email:', fallbackError);
+      return false;
+    }
+  } else {
+    pdfBuffer = result.buffer;
+
+    logPDFOperation({
+      level: 'info',
+      message: 'PDF generated successfully for vendor email',
+      po_number: pdfData.po_number,
+      metadata: {
+        bufferSize: pdfBuffer.length,
+        warnings: result.warnings?.length || 0,
+      },
+    });
+  }
 
   // Create email
   const email = vendorPOEmail({
@@ -248,10 +320,12 @@ export async function sendPOToVendor(poId: string): Promise<boolean> {
     vendor_email: po.vendors.contact_email,
     project_name: po.projects?.project_name || 'Unknown Project',
     division_name: po.divisions?.division_name || 'Unknown Division',
-    total_amount: po.total_amount,
+    total_amount: po.total_amount.toString(),
     required_by_date: po.required_by_date?.toISOString() || null,
-    requester_name: po.users_po_headers_requested_by_idTousers?.name || 'Unknown',
-    requester_email: po.users_po_headers_requested_by_idTousers?.email || '',
+    requester_name: po.users_po_headers_requested_by_user_idTousers
+      ? `${po.users_po_headers_requested_by_user_idTousers.first_name} ${po.users_po_headers_requested_by_user_idTousers.last_name}`
+      : 'Unknown',
+    requester_email: po.users_po_headers_requested_by_user_idTousers?.email || '',
     notes_vendor: po.notes_vendor,
   });
 
@@ -260,7 +334,7 @@ export async function sendPOToVendor(poId: string): Promise<boolean> {
     ...email,
     attachments: [
       {
-        filename: `PO-${po.po_number.replace(/\s+/g, '-')}.pdf`,
+        filename: pdfFilename,
         content: pdfBuffer,
         contentType: 'application/pdf',
       },

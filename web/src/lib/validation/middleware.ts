@@ -21,7 +21,7 @@ export interface ValidationResult<T> {
  * Formats Zod errors into a user-friendly format
  */
 function formatZodErrors(error: ZodError): ValidationError[] {
-  return error.errors.map(err => ({
+  return error.issues.map((err: any) => ({
     field: err.path.join('.'),
     message: err.message,
   }));
@@ -297,7 +297,9 @@ export function withRateLimit(
   ) {
     return async (request: NextRequest, context?: any) => {
       // Use IP address as identifier (in production, consider user ID)
-      const identifier = request.ip || 'unknown';
+      const identifier = request.headers.get('x-forwarded-for') ||
+                        request.headers.get('x-real-ip') ||
+                        'unknown';
       const rateLimit = checkRateLimit(identifier, maxRequests, windowMs);
 
       if (!rateLimit.allowed) {

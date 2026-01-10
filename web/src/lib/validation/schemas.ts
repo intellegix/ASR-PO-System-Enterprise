@@ -48,7 +48,8 @@ export const codeSchema = (maxLength: number = 20) =>
 // USER VALIDATION SCHEMAS
 // ============================================
 
-export const createUserSchema = z.object({
+// Base schema without refinements (used for both create and partial updates)
+const baseUserSchema = z.object({
   email: emailSchema,
   firstName: sanitizedTextSchema(50),
   lastName: sanitizedTextSchema(50),
@@ -57,7 +58,11 @@ export const createUserSchema = z.object({
   divisionId: uuidSchema.optional(),
 });
 
-export const updateUserSchema = createUserSchema.partial();
+// Create schema with business rules (if any needed)
+export const createUserSchema = baseUserSchema;
+
+// Update schema from base (no conflicts with .partial())
+export const updateUserSchema = baseUserSchema.partial();
 
 // ============================================
 // PURCHASE ORDER VALIDATION SCHEMAS
@@ -75,7 +80,8 @@ export const poLineItemSchema = z.object({
   isTaxable: z.boolean().optional().default(true),
 });
 
-export const createPOSchema = z.object({
+// Base PO schema without refinements
+const basePOSchema = z.object({
   projectId: uuidSchema,
   workOrderId: uuidSchema.optional(),
   vendorId: uuidSchema,
@@ -90,7 +96,10 @@ export const createPOSchema = z.object({
   status: z.enum(['Draft', 'PendingApproval', 'Approved', 'Issued', 'Received', 'Invoiced', 'Paid', 'Cancelled'])
     .optional()
     .default('Draft'),
-}).refine(
+});
+
+// Create PO schema with business rule refinements
+export const createPOSchema = basePOSchema.refine(
   (data) => {
     // Business rule: Calculate total amount to ensure it's within reasonable limits
     const total = data.lineItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
@@ -98,6 +107,9 @@ export const createPOSchema = z.object({
   },
   { message: 'Total PO amount exceeds $1,000,000 limit' }
 );
+
+// Update PO schema - for field updates (separate from status updates)
+export const updatePOSchema = basePOSchema.partial();
 
 export const updatePOStatusSchema = z.object({
   status: z.enum(['PendingApproval', 'Approved', 'Issued', 'Received', 'Invoiced', 'Paid', 'Cancelled']),
@@ -108,7 +120,8 @@ export const updatePOStatusSchema = z.object({
 // VENDOR VALIDATION SCHEMAS
 // ============================================
 
-export const createVendorSchema = z.object({
+// Base vendor schema without refinements
+const baseVendorSchema = z.object({
   vendorName: sanitizedTextSchema(100).min(1, 'Vendor name is required'),
   vendorCode: codeSchema(10).min(2, 'Vendor code must be at least 2 characters'),
   vendorType: z.enum(['Material', 'Subcontractor', 'Equipment', 'Other']),
@@ -124,13 +137,18 @@ export const createVendorSchema = z.object({
   is1099Required: z.boolean().optional().default(false),
 });
 
-export const updateVendorSchema = createVendorSchema.partial();
+// Create vendor schema with business rules (if any needed)
+export const createVendorSchema = baseVendorSchema;
+
+// Update vendor schema from base (no conflicts with .partial())
+export const updateVendorSchema = baseVendorSchema.partial();
 
 // ============================================
 // PROJECT VALIDATION SCHEMAS
 // ============================================
 
-export const createProjectSchema = z.object({
+// Base project schema without refinements
+const baseProjectSchema = z.object({
   projectCode: codeSchema(20).min(1, 'Project code is required'),
   projectName: sanitizedTextSchema(100).min(1, 'Project name is required'),
   districtCode: codeSchema(10),
@@ -140,13 +158,18 @@ export const createProjectSchema = z.object({
   budgetTotal: monetaryAmountSchema.optional(),
 });
 
-export const updateProjectSchema = createProjectSchema.partial();
+// Create project schema with business rules (if any needed)
+export const createProjectSchema = baseProjectSchema;
+
+// Update project schema from base (no conflicts with .partial())
+export const updateProjectSchema = baseProjectSchema.partial();
 
 // ============================================
 // WORK ORDER VALIDATION SCHEMAS
 // ============================================
 
-export const createWorkOrderSchema = z.object({
+// Base work order schema without refinements
+const baseWorkOrderSchema = z.object({
   workOrderNumber: codeSchema(20).optional(), // Auto-generated if not provided
   title: sanitizedTextSchema(200).min(1, 'Work order title is required'),
   description: sanitizedTextSchema(1000).optional(),
@@ -156,7 +179,10 @@ export const createWorkOrderSchema = z.object({
   budgetEstimate: monetaryAmountSchema.optional(),
   targetStartDate: z.string().datetime('Invalid date format').optional(),
   targetEndDate: z.string().datetime('Invalid date format').optional(),
-}).refine(
+});
+
+// Create work order schema with business rule refinements
+export const createWorkOrderSchema = baseWorkOrderSchema.refine(
   (data) => {
     if (data.targetStartDate && data.targetEndDate) {
       return new Date(data.targetStartDate) <= new Date(data.targetEndDate);
@@ -166,13 +192,15 @@ export const createWorkOrderSchema = z.object({
   { message: 'Target end date must be after start date' }
 );
 
-export const updateWorkOrderSchema = createWorkOrderSchema.partial();
+// Update work order schema from base (no conflicts with .partial())
+export const updateWorkOrderSchema = baseWorkOrderSchema.partial();
 
 // ============================================
 // DIVISION VALIDATION SCHEMAS
 // ============================================
 
-export const createDivisionSchema = z.object({
+// Base division schema without refinements
+const baseDivisionSchema = z.object({
   divisionName: sanitizedTextSchema(100).min(1, 'Division name is required'),
   divisionCode: codeSchema(5).min(2, 'Division code must be at least 2 characters'),
   costCenterPrefix: codeSchema(5).min(2, 'Cost center prefix must be at least 2 characters'),
@@ -180,13 +208,18 @@ export const createDivisionSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export const updateDivisionSchema = createDivisionSchema.partial();
+// Create division schema with business rules (if any needed)
+export const createDivisionSchema = baseDivisionSchema;
+
+// Update division schema from base (no conflicts with .partial())
+export const updateDivisionSchema = baseDivisionSchema.partial();
 
 // ============================================
 // GL ACCOUNT VALIDATION SCHEMAS
 // ============================================
 
-export const createGLAccountSchema = z.object({
+// Base GL account schema without refinements
+const baseGLAccountSchema = z.object({
   glCodeShort: codeSchema(5).min(1, 'GL code short is required'),
   glAccountNumber: z.string().regex(/^\d{4,}$/, 'GL account number must be numeric'),
   glAccountName: sanitizedTextSchema(100).min(1, 'GL account name is required'),
@@ -196,19 +229,23 @@ export const createGLAccountSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export const updateGLAccountSchema = createGLAccountSchema.partial();
+// Create GL account schema with business rules (if any needed)
+export const createGLAccountSchema = baseGLAccountSchema;
+
+// Update GL account schema from base (no conflicts with .partial())
+export const updateGLAccountSchema = baseGLAccountSchema.partial();
 
 // ============================================
 // QUERY PARAMETER VALIDATION SCHEMAS
 // ============================================
 
 export const paginationSchema = z.object({
-  page: z.string().regex(/^\d+$/).transform(Number).refine(n => n >= 1).optional().default('1'),
-  limit: z.string().regex(/^\d+$/).transform(Number).refine(n => n >= 1 && n <= 100).optional().default('50'),
+  page: z.string().regex(/^\d+$/).transform(Number).refine(n => n >= 1).optional().default(1),
+  limit: z.string().regex(/^\d+$/).transform(Number).refine(n => n >= 1 && n <= 100).optional().default(50),
 });
 
 export const poQuerySchema = z.object({
-  status: z.enum(['Draft', 'PendingApproval', 'Approved', 'Issued', 'Received', 'Invoiced', 'Paid', 'Cancelled']).optional(),
+  status: z.enum(['Draft', 'Submitted', 'Approved', 'Issued', 'Received', 'Invoiced', 'Paid', 'Cancelled']).optional(),
   divisionId: uuidSchema.optional(),
   projectId: uuidSchema.optional(),
   vendorId: uuidSchema.optional(),
@@ -257,6 +294,7 @@ export const bulkUpdatePOStatusSchema = z.object({
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type CreatePOInput = z.infer<typeof createPOSchema>;
+export type UpdatePOInput = z.infer<typeof updatePOSchema>;
 export type UpdatePOStatusInput = z.infer<typeof updatePOStatusSchema>;
 export type CreateVendorInput = z.infer<typeof createVendorSchema>;
 export type UpdateVendorInput = z.infer<typeof updateVendorSchema>;

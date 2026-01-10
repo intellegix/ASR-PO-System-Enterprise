@@ -1,78 +1,24 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { POPDFData } from '@/lib/types/pdf';
+import { PDF_CONFIG, logPDFOperation } from './config';
+import { generatePDFSafely, generateFallbackPDF, PDFResult } from './error-handler';
 
-interface LineItem {
-  line_number: number;
-  item_description: string;
-  quantity: number | string;
-  unit_of_measure: string;
-  unit_price: number | string;
-  line_subtotal: number | string;
-  is_taxable: boolean;
-}
+// Company info (from configuration)
+const COMPANY = PDF_CONFIG.company;
 
-interface POData {
-  po_number: string;
-  status: string;
-  created_at: string;
-  required_by_date: string | null;
-  approved_at: string | null;
-  issued_at: string | null;
-  terms_code: string | null;
-  cost_center_code: string | null;
-  subtotal_amount: number | string;
-  tax_amount: number | string;
-  tax_rate: number | string;
-  total_amount: number | string;
-  notes_vendor: string | null;
-  vendors: {
-    vendor_name: string;
-    vendor_code: string;
-    address_line1: string | null;
-    address_line2: string | null;
-    city: string | null;
-    state: string | null;
-    zip: string | null;
-    contact_name: string | null;
-    contact_phone: string | null;
-    contact_email: string | null;
-  } | null;
-  projects: {
-    project_code: string;
-    project_name: string;
-    property_address: string | null;
-  } | null;
-  divisions: {
-    division_name: string;
-    division_code: string;
-  } | null;
-  work_orders: {
-    work_order_number: string;
-    title: string;
-  } | null;
-  users_po_headers_requested_by_idTousers: {
-    name: string;
-    email: string;
-  } | null;
-  users_po_headers_approved_by_idTousers: {
-    name: string;
-  } | null;
-  po_line_items: LineItem[];
-}
+export function generatePOPdf(po: POPDFData): jsPDF {
+  try {
+    logPDFOperation({
+      level: 'info',
+      message: 'Starting core PDF generation',
+      po_number: po.po_number,
+    });
 
-// Company info
-const COMPANY = {
-  name: 'All Surface Roofing & Waterproofing, Inc.',
-  address1: '1234 Construction Way',
-  address2: 'Los Angeles, CA 90001',
-  phone: '(555) 123-4567',
-  email: 'purchasing@allsurfaceroofing.com',
-};
-
-export function generatePOPdf(po: POData): jsPDF {
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  let yPos = 15;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const { primaryColor, pageMargin, headerFontSize, titleFontSize, bodyFontSize } = PDF_CONFIG.styling;
+    let yPos: number = pageMargin;
 
   // Helper functions
   const formatCurrency = (amount: number | string) => {
@@ -94,39 +40,39 @@ export function generatePOPdf(po: POData): jsPDF {
 
   // ===== HEADER =====
   // Company name
-  doc.setFontSize(18);
+  doc.setFontSize(headerFontSize);
   doc.setFont('helvetica', 'bold');
-  doc.text(COMPANY.name, 14, yPos);
+  doc.text(COMPANY.name, pageMargin, yPos);
 
   // PO Label (right side)
-  doc.setFontSize(24);
-  doc.setTextColor(220, 90, 30); // Orange color
-  doc.text('PURCHASE ORDER', pageWidth - 14, yPos, { align: 'right' });
+  doc.setFontSize(titleFontSize);
+  doc.setTextColor(primaryColor.r, primaryColor.g, primaryColor.b); // Configurable color
+  doc.text('PURCHASE ORDER', pageWidth - pageMargin, yPos, { align: 'right' });
 
   yPos += 6;
 
   // Company address
-  doc.setFontSize(9);
+  doc.setFontSize(bodyFontSize);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 100, 100);
-  doc.text(COMPANY.address1, 14, yPos);
-  yPos += 4;
-  doc.text(COMPANY.address2, 14, yPos);
-  yPos += 4;
-  doc.text(`Phone: ${COMPANY.phone}`, 14, yPos);
+  doc.text(COMPANY.address1, pageMargin, yPos);
+  yPos += PDF_CONFIG.styling.lineHeight;
+  doc.text(COMPANY.address2, pageMargin, yPos);
+  yPos += PDF_CONFIG.styling.lineHeight;
+  doc.text(`Phone: ${COMPANY.phone}`, pageMargin, yPos);
 
   // PO Number (right side, large)
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 0, 0);
-  doc.text(po.po_number, pageWidth - 14, yPos - 4, { align: 'right' });
+  doc.text(po.po_number, pageWidth - pageMargin, yPos - PDF_CONFIG.styling.lineHeight, { align: 'right' });
 
   yPos += 10;
 
   // Divider line
-  doc.setDrawColor(220, 90, 30);
+  doc.setDrawColor(primaryColor.r, primaryColor.g, primaryColor.b);
   doc.setLineWidth(0.5);
-  doc.line(14, yPos, pageWidth - 14, yPos);
+  doc.line(pageMargin, yPos, pageWidth - pageMargin, yPos);
 
   yPos += 10;
 
@@ -246,13 +192,13 @@ export function generatePOPdf(po: POData): jsPDF {
     body: tableData,
     theme: 'striped',
     headStyles: {
-      fillColor: [220, 90, 30],
+      fillColor: [primaryColor.r, primaryColor.g, primaryColor.b],
       textColor: 255,
       fontStyle: 'bold',
-      fontSize: 9,
+      fontSize: bodyFontSize,
     },
     bodyStyles: {
-      fontSize: 9,
+      fontSize: bodyFontSize,
     },
     columnStyles: {
       0: { cellWidth: 10, halign: 'center' },
@@ -261,7 +207,7 @@ export function generatePOPdf(po: POData): jsPDF {
       3: { cellWidth: 28, halign: 'right' },
       4: { cellWidth: 28, halign: 'right' },
     },
-    margin: { left: 14, right: 14 },
+    margin: { left: pageMargin, right: pageMargin },
   });
 
   // Get Y position after table
@@ -270,7 +216,7 @@ export function generatePOPdf(po: POData): jsPDF {
 
   // ===== TOTALS =====
   const totalsX = pageWidth - 70;
-  const totalsValueX = pageWidth - 14;
+  const totalsValueX = pageWidth - pageMargin;
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
@@ -289,7 +235,7 @@ export function generatePOPdf(po: POData): jsPDF {
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.text('TOTAL:', totalsX, yPos + 2);
-  doc.setTextColor(220, 90, 30);
+  doc.setTextColor(primaryColor.r, primaryColor.g, primaryColor.b);
   doc.text(formatCurrency(po.total_amount), totalsValueX, yPos + 2, { align: 'right' });
 
   yPos += 15;
@@ -329,7 +275,7 @@ export function generatePOPdf(po: POData): jsPDF {
   });
 
   // Approval signatures (if approved)
-  if (po.approved_at && po.users_po_headers_approved_by_idTousers) {
+  if (po.approved_at && po.users_po_headers_approved_by_user_idTousers) {
     yPos += 25;
     doc.setDrawColor(200, 200, 200);
     doc.line(14, yPos, 80, yPos);
@@ -344,8 +290,8 @@ export function generatePOPdf(po: POData): jsPDF {
     yPos += 4;
     doc.setFontSize(9);
     doc.setTextColor(0, 0, 0);
-    doc.text(po.users_po_headers_requested_by_idTousers?.name || '-', 14, yPos);
-    doc.text(po.users_po_headers_approved_by_idTousers.name, pageWidth - 80, yPos);
+    doc.text(po.users_po_headers_requested_by_user_idTousers?.name || '-', 14, yPos);
+    doc.text(po.users_po_headers_approved_by_user_idTousers.name, pageWidth - 80, yPos);
 
     yPos += 4;
     doc.setFontSize(8);
@@ -368,10 +314,28 @@ export function generatePOPdf(po: POData): jsPDF {
     );
   }
 
+  logPDFOperation({
+    level: 'info',
+    message: 'Core PDF generation completed successfully',
+    po_number: po.po_number,
+  });
+
   return doc;
+
+  } catch (error) {
+    logPDFOperation({
+      level: 'error',
+      message: 'Core PDF generation failed',
+      po_number: po.po_number,
+      error,
+    });
+
+    // Re-throw the error to be handled by the safe wrapper
+    throw error;
+  }
 }
 
-export function generatePOPdfBuffer(po: POData): Buffer {
+export function generatePOPdfBuffer(po: POPDFData): Buffer {
   const doc = generatePOPdf(po);
   const arrayBuffer = doc.output('arraybuffer');
   return Buffer.from(arrayBuffer);

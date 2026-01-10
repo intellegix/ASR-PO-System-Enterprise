@@ -9,11 +9,12 @@ import {
   sendPOIssuedInternalEmail,
   sendPOToVendor,
 } from '@/lib/email/service';
+import { syncSinglePO } from '@/lib/quickbooks/service';
 
 // Approval threshold - POs over this amount require owner approval
 const OWNER_APPROVAL_THRESHOLD = 25000;
 
-type POAction = 'submit' | 'approve' | 'reject' | 'issue' | 'receive' | 'cancel';
+type POAction = 'submit' | 'approve' | 'reject' | 'issue' | 'receive' | 'pay' | 'cancel';
 
 interface ActionRequest {
   action: POAction;
@@ -74,13 +75,13 @@ export async function POST(
             { status: 400 }
           );
         }
-        newStatus = 'PendingApproval';
-        auditAction = 'POSubmitted';
+        newStatus = 'Submitted';
+        auditAction = 'Submitted';
         break;
 
       case 'approve':
-        // Approve PO - only from PendingApproval status
-        if (currentPO.status !== 'PendingApproval') {
+        // Approve PO - only from Submitted status
+        if (currentPO.status !== 'Submitted') {
           return NextResponse.json(
             { error: 'PO must be pending approval to approve' },
             { status: 400 }
@@ -126,8 +127,8 @@ export async function POST(
         break;
 
       case 'reject':
-        // Reject PO - only from PendingApproval status
-        if (currentPO.status !== 'PendingApproval') {
+        // Reject PO - only from Submitted status
+        if (currentPO.status !== 'Submitted') {
           return NextResponse.json(
             { error: 'PO must be pending approval to reject' },
             { status: 400 }
@@ -179,9 +180,30 @@ export async function POST(
         auditAction = 'LineReceived';
         break;
 
+      case 'pay':
+        // Mark as paid - only from Received status, only accounting can do this
+        if (currentPO.status !== 'Received') {
+          return NextResponse.json(
+            { error: 'PO must be received before marking as paid' },
+            { status: 400 }
+          );
+        }
+
+        // Only accounting and majority owners can mark POs as paid
+        if (userRole !== 'ACCOUNTING' && userRole !== 'MAJORITY_OWNER') {
+          return NextResponse.json(
+            { error: 'Only accounting staff can mark POs as paid' },
+            { status: 403 }
+          );
+        }
+
+        newStatus = 'Paid';
+        auditAction = 'POPaid';
+        break;
+
       case 'cancel':
-        // Cancel PO - from Draft, PendingApproval, or Approved
-        if (!['Draft', 'PendingApproval', 'Approved'].includes(currentPO.status)) {
+        // Cancel PO - from Draft, Submitted, or Approved
+        if (!['Draft', 'Submitted', 'Approved'].includes(currentPO.status || '')) {
           return NextResponse.json(
             { error: 'PO cannot be cancelled in current status' },
             { status: 400 }
@@ -221,11 +243,11 @@ export async function POST(
         vendors: true,
         projects: true,
         divisions: true,
-        users_po_headers_requested_by_idTousers: {
-          select: { id: true, name: true, email: true },
+        users_po_headers_requested_by_user_idTousers: {
+          select: { id: true, first_name: true, last_name: true, email: true },
         },
-        users_po_headers_approved_by_idTousers: {
-          select: { id: true, name: true, email: true },
+        users_po_headers_approved_by_user_idTousers: {
+          select: { id: true, first_name: true, last_name: true, email: true },
         },
       },
     });
@@ -234,8 +256,8 @@ export async function POST(
     await prisma.po_approvals.create({
       data: {
         po_id: id,
-        action: auditAction,
-        actor_id: session.user.id,
+        action: auditAction as any,
+        actor_user_id: session.user.id,
         status_before: currentPO.status,
         status_after: newStatus,
         notes: notes || null,
@@ -252,24 +274,43 @@ export async function POST(
 
         case 'approve':
           // Notify requester that their PO was approved
-          sendPOApprovedEmail(id, user.name).catch(console.error);
+          sendPOApprovedEmail(id, `${user.first_name} ${user.last_name}`).catch(console.error);
           break;
 
         case 'reject':
           // Notify requester that their PO was rejected
-          sendPORejectedEmail(id, user.name, notes).catch(console.error);
+          sendPORejectedEmail(id, `${user.first_name} ${user.last_name}`, notes).catch(console.error);
           break;
 
         case 'issue':
           // Send PO to vendor with PDF attachment
           sendPOToVendor(id).catch(console.error);
           // Notify internal team
-          sendPOIssuedInternalEmail(id, user.name).catch(console.error);
+          sendPOIssuedInternalEmail(id, `${user.first_name} ${user.last_name}`).catch(console.error);
           break;
       }
     } catch (emailError) {
       // Log email errors but don't fail the action
       console.error('Error sending email notifications:', emailError);
+    }
+
+    // QuickBooks sync for paid POs (non-blocking)
+    if (action === 'pay' && newStatus === 'Paid') {
+      try {
+        console.log(`Triggering QB sync for paid PO: ${updatedPO.po_number}`);
+        syncSinglePO(id).then((result) => {
+          if (result.success) {
+            console.log(`QB sync successful for PO ${updatedPO.po_number}: ${result.message}`);
+          } else {
+            console.error(`QB sync failed for PO ${updatedPO.po_number}: ${result.error}`);
+          }
+        }).catch((error) => {
+          console.error(`QB sync error for PO ${updatedPO.po_number}:`, error);
+        });
+      } catch (syncError) {
+        // Log sync errors but don't fail the action
+        console.error('Error initiating QB sync:', syncError);
+      }
     }
 
     return NextResponse.json({
@@ -298,6 +339,8 @@ function getSuccessMessage(action: POAction, poNumber: string): string {
       return `PO ${poNumber} issued to vendor`;
     case 'receive':
       return `PO ${poNumber} marked as received`;
+    case 'pay':
+      return `PO ${poNumber} marked as paid and synced to QuickBooks`;
     case 'cancel':
       return `PO ${poNumber} cancelled`;
     default:

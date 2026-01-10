@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { PhoneLink } from '@/components/ui/PhoneLink';
 
 interface LineItem {
   id: string;
@@ -473,11 +474,28 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
             <h3 className="text-sm font-medium text-slate-500 mb-2">Vendor</h3>
             <p className="font-medium text-slate-900">{po.vendors?.vendor_name || '-'}</p>
             <p className="text-sm text-slate-500">{po.vendors?.vendor_code}</p>
-            {po.vendors?.contact_phone && (
-              <a href={`tel:${po.vendors.contact_phone}`} className="text-sm text-blue-600 hover:text-blue-800">
-                {po.vendors.contact_phone}
-              </a>
+            {po.vendors?.contact_name && (
+              <p className="text-sm text-slate-600 mt-1">Contact: {po.vendors.contact_name}</p>
             )}
+            <div className="flex flex-col gap-1 mt-2">
+              <PhoneLink
+                phone={po.vendors?.contact_phone}
+                size="sm"
+                className="text-sm"
+              />
+              {po.vendors?.contact_email && (
+                <a
+                  href={`mailto:${po.vendors.contact_email}`}
+                  className="text-sm text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
+                >
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M3 4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4zm2 0v12h10V4H5z"/>
+                    <path d="m5.05 4.05 5.95 4.4 5.95-4.4"/>
+                  </svg>
+                  {po.vendors.contact_email}
+                </a>
+              )}
+            </div>
           </div>
 
           {/* Project */}

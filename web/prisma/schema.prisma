@@ -118,6 +118,9 @@ model po_headers {
   created_at                                   DateTime?         @default(now()) @db.Timestamptz(6)
   updated_at                                   DateTime?         @default(now()) @db.Timestamptz(6)
   deleted_at                                   DateTime?         @db.Timestamptz(6)
+  qb_bill_id                                   String?           @db.VarChar(50)
+  qb_sync_status                               qb_sync_status?   @default(PENDING)
+  qb_synced_at                                 DateTime?         @db.Timestamptz(6)
   po_approvals                                 po_approvals[]
   users_po_headers_approved_by_user_idTousers  users?            @relation("po_headers_approved_by_user_idTousers", fields: [approved_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   divisions                                    divisions         @relation(fields: [division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -239,6 +242,7 @@ model vendors {
   w9_on_file            Boolean?     @default(false)
   preferred_divisions   Json?
   notes                 String?
+  qb_vendor_id          String?      @db.VarChar(50)
   created_at            DateTime?    @default(now()) @db.Timestamptz(6)
   updated_at            DateTime?    @default(now()) @db.Timestamptz(6)
   po_headers            po_headers[]
@@ -321,9 +325,8 @@ enum line_item_status {
 
 enum po_status {
   Draft
-  PendingApproval
+  Submitted
   Approved
-  Rejected
   Issued
   Received
   Invoiced
@@ -359,4 +362,26 @@ enum work_order_status {
   Completed
   OnHold
   Cancelled
+}
+
+enum qb_sync_status {
+  PENDING
+  SUCCESS
+  FAILED
+  RETRY
+}
+
+/// QuickBooks OAuth token storage for API integration
+model qb_auth_tokens {
+  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  realm_id          String    @db.VarChar(50)
+  access_token      String    @db.Text
+  refresh_token     String    @db.Text
+  token_expires_at  DateTime  @db.Timestamptz(6)
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+  is_active         Boolean   @default(true)
+
+  @@index([realm_id], map: "idx_qb_auth_tokens_realm")
+  @@index([is_active], map: "idx_qb_auth_tokens_active")
+  @@index([token_expires_at], map: "idx_qb_auth_tokens_expires")
 }

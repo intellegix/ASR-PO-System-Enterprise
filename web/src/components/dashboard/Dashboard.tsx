@@ -3,7 +3,11 @@
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { getRoleDisplayName } from '@/lib/auth/permissions';
+import KPIMetrics from './widgets/KPIMetrics';
+import PendingApprovals from './widgets/PendingApprovals';
+import DivisionPerformance from './widgets/DivisionPerformance';
 
 // Icons
 const MenuIcon = () => (
@@ -81,32 +85,23 @@ export default function Dashboard() {
   const user = session?.user;
   const role = (user?.role || 'DIVISION_LEADER') as UserRole;
 
-  // Demo stats - in production these would come from the API
-  const stats = {
-    pendingApproval: 3,
-    activePOs: 12,
-    thisMonthSpend: 45230,
-    openWorkOrders: 8,
-  };
+  // Get user's division for filtering
+  const userDivisionId = user?.divisionId;
+  const canViewAllDivisions = ['MAJORITY_OWNER', 'ACCOUNTING'].includes(role);
 
-  // Demo recent POs
-  const recentPOs = [
-    { id: '1', poNumber: '01CP0234-1ab12', vendor: 'ABC Roofing Supply', amount: 2450, status: 'Draft', division: 'CAPEX' },
-    { id: '2', poNumber: '02RF0187-2hd56', vendor: 'Home Depot Pro', amount: 890, status: 'Approved', division: 'Roofing' },
-    { id: '3', poNumber: '01CP0235-1bb23', vendor: 'Beacon Building', amount: 5680, status: 'Pending', division: 'CAPEX' },
-    { id: '4', poNumber: '03GC0122-1ls89', vendor: 'Local Sub LLC', amount: 12500, status: 'Issued', division: 'Gen Contracting' },
-  ];
+  // Get pending approval count for sidebar badge
+  const { data: pendingData } = useQuery({
+    queryKey: ['pending-count'],
+    queryFn: async () => {
+      const response = await fetch('/api/dashboards/pending-approvals?limit=1');
+      if (!response.ok) return { summary: { total: 0 } };
+      return response.json();
+    },
+    refetchInterval: 30 * 1000, // 30 seconds
+    staleTime: 15 * 1000, // 15 seconds
+  });
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      Draft: 'bg-gray-100 text-gray-700',
-      Pending: 'bg-amber-100 text-amber-700',
-      Approved: 'bg-green-100 text-green-700',
-      Issued: 'bg-blue-100 text-blue-700',
-      Received: 'bg-purple-100 text-purple-700',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-700';
-  };
+  const pendingCount = pendingData?.summary?.total || 0;
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -163,9 +158,9 @@ export default function Dashboard() {
             >
               <CheckCircleIcon />
               <span>Approvals</span>
-              {stats.pendingApproval > 0 && (
+              {pendingCount > 0 && (
                 <span className="ml-auto bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                  {stats.pendingApproval}
+                  {pendingCount}
                 </span>
               )}
             </Link>
@@ -255,54 +250,53 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Stats grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <Link href="/approvals" className="bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition cursor-pointer">
-              <p className="text-sm text-slate-500 mb-1">Pending Approval</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.pendingApproval}</p>
-              <p className="text-xs text-amber-600 mt-1">Needs action</p>
-            </Link>
-            <div className="bg-white rounded-xl p-5 shadow-sm">
-              <p className="text-sm text-slate-500 mb-1">Active POs</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.activePOs}</p>
-              <p className="text-xs text-green-600 mt-1">In progress</p>
-            </div>
-            <div className="bg-white rounded-xl p-5 shadow-sm">
-              <p className="text-sm text-slate-500 mb-1">This Month</p>
-              <p className="text-2xl font-bold text-slate-900">${stats.thisMonthSpend.toLocaleString()}</p>
-              <p className="text-xs text-slate-500 mt-1">Total spend</p>
-            </div>
-            <div className="bg-white rounded-xl p-5 shadow-sm">
-              <p className="text-sm text-slate-500 mb-1">Work Orders</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.openWorkOrders}</p>
-              <p className="text-xs text-blue-600 mt-1">Open</p>
-            </div>
-          </div>
+          {/* Real-time KPI Metrics */}
+          <KPIMetrics
+            divisionId={canViewAllDivisions ? undefined : userDivisionId}
+            timeframe="current_month"
+            className="mb-6"
+          />
 
-          {/* Recent POs */}
-          <div className="bg-white rounded-xl shadow-sm">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-semibold text-slate-900">Recent Purchase Orders</h3>
-              <Link href="/po" className="text-sm text-orange-600 hover:text-orange-700">
-                View all
-              </Link>
-            </div>
-            <div className="divide-y divide-slate-100">
-              {recentPOs.map((po) => (
-                <div key={po.id} className="px-6 py-4 flex items-center gap-4">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900 font-mono text-sm">{po.poNumber}</p>
-                    <p className="text-sm text-slate-500 truncate">{po.vendor}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-slate-900">${po.amount.toLocaleString()}</p>
-                    <span className={`inline-block text-xs px-2 py-0.5 rounded-full ${getStatusColor(po.status)}`}>
-                      {po.status}
-                    </span>
+          {/* Dashboard content grid */}
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Pending Approvals Widget */}
+            <PendingApprovals
+              limit={8}
+              className="lg:col-span-1"
+            />
+
+            {/* Division Performance (only for cross-division viewers) */}
+            {canViewAllDivisions && (
+              <DivisionPerformance className="lg:col-span-1" />
+            )}
+
+            {/* Recent Activity for single division users */}
+            {!canViewAllDivisions && userDivisionId && (
+              <div className="bg-white rounded-xl shadow-sm lg:col-span-1">
+                <div className="px-6 py-4 border-b border-slate-100">
+                  <h3 className="font-semibold text-slate-900">Division Activity</h3>
+                  <p className="text-sm text-slate-500">Your division's recent activity</p>
+                </div>
+                <div className="p-6">
+                  <KPIMetrics
+                    divisionId={userDivisionId}
+                    timeframe="last_30_days"
+                    className="mb-4"
+                  />
+                  <div className="text-center mt-6">
+                    <Link
+                      href="/reports"
+                      className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium"
+                    >
+                      <span>View detailed reports</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
         </main>
       </div>

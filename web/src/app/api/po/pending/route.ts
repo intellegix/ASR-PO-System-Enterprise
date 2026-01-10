@@ -31,20 +31,15 @@ export async function GET(request: NextRequest) {
     // Operations Manager sees all POs under threshold
     // Accounting sees none (read-only)
 
-    interface WhereClause {
-      status: string;
-      deleted_at: null;
-      division_id?: string;
-      total_amount?: { lte: number };
-    }
-
-    const where: WhereClause = {
-      status: 'PendingApproval',
+    const where = {
+      status: 'Submitted' as const,
       deleted_at: null,
+      division_id: undefined as string | undefined,
+      total_amount: undefined as { lte: number } | undefined,
     };
 
     if (userRole === 'MAJORITY_OWNER') {
-      // See all pending POs
+      // See all pending POs - use base where object as is
     } else if (userRole === 'DIVISION_LEADER') {
       // See only own division's POs under threshold
       if (userDivisionId) {
@@ -59,8 +54,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([]);
     }
 
+    // Clean up undefined properties for Prisma query
+    const cleanWhere = Object.fromEntries(
+      Object.entries(where).filter(([_, value]) => value !== undefined)
+    );
+
     const pendingPOs = await prisma.po_headers.findMany({
-      where,
+      where: cleanWhere,
       orderBy: [
         { total_amount: 'desc' }, // Higher amounts first
         { created_at: 'asc' }, // Oldest first within same amount
@@ -75,8 +75,8 @@ export async function GET(request: NextRequest) {
         divisions: {
           select: { division_name: true, division_code: true },
         },
-        users_po_headers_requested_by_idTousers: {
-          select: { id: true, name: true },
+        users_po_headers_requested_by_user_idTousers: {
+          select: { id: true, first_name: true, last_name: true },
         },
         po_line_items: {
           select: { id: true, item_description: true },

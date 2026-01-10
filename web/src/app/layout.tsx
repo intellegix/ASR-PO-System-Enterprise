@@ -42,6 +42,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50`}
       >
         <Providers>{children}</Providers>
+        <button id="pwa-install-button" aria-label="Install app">
+          📱 Install App
+        </button>
       </body>
     </html>
   );

@@ -1,0 +1,223 @@
+# Artillery.js Load Testing Configuration
+# Tests the ASR Purchase Order System under various load scenarios
+
+config:
+  target: 'http://localhost:3000'
+  phases:
+    # Warm-up phase - gradual ramp up
+    - duration: 60  # 1 minute
+      arrivalRate: 1
+      rampTo: 10
+      name: "Warm-up phase"
+
+    # Normal load - typical business usage
+    - duration: 300  # 5 minutes
+      arrivalRate: 10
+      name: "Normal business load"
+
+    # Peak load - busy periods (month-end, budget cycles)
+    - duration: 180  # 3 minutes
+      arrivalRate: 10
+      rampTo: 50
+      name: "Peak business load"
+
+    # Stress test - maximum sustainable load
+    - duration: 120  # 2 minutes
+      arrivalRate: 50
+      rampTo: 100
+      name: "Stress test"
+
+    # Cool down - return to normal
+    - duration: 60   # 1 minute
+      arrivalRate: 100
+      rampTo: 5
+      name: "Cool down"
+
+  # Test data and variables
+  variables:
+    userEmails:
+      - "test.user1@asr.com"
+      - "test.user2@asr.com"
+      - "test.manager@asr.com"
+      - "test.accounting@asr.com"
+
+    divisionIds:
+      - "div-1"
+      - "div-2"
+      - "div-3"
+
+    vendorIds:
+      - "vendor-1"
+      - "vendor-2"
+      - "vendor-3"
+      - "vendor-4"
+
+  # Custom metrics and thresholds
+  statsInterval: 30  # seconds
+
+  # Performance thresholds
+  ensure:
+    maxErrorRate: 5     # Maximum 5% error rate
+    p95: 2000          # 95th percentile response time < 2s
+    p99: 5000          # 99th percentile response time < 5s
+
+  # Plugins for enhanced monitoring
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true
+
+    # Memory usage monitoring
+    expect:
+      outputFormat: json
+
+    # Custom metrics
+    hdrhistogram: {}
+
+# Test scenarios
+scenarios:
+  # Dashboard access - most common operation
+  - name: "Dashboard Access"
+    weight: 40
+    flow:
+      - post:
+          url: "/api/auth/signin"
+          json:
+            email: "{{ userEmails[$randomInt(0, 3)] }}"
+            password: "test123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      - get:
+          url: "/api/dashboards/overview"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: "summary"
+
+      - get:
+          url: "/api/dashboards/division/{{ divisionIds[$randomInt(0, 2)] }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: [200, 403]  # 403 allowed for permission restrictions
+
+  # PO creation workflow - critical business operation
+  - name: "PO Creation"
+    weight: 25
+    flow:
+      - post:
+          url: "/api/auth/signin"
+          json:
+            email: "{{ userEmails[$randomInt(0, 3)] }}"
+            password: "test123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      - post:
+          url: "/api/po"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+            Content-Type: "application/json"
+          json:
+            vendor_id: "{{ vendorIds[$randomInt(0, 3)] }}"
+            division_id: "{{ divisionIds[$randomInt(0, 2)] }}"
+            project_id: "project-{{ $randomInt(1, 10) }}"
+            line_items:
+              - description: "Load test item {{ $randomInt(1000, 9999) }}"
+                quantity: "{{ $randomInt(1, 100) }}"
+                unit_price: "{{ $randomInt(10, 1000) }}.{{ $randomInt(10, 99) }}"
+                gl_account_number: "{{ $randomInt(6000, 7999) }}"
+                gl_account_name: "Test GL Account"
+                is_taxable: "{{ $randomBool() }}"
+            notes: "Load testing PO created at {{ $timestamp }}"
+          expect:
+            - statusCode: [201, 400, 403]
+          capture:
+            - json: "$.po.id"
+              as: "poId"
+
+  # Report generation - resource intensive operations
+  - name: "Report Generation"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/auth/signin"
+          json:
+            email: "test.manager@asr.com"  # Use manager role for reports
+            password: "test123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      - get:
+          url: "/api/reports/po-summary?startDate=2024-01-01&endDate=2024-12-31"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: [200, 403]
+            - hasProperty: "summary"
+
+      - think: 2  # Wait 2 seconds between report requests
+
+      - get:
+          url: "/api/reports/gl-analysis?startDate=2024-01-01&endDate=2024-12-31"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: [200, 403]
+
+  # Approval workflow - business critical operations
+  - name: "Approval Workflow"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/auth/signin"
+          json:
+            email: "test.manager@asr.com"
+            password: "test123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      - get:
+          url: "/api/approvals"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: [200, 403]
+            - contentType: json
+
+      - think: 1  # Think time before approval action
+
+  # Audit trail access - compliance operations
+  - name: "Audit Trail"
+    weight: 5
+    flow:
+      - post:
+          url: "/api/auth/signin"
+          json:
+            email: "test.accounting@asr.com"  # Use accounting role
+            password: "test123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      - get:
+          url: "/api/audit-trail?limit=50"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: [200, 403]
+            - contentType: json
+
+# Post-test hooks
+after:
+  - log: "Load test completed"
+  - log: "Check performance metrics and error rates"
+
+# Custom processing functions
+processor: "./artillery-processor.js"

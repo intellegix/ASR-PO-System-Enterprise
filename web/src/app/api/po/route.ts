@@ -64,7 +64,11 @@ const postHandler = withValidation(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Use validated body data
+    // Use validated body data - ensure body exists after validation
+    if (!body) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+
     const {
       projectId,
       workOrderId,
@@ -99,24 +103,43 @@ const postHandler = withValidation(
       if (!workOrder) {
         return NextResponse.json({ error: 'Work order not found' }, { status: 404 });
       }
-      workOrderSequence = workOrder.sequence_number;
+      // Extract sequence from work order number (e.g., "WO-0001" -> 1)
+      const woNumberMatch = workOrder.work_order_number.match(/WO-(\d+)/);
+      workOrderSequence = woNumberMatch ? parseInt(woNumberMatch[1]) : 1;
     } else {
       // Auto-create a work order if none provided
-      const lastWO = await prisma.work_orders.findFirst({
-        orderBy: { sequence_number: 'desc' },
+      const currentYear = new Date().getFullYear();
+
+      // Get or create sequence record for this division and year
+      const sequenceRecord = await prisma.work_order_sequences.upsert({
+        where: {
+          division_id_year: {
+            division_id: divisionId,
+            year: currentYear,
+          },
+        },
+        update: {
+          last_sequence: { increment: 1 },
+          updated_at: new Date(),
+        },
+        create: {
+          division_id: divisionId,
+          year: currentYear,
+          last_sequence: 1,
+        },
       });
-      const nextSequence = (lastWO?.sequence_number || 0) + 1;
+
+      const nextSequence = sequenceRecord.last_sequence || 1;
       const workOrderNumber = `WO-${String(nextSequence).padStart(4, '0')}`;
 
       workOrder = await prisma.work_orders.create({
         data: {
           work_order_number: workOrderNumber,
-          sequence_number: nextSequence,
           division_id: divisionId,
           project_id: projectId,
           title: `PO Work Order - ${new Date().toLocaleDateString()}`,
           status: 'InProgress',
-          created_by_id: session.user.id,
+          created_by_user_id: session.user.id,
         },
       });
       workOrderSequence = nextSequence;
@@ -150,7 +173,7 @@ const postHandler = withValidation(
     // Generate PO number: [PurchaserID][DivisionCode][WO#]-[PurchaseSeq][SupplierLast4]
     const poNumber = generatePONumber({
       leaderId: purchaserId,
-      divisionCode: division.cost_center_prefix,
+      divisionCode: division.cost_center_prefix || 'XX',
       workOrderNumber: workOrderSequence,
       purchaseSequence,
       supplierConfirmLast4: supplierConfirmCode,
@@ -179,7 +202,7 @@ const postHandler = withValidation(
         line_subtotal: lineSubtotal,
         gl_account_id: item.glAccountId,
         is_taxable: item.isTaxable ?? true,
-        status: 'Pending',
+        status: 'Pending' as any,
       };
     });
 
@@ -195,21 +218,21 @@ const postHandler = withValidation(
         po_number: poNumber,
         po_leader_code: purchaserId,
         po_gl_code: division.cost_center_prefix,
-        po_work_order_seq: workOrderSequence,
+        po_work_order_num: workOrderSequence,
         po_vendor_code: vendor.vendor_code,
         division_id: divisionId,
         project_id: projectId,
         work_order_id: workOrder.id,
         vendor_id: vendorId,
         cost_center_code: `${division.cost_center_prefix}-${String(workOrderSequence).padStart(4, '0')}-${String(purchaseSequence).padStart(2, '0')}`,
-        status,
+        status: status === 'PendingApproval' ? 'Submitted' : status as any,
         required_by_date: requiredByDate ? new Date(requiredByDate) : null,
         terms_code: termsCode || vendor.payment_terms_default || 'Net30',
         tax_rate: TAX_RATE,
         subtotal_amount: subtotal,
         tax_amount: taxAmount,
         total_amount: totalAmount,
-        requested_by_id: session.user.id,
+        requested_by_user_id: session.user.id,
         notes_internal: notesInternal || null,
         notes_vendor: notesVendor || null,
         po_line_items: {
@@ -229,10 +252,10 @@ const postHandler = withValidation(
     await prisma.po_approvals.create({
       data: {
         po_id: po.id,
-        action: 'POCreated',
-        actor_id: session.user.id,
+        action: 'Created',
+        actor_user_id: session.user.id,
         status_before: null,
-        status_after: status,
+        status_after: status === 'PendingApproval' ? 'Submitted' : status as any,
         notes: `PO ${poNumber} created`,
       },
     });

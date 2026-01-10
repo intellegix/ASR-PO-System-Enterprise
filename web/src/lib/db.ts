@@ -2,9 +2,15 @@ import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 
-// Create PostgreSQL pool
+// Create PostgreSQL pool with production optimizations
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  max: 20, // Increased for remote connections
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+  ssl: process.env.NODE_ENV === 'production' ? {
+    rejectUnauthorized: false // For self-signed certificates
+  } : false,
 });
 
 // Create Prisma adapter
