@@ -1,0 +1,125 @@
+---
+title: Purchase Order Approval Workflow
+description: Complete approval process flow for the ASR Purchase Order System
+author: System Documentation Team
+version: 1.0
+date: 2024-01-12
+---
+
+flowchart TD
+    A[📝 PO Created by Division Leader] --> B{Amount < $500?}
+
+    B -->|Yes| C{Within Division Budget?}
+    B -->|No| D{Amount < $5,000?}
+
+    C -->|Yes| E[✅ Auto-Approved]
+    C -->|No| F[❌ Budget Exceeded - Denied]
+
+    D -->|Yes| G[📤 Send to Operations Manager]
+    D -->|No| H{Amount < $25,000?}
+
+    G --> I{Operations Manager Approval}
+    I -->|✅ Approved| J[📧 Notify Accounting]
+    I -->|❌ Rejected| K[📧 Return to Creator with Comments]
+    I -->|⏰ No Response in 48h| L[📧 Escalate to Division Leader]
+
+    H -->|Yes| M[📤 Send to Division Leader + Operations Manager]
+    H -->|No| N[📤 Send to Executive Team]
+
+    M --> O{Both Approvers Review}
+    O -->|✅ Both Approved| P[📧 Notify Accounting]
+    O -->|❌ Either Rejected| Q[📧 Return to Creator with Comments]
+    O -->|⏰ Timeout| R[📧 Escalate to Executive]
+
+    N --> S{Executive Review}
+    S -->|✅ Approved| T[📧 Notify All Stakeholders]
+    S -->|❌ Rejected| U[📧 Return with Executive Comments]
+    S -->|⏰ No Response in 72h| V[📧 CEO Escalation]
+
+    %% Post-Approval Processing
+    E --> W[🔄 Sync to QuickBooks]
+    J --> W
+    P --> W
+    T --> W
+
+    W --> X{QuickBooks Sync Success?}
+    X -->|✅ Success| Y[📊 Update Dashboard Status]
+    X -->|❌ Failed| Z[⚠️ Manual QB Entry Required]
+
+    Y --> AA[📧 Final Confirmation to Creator]
+    Z --> BB[📧 Alert Accounting Team]
+    BB --> CC[🔧 Manual QuickBooks Entry]
+    CC --> AA
+
+    %% Rejection Paths
+    K --> DD[📝 Creator Reviews Comments]
+    Q --> DD
+    U --> DD
+
+    DD --> EE{Revise and Resubmit?}
+    EE -->|Yes| FF[✏️ Update PO Details]
+    EE -->|No| GG[❌ Cancel PO Request]
+
+    FF --> A
+
+    %% Emergency Override Path
+    A --> HH{Emergency Flag?}
+    HH -->|Yes| II[🚨 Emergency Approval Process]
+    HH -->|No| B
+
+    II --> JJ[📞 Phone Approval + Email Confirmation]
+    JJ --> KK[✅ Temporary Approval Granted]
+    KK --> LL[📝 Formal Documentation Required in 24h]
+    LL --> W
+
+    %% Timeout Escalations
+    L --> MM{Division Leader Response}
+    MM -->|✅ Approved| J
+    MM -->|❌ Rejected| K
+    MM -->|⏰ Still No Response| NN[📧 CEO Escalation]
+
+    R --> OO{Executive Response}
+    OO -->|✅ Approved| P
+    OO -->|❌ Rejected| Q
+    OO -->|⏰ Still No Response| V
+
+    V --> PP[🔴 CEO Override Decision]
+    PP --> QQ{CEO Approval}
+    QQ -->|✅ Approved| T
+    QQ -->|❌ Rejected| RR[📧 Final Rejection Notice]
+
+    %% Style definitions
+    classDef approved fill:#d4edda,stroke:#28a745,stroke-width:2px
+    classDef rejected fill:#f8d7da,stroke:#dc3545,stroke-width:2px
+    classDef pending fill:#fff3cd,stroke:#ffc107,stroke-width:2px
+    classDef process fill:#e2e3e5,stroke:#6c757d,stroke-width:2px
+    classDef emergency fill:#f4cccc,stroke:#e06666,stroke-width:3px
+    classDef system fill:#cfe2ff,stroke:#0d6efd,stroke-width:2px
+
+    class E,J,P,T,AA approved
+    class F,K,Q,U,GG,RR rejected
+    class G,M,N,HH pending
+    class DD,FF,LL process
+    class II,JJ,KK,V,PP emergency
+    class W,X,Y,Z,BB,CC system
+
+---
+
+%% Approval Amount Thresholds Summary
+%% < $500: Auto-approval if within budget
+%% $500 - $4,999: Operations Manager approval required
+%% $5,000 - $24,999: Division Leader + Operations Manager approval
+%% >= $25,000: Executive team approval required
+%% Emergency: Special expedited process with post-approval documentation
+
+%% Timeout Rules
+%% Operations Manager: 48 hours before escalation
+%% Division Leader: 72 hours before executive escalation
+%% Executive: 72 hours before CEO escalation
+%% CEO: Final authority, no further escalation
+
+%% Integration Points
+%% QuickBooks: Automatic sync after approval
+%% Email: Notifications at each state change
+%% Dashboard: Real-time status updates
+%% Audit Trail: Complete approval history logged

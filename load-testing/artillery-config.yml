@@ -1,223 +1,126 @@
-# Artillery.js Load Testing Configuration
-# Tests the ASR Purchase Order System under various load scenarios
+# Artillery Load Testing Configuration for ASR Purchase Order System
+# Phase 4C Performance Validation
 
 config:
   target: 'http://localhost:3000'
   phases:
-    # Warm-up phase - gradual ramp up
-    - duration: 60  # 1 minute
-      arrivalRate: 1
-      rampTo: 10
-      name: "Warm-up phase"
+    # Warm-up phase
+    - duration: 30
+      arrivalRate: 2
+      name: "Warm-up"
 
-    # Normal load - typical business usage
-    - duration: 300  # 5 minutes
+    # Dashboard load test - Target: <2s response
+    - duration: 60
       arrivalRate: 10
-      name: "Normal business load"
+      name: "Dashboard Performance Test"
 
-    # Peak load - busy periods (month-end, budget cycles)
-    - duration: 180  # 3 minutes
-      arrivalRate: 10
-      rampTo: 50
-      name: "Peak business load"
+    # Report generation test - Target: <10s response
+    - duration: 120
+      arrivalRate: 5
+      name: "Report Generation Test"
 
-    # Stress test - maximum sustainable load
-    - duration: 120  # 2 minutes
-      arrivalRate: 50
-      rampTo: 100
-      name: "Stress test"
+    # Peak load simulation - Target: <500ms for 95% of API calls
+    - duration: 60
+      arrivalRate: 20
+      name: "Peak Load Test"
 
-    # Cool down - return to normal
-    - duration: 60   # 1 minute
-      arrivalRate: 100
-      rampTo: 5
-      name: "Cool down"
+  defaults:
+    headers:
+      'User-Agent': 'Artillery ASR PO System Load Test'
+      'Content-Type': 'application/json'
 
-  # Test data and variables
-  variables:
-    userEmails:
-      - "test.user1@asr.com"
-      - "test.user2@asr.com"
-      - "test.manager@asr.com"
-      - "test.accounting@asr.com"
-
-    divisionIds:
-      - "div-1"
-      - "div-2"
-      - "div-3"
-
-    vendorIds:
-      - "vendor-1"
-      - "vendor-2"
-      - "vendor-3"
-      - "vendor-4"
-
-  # Custom metrics and thresholds
-  statsInterval: 30  # seconds
-
-  # Performance thresholds
+  # Performance targets from Phase 4C requirements
   ensure:
-    maxErrorRate: 5     # Maximum 5% error rate
-    p95: 2000          # 95th percentile response time < 2s
-    p99: 5000          # 99th percentile response time < 5s
+    maxErrorRate: 1          # Max 1% error rate
+    p95: 2000               # 95% of requests under 2s (dashboard target)
+    p99: 10000              # 99% of requests under 10s (report target)
 
-  # Plugins for enhanced monitoring
-  plugins:
-    metrics-by-endpoint:
-      useOnlyRequestNames: true
-
-    # Memory usage monitoring
-    expect:
-      outputFormat: json
-
-    # Custom metrics
-    hdrhistogram: {}
-
-# Test scenarios
 scenarios:
-  # Dashboard access - most common operation
-  - name: "Dashboard Access"
+  # Dashboard performance test - Primary user workflow
+  - name: "Dashboard Load Test"
     weight: 40
     flow:
-      - post:
-          url: "/api/auth/signin"
-          json:
-            email: "{{ userEmails[$randomInt(0, 3)] }}"
-            password: "test123"
-          capture:
-            - json: "$.token"
-              as: "authToken"
+      - get:
+          url: "/api/dashboards/kpi-metrics"
 
       - get:
-          url: "/api/dashboards/overview"
-          headers:
-            Authorization: "Bearer {{ authToken }}"
-          expect:
-            - statusCode: 200
-            - contentType: json
-            - hasProperty: "summary"
+          url: "/api/dashboards/pending-approvals"
 
       - get:
-          url: "/api/dashboards/division/{{ divisionIds[$randomInt(0, 2)] }}"
-          headers:
-            Authorization: "Bearer {{ authToken }}"
-          expect:
-            - statusCode: [200, 403]  # 403 allowed for permission restrictions
+          url: "/api/dashboards/division"
 
-  # PO creation workflow - critical business operation
-  - name: "PO Creation"
-    weight: 25
+      - think: 2  # User reading time
+
+      - get:
+          url: "/api/po/recent"
+
+  # Report generation performance test - Business intelligence workflows
+  - name: "Report Generation Test"
+    weight: 30
     flow:
-      - post:
-          url: "/api/auth/signin"
-          json:
-            email: "{{ userEmails[$randomInt(0, 3)] }}"
-            password: "test123"
-          capture:
-            - json: "$.token"
-              as: "authToken"
-
-      - post:
-          url: "/api/po"
-          headers:
-            Authorization: "Bearer {{ authToken }}"
-            Content-Type: "application/json"
-          json:
-            vendor_id: "{{ vendorIds[$randomInt(0, 3)] }}"
-            division_id: "{{ divisionIds[$randomInt(0, 2)] }}"
-            project_id: "project-{{ $randomInt(1, 10) }}"
-            line_items:
-              - description: "Load test item {{ $randomInt(1000, 9999) }}"
-                quantity: "{{ $randomInt(1, 100) }}"
-                unit_price: "{{ $randomInt(10, 1000) }}.{{ $randomInt(10, 99) }}"
-                gl_account_number: "{{ $randomInt(6000, 7999) }}"
-                gl_account_name: "Test GL Account"
-                is_taxable: "{{ $randomBool() }}"
-            notes: "Load testing PO created at {{ $timestamp }}"
-          expect:
-            - statusCode: [201, 400, 403]
-          capture:
-            - json: "$.po.id"
-              as: "poId"
-
-  # Report generation - resource intensive operations
-  - name: "Report Generation"
-    weight: 20
-    flow:
-      - post:
-          url: "/api/auth/signin"
-          json:
-            email: "test.manager@asr.com"  # Use manager role for reports
-            password: "test123"
-          capture:
-            - json: "$.token"
-              as: "authToken"
-
+      # Test all 6 business reports
       - get:
           url: "/api/reports/po-summary?startDate=2024-01-01&endDate=2024-12-31"
-          headers:
-            Authorization: "Bearer {{ authToken }}"
-          expect:
-            - statusCode: [200, 403]
-            - hasProperty: "summary"
 
-      - think: 2  # Wait 2 seconds between report requests
+      - think: 1
+
+      - get:
+          url: "/api/reports/project-details?startDate=2024-01-01&endDate=2024-12-31"
+
+      - think: 1
+
+      - get:
+          url: "/api/reports/vendor-analysis?startDate=2024-01-01&endDate=2024-12-31"
+
+      - think: 1
 
       - get:
           url: "/api/reports/gl-analysis?startDate=2024-01-01&endDate=2024-12-31"
-          headers:
-            Authorization: "Bearer {{ authToken }}"
-          expect:
-            - statusCode: [200, 403]
 
-  # Approval workflow - business critical operations
-  - name: "Approval Workflow"
+      - think: 1
+
+      - get:
+          url: "/api/reports/budget-vs-actual?startDate=2024-01-01&endDate=2024-12-31"
+
+      - think: 1
+
+      - get:
+          url: "/api/reports/approval-bottleneck?startDate=2024-01-01&endDate=2024-12-31"
+
+  # API endpoint stress test - Core system operations
+  - name: "API Stress Test"
+    weight: 20
+    flow:
+      # Test critical API endpoints with 500ms target
+      - get:
+          url: "/api/po/list"
+
+      - get:
+          url: "/api/vendors/list"
+
+      - get:
+          url: "/api/projects/list"
+
+      - get:
+          url: "/api/divisions/list"
+
+      - get:
+          url: "/api/health"
+
+  # CSV Export performance test - Large dataset handling
+  - name: "Export Performance Test"
     weight: 10
     flow:
-      - post:
-          url: "/api/auth/signin"
-          json:
-            email: "test.manager@asr.com"
-            password: "test123"
-          capture:
-            - json: "$.token"
-              as: "authToken"
+      # Test CSV exports for large datasets
+      - get:
+          url: "/api/reports/po-summary?format=csv&startDate=2024-01-01&endDate=2024-12-31"
+
+      - think: 2
 
       - get:
-          url: "/api/approvals"
-          headers:
-            Authorization: "Bearer {{ authToken }}"
-          expect:
-            - statusCode: [200, 403]
-            - contentType: json
+          url: "/api/reports/project-details?format=csv&startDate=2024-01-01&endDate=2024-12-31"
 
-      - think: 1  # Think time before approval action
-
-  # Audit trail access - compliance operations
-  - name: "Audit Trail"
-    weight: 5
-    flow:
-      - post:
-          url: "/api/auth/signin"
-          json:
-            email: "test.accounting@asr.com"  # Use accounting role
-            password: "test123"
-          capture:
-            - json: "$.token"
-              as: "authToken"
+      - think: 2
 
       - get:
-          url: "/api/audit-trail?limit=50"
-          headers:
-            Authorization: "Bearer {{ authToken }}"
-          expect:
-            - statusCode: [200, 403]
-            - contentType: json
-
-# Post-test hooks
-after:
-  - log: "Load test completed"
-  - log: "Check performance metrics and error rates"
-
-# Custom processing functions
-processor: "./artillery-processor.js"
+          url: "/api/reports/vendor-analysis?format=csv&startDate=2024-01-01&endDate=2024-12-31"

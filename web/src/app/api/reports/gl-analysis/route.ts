@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
+import { Prisma } from '@prisma/client';
 import prisma from '@/lib/db';
 import { hasPermission } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
@@ -114,7 +115,7 @@ const generateGLAnalysisReport = async (
       id: true,
       unit_price: true,
       quantity: true,
-      total_amount: true,
+      line_subtotal: true,
       gl_account_number: true,
       gl_account_name: true,
       is_taxable: true,
@@ -184,14 +185,14 @@ const generateGLAnalysisReport = async (
     const lineItems = glGroup.lineItems;
 
     // Calculate totals
-    const totalAmount = lineItems.reduce((sum, item) => sum + (item.total_amount?.toNumber() || 0), 0);
+    const totalAmount = lineItems.reduce((sum, item) => sum + (item.line_subtotal?.toNumber() || 0), 0);
     const totalLineItems = lineItems.length;
     const averageLineItemValue = totalLineItems > 0 ? totalAmount / totalLineItems : 0;
 
     // Tax analysis
     const taxableAmount = lineItems
       .filter(item => item.is_taxable)
-      .reduce((sum, item) => sum + (item.total_amount?.toNumber() || 0), 0);
+      .reduce((sum, item) => sum + (item.line_subtotal?.toNumber() || 0), 0);
     const nonTaxableAmount = totalAmount - taxableAmount;
     const taxablePercentage = totalAmount > 0 ? (taxableAmount / totalAmount) * 100 : 0;
 
@@ -206,7 +207,7 @@ const generateGLAnalysisReport = async (
 
     lineItems.forEach(item => {
       const divId = item.po_headers.division_id;
-      const amount = item.total_amount?.toNumber() || 0;
+      const amount = item.line_subtotal?.toNumber() || 0;
 
       if (!divisionSpending.has(divId)) {
         divisionSpending.set(divId, {
@@ -241,7 +242,7 @@ const generateGLAnalysisReport = async (
       const projId = item.po_headers.project_id;
       if (!projId) return;
 
-      const amount = item.total_amount?.toNumber() || 0;
+      const amount = item.line_subtotal?.toNumber() || 0;
 
       if (!projectSpending.has(projId)) {
         projectSpending.set(projId, {
@@ -294,7 +295,7 @@ const generateGLAnalysisReport = async (
     year: number;
     gl_account_number: string;
     gl_category: string;
-    total_amount: number;
+    line_subtotal: number;
     line_count: number;
   }>>`
     SELECT
@@ -302,7 +303,7 @@ const generateGLAnalysisReport = async (
       EXTRACT(YEAR FROM h.created_at)::int as year,
       COALESCE(l.gl_account_number, 'Unknown') as gl_account_number,
       COALESCE(g.gl_account_category::text, 'Other') as gl_category,
-      COALESCE(SUM(l.total_amount), 0)::float as total_amount,
+      COALESCE(SUM(l.line_subtotal), 0)::float as line_subtotal,
       COUNT(l.id)::int as line_count
     FROM po_line_items l
     JOIN po_headers h ON h.id = l.po_id
@@ -310,11 +311,11 @@ const generateGLAnalysisReport = async (
     WHERE h.deleted_at IS NULL
       AND h.created_at >= ${startDate}
       AND h.created_at <= ${endDate}
-      ${divisionFilter ? prisma.Prisma.sql`AND h.division_id = ${divisionFilter}` : prisma.Prisma.empty}
-      ${glAccountFilter ? prisma.Prisma.sql`AND l.gl_account_number = ${glAccountFilter}` : prisma.Prisma.empty}
+      ${divisionFilter ? Prisma.sql`AND h.division_id = ${divisionFilter}` : Prisma.empty}
+      ${glAccountFilter ? Prisma.sql`AND l.gl_account_number = ${glAccountFilter}` : Prisma.empty}
     GROUP BY TO_CHAR(h.created_at, 'Month'), EXTRACT(YEAR FROM h.created_at), EXTRACT(MONTH FROM h.created_at),
              l.gl_account_number, g.gl_account_category
-    ORDER BY year, EXTRACT(MONTH FROM h.created_at), total_amount DESC
+    ORDER BY year, EXTRACT(MONTH FROM h.created_at), line_subtotal DESC
   `;
 
   // Process monthly trends by GL account
@@ -349,13 +350,13 @@ const generateGLAnalysisReport = async (
       glTrends.push(monthData);
     }
 
-    monthData.totalAmount += trend.total_amount;
+    monthData.totalAmount += trend.line_subtotal;
     monthData.lineItemCount += trend.line_count;
 
     if (trend.gl_category === 'COGS') {
-      monthData.cogsCOGSAmount += trend.total_amount;
+      monthData.cogsCOGSAmount += trend.line_subtotal;
     } else if (trend.gl_category === 'OpEx') {
-      monthData.opexAmount += trend.total_amount;
+      monthData.opexAmount += trend.line_subtotal;
     }
   });
 
@@ -388,16 +389,16 @@ const generateGLAnalysisReport = async (
       const monthData = acc.get(key)!;
       switch (trend.gl_category) {
         case 'COGS':
-          monthData.cogs += trend.total_amount;
+          monthData.cogs += trend.line_subtotal;
           break;
         case 'OpEx':
-          monthData.opex += trend.total_amount;
+          monthData.opex += trend.line_subtotal;
           break;
         case 'CreditCard':
-          monthData.creditCard += trend.total_amount;
+          monthData.creditCard += trend.line_subtotal;
           break;
         default:
-          monthData.other += trend.total_amount;
+          monthData.other += trend.line_subtotal;
       }
 
       return acc;
@@ -452,7 +453,7 @@ const generateGLAnalysisReport = async (
 };
 
 // GET handler for GL Analysis report
-const getHandler = async (request: NextRequest) => {
+const getHandler = async (request: NextRequest): Promise<NextResponse> => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -541,7 +542,7 @@ const getHandler = async (request: NextRequest) => {
 
       const csvContent = `${csvHeader}\n${csvRows}`;
 
-      return new Response(csvContent, {
+      return new NextResponse(csvContent, {
         headers: {
           'Content-Type': 'text/csv',
           'Content-Disposition': 'attachment; filename=gl-analysis-report.csv',

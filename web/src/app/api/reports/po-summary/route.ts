@@ -93,7 +93,7 @@ const generatePOSummaryReport = async (
 
       // Calculate completion rate (Approved, Issued, Received, Paid)
       const completedStatuses = ['Approved', 'Issued', 'Received', 'Paid'];
-      const completedPOs = pos.filter(po => completedStatuses.includes(po.status));
+      const completedPOs = pos.filter(po => po.status && completedStatuses.includes(po.status));
       const completionRate = totalPOCount > 0 ? (completedPOs.length / totalPOCount) * 100 : 0;
 
       // Calculate average processing time for completed POs
@@ -123,11 +123,13 @@ const generatePOSummaryReport = async (
       const statusBreakdown: Record<string, { count: number; amount: number }> = {};
       pos.forEach((po) => {
         const status = po.status;
-        if (!statusBreakdown[status]) {
-          statusBreakdown[status] = { count: 0, amount: 0 };
+        if (status) {
+          if (!statusBreakdown[status]) {
+            statusBreakdown[status] = { count: 0, amount: 0 };
+          }
+          statusBreakdown[status].count++;
+          statusBreakdown[status].amount += po.total_amount?.toNumber() || 0;
         }
-        statusBreakdown[status].count++;
-        statusBreakdown[status].amount += po.total_amount?.toNumber() || 0;
       });
 
       // Monthly trend (last 12 months)
@@ -228,7 +230,7 @@ const generatePOSummaryReport = async (
 };
 
 // GET handler for PO Summary report
-const getHandler = async (request: NextRequest) => {
+const getHandler = async (request: NextRequest): Promise<NextResponse> => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -330,7 +332,7 @@ const getHandler = async (request: NextRequest) => {
 
       const csvContent = `${csvHeader}\n${csvRows}`;
 
-      return new Response(csvContent, {
+      return new NextResponse(csvContent, {
         headers: {
           'Content-Type': 'text/csv',
           'Content-Disposition': 'attachment; filename=po-summary-report.csv',

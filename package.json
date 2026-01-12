@@ -12,5 +12,8 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "artillery": "^2.0.27"
   }
 }

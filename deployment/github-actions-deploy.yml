@@ -1,0 +1,334 @@
+# ASR Purchase Order System - CI/CD Pipeline
+# Phase 4D - Deployment Setup
+# GitHub Actions Workflow for Automated Deployment
+
+name: 'ASR PO System - Build, Test & Deploy'
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  # Code Quality & Testing
+  quality-checks:
+    name: 'Code Quality & Testing'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install Dependencies
+        run: |
+          cd web
+          pnpm install --frozen-lockfile
+
+      - name: TypeScript Type Check
+        run: |
+          cd web
+          pnpm run type-check
+
+      - name: ESLint Code Quality Check
+        run: |
+          cd web
+          pnpm run lint
+
+      - name: Prettier Code Formatting Check
+        run: |
+          cd web
+          pnpm run format:check
+
+      - name: Build Application
+        run: |
+          cd web
+          pnpm run build
+
+      - name: Run Unit Tests
+        run: |
+          cd web
+          pnpm run test:unit
+
+      - name: Run Integration Tests
+        run: |
+          cd web
+          pnpm run test:integration
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asr_po_test
+
+  # Security Scanning
+  security-scan:
+    name: 'Security Scanning'
+    runs-on: ubuntu-latest
+    needs: quality-checks
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Dependency Vulnerability Scan
+        run: |
+          cd web
+          npm audit --audit-level=high
+
+      - name: Secret Scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+
+  # Performance Testing
+  performance-test:
+    name: 'Performance Testing'
+    runs-on: ubuntu-latest
+    needs: quality-checks
+    if: github.ref == 'refs/heads/main'
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: asr_po_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install Dependencies
+        run: |
+          cd web
+          pnpm install --frozen-lockfile
+
+      - name: Build Application
+        run: |
+          cd web
+          pnpm run build
+
+      - name: Start Application
+        run: |
+          cd web
+          pnpm run start &
+          sleep 30
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asr_po_test
+
+      - name: Install Artillery
+        run: npm install -g artillery@latest
+
+      - name: Run Load Tests
+        run: |
+          cd load-testing
+          artillery run artillery-config.yml --output performance-results.json
+
+      - name: Upload Performance Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: load-testing/performance-results.json
+
+  # Build Docker Image
+  build-docker:
+    name: 'Build Docker Image'
+    runs-on: ubuntu-latest
+    needs: [quality-checks, security-scan]
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/asr-po-system
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./web
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Deploy to Staging
+  deploy-staging:
+    name: 'Deploy to Staging'
+    runs-on: ubuntu-latest
+    needs: [build-docker, performance-test]
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    environment:
+      name: staging
+      url: https://asr-po-staging.yourdomain.com
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Staging Environment
+        run: |
+          echo "Deploying to staging environment..."
+          # Platform-specific deployment commands here
+          # Examples for different platforms:
+
+          # Vercel deployment
+          # npx vercel --token ${{ secrets.VERCEL_TOKEN }} --yes
+
+          # Railway deployment
+          # railway login --token ${{ secrets.RAILWAY_TOKEN }}
+          # railway up --service asr-po-staging
+
+          # Render deployment
+          # curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_STAGING }}"
+
+          echo "Staging deployment completed"
+
+      - name: Run Smoke Tests
+        run: |
+          sleep 60 # Wait for deployment to be ready
+          curl -f https://asr-po-staging.yourdomain.com/api/health || exit 1
+
+      - name: Notify Deployment
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          text: 'ASR PO System deployed to staging'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Deploy to Production (Manual Approval Required)
+  deploy-production:
+    name: 'Deploy to Production'
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://asr-po.yourdomain.com
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Production Pre-deployment Checks
+        run: |
+          echo "Running pre-deployment checks..."
+          # Verify staging health
+          curl -f https://asr-po-staging.yourdomain.com/api/health
+          # Check database migration status
+          # Verify backup completion
+          echo "Pre-deployment checks passed"
+
+      - name: Deploy to Production Environment
+        run: |
+          echo "Deploying to production environment..."
+          # Production deployment commands
+          # Apply database migrations
+          # Update configuration
+          echo "Production deployment completed"
+
+      - name: Run Production Smoke Tests
+        run: |
+          sleep 60 # Wait for deployment to be ready
+          curl -f https://asr-po.yourdomain.com/api/health || exit 1
+
+      - name: Notify Production Deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: '🚀 ASR PO System successfully deployed to production!'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Rollback (Manual trigger only)
+  rollback:
+    name: 'Rollback Production'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'rollback'
+    environment:
+      name: production-rollback
+    steps:
+      - name: Rollback Production Deployment
+        run: |
+          echo "Rolling back production deployment..."
+          # Platform-specific rollback commands
+          # Restore previous Docker image
+          # Rollback database if needed (with extreme caution)
+          echo "Rollback completed"
+
+      - name: Verify Rollback
+        run: |
+          sleep 60
+          curl -f https://asr-po.yourdomain.com/api/health
+
+      - name: Notify Rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "⚠️ ASR PO System rolled back to previous version",
+              color: "warning"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

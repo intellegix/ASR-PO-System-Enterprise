@@ -1,0 +1,95 @@
+# ASR Purchase Order System - Bulk User Creation Template
+#
+# Instructions:
+# 1. Copy this file and remove the .template extension
+# 2. Replace all {{PLACEHOLDER}} values with actual data
+# 3. Remove the # comment lines (lines starting with #)
+# 4. Save as CSV format
+# 5. Use the bulk import feature in Admin Panel
+#
+# Field Descriptions:
+# - email: User's corporate email address (used for login)
+# - first_name: User's first name
+# - last_name: User's last name
+# - phone: Primary phone number (used for click-to-call features)
+# - role: MAJORITY_OWNER, DIVISION_LEADER, OPERATIONS_MANAGER, or ACCOUNTING
+# - division_code: Division code (required for DIVISION_LEADER and OPERATIONS_MANAGER)
+# - is_active: true/false - whether the user account is active
+# - temporary_password: Initial password (user must change on first login)
+# - send_welcome_email: true/false - whether to send welcome email with login instructions
+#
+# Role Hierarchy:
+# MAJORITY_OWNER: Full system access, all divisions visible
+# DIVISION_LEADER: Can create POs for their division, approve up to their limit
+# OPERATIONS_MANAGER: Can approve POs for their division, all administrative functions
+# ACCOUNTING: Financial reports, QuickBooks integration, cross-division visibility
+#
+# Division Codes:
+# Use the division codes configured in your system. Common examples:
+# CONSTR (Construction), MAINT (Maintenance), ADMIN (Administration),
+# SALES (Sales), MGMT (Management)
+
+email,first_name,last_name,phone,role,division_code,is_active,temporary_password,send_welcome_email
+
+# Executive Level Users
+{{CEO_EMAIL}},{{CEO_FIRST_NAME}},{{CEO_LAST_NAME}},{{CEO_PHONE}},MAJORITY_OWNER,,true,{{CEO_TEMP_PASSWORD}},true
+
+# Accounting Department
+{{ACCOUNTING_MANAGER_EMAIL}},{{ACCOUNTING_MANAGER_FIRST_NAME}},{{ACCOUNTING_MANAGER_LAST_NAME}},{{ACCOUNTING_MANAGER_PHONE}},ACCOUNTING,,true,{{ACCOUNTING_MANAGER_TEMP_PASSWORD}},true
+{{ACCOUNTING_CLERK_EMAIL}},{{ACCOUNTING_CLERK_FIRST_NAME}},{{ACCOUNTING_CLERK_LAST_NAME}},{{ACCOUNTING_CLERK_PHONE}},ACCOUNTING,,true,{{ACCOUNTING_CLERK_TEMP_PASSWORD}},true
+
+# Construction Division
+{{CONSTRUCTION_LEADER_EMAIL}},{{CONSTRUCTION_LEADER_FIRST_NAME}},{{CONSTRUCTION_LEADER_LAST_NAME}},{{CONSTRUCTION_LEADER_PHONE}},DIVISION_LEADER,CONSTR,true,{{CONSTRUCTION_LEADER_TEMP_PASSWORD}},true
+{{CONSTRUCTION_OPS_EMAIL}},{{CONSTRUCTION_OPS_FIRST_NAME}},{{CONSTRUCTION_OPS_LAST_NAME}},{{CONSTRUCTION_OPS_PHONE}},OPERATIONS_MANAGER,CONSTR,true,{{CONSTRUCTION_OPS_TEMP_PASSWORD}},true
+
+# Maintenance Division
+{{MAINTENANCE_LEADER_EMAIL}},{{MAINTENANCE_LEADER_FIRST_NAME}},{{MAINTENANCE_LEADER_LAST_NAME}},{{MAINTENANCE_LEADER_PHONE}},DIVISION_LEADER,MAINT,true,{{MAINTENANCE_LEADER_TEMP_PASSWORD}},true
+{{MAINTENANCE_OPS_EMAIL}},{{MAINTENANCE_OPS_FIRST_NAME}},{{MAINTENANCE_OPS_LAST_NAME}},{{MAINTENANCE_OPS_PHONE}},OPERATIONS_MANAGER,MAINT,true,{{MAINTENANCE_OPS_TEMP_PASSWORD}},true
+
+# Administration Division
+{{ADMIN_LEADER_EMAIL}},{{ADMIN_LEADER_FIRST_NAME}},{{ADMIN_LEADER_LAST_NAME}},{{ADMIN_LEADER_PHONE}},DIVISION_LEADER,ADMIN,true,{{ADMIN_LEADER_TEMP_PASSWORD}},true
+{{ADMIN_OPS_EMAIL}},{{ADMIN_OPS_FIRST_NAME}},{{ADMIN_OPS_LAST_NAME}},{{ADMIN_OPS_PHONE}},OPERATIONS_MANAGER,ADMIN,true,{{ADMIN_OPS_TEMP_PASSWORD}},true
+
+# Sales Division
+{{SALES_LEADER_EMAIL}},{{SALES_LEADER_FIRST_NAME}},{{SALES_LEADER_LAST_NAME}},{{SALES_LEADER_PHONE}},DIVISION_LEADER,SALES,true,{{SALES_LEADER_TEMP_PASSWORD}},true
+{{SALES_OPS_EMAIL}},{{SALES_OPS_FIRST_NAME}},{{SALES_OPS_LAST_NAME}},{{SALES_OPS_PHONE}},OPERATIONS_MANAGER,SALES,true,{{SALES_OPS_TEMP_PASSWORD}},true
+
+# Example Template Rows (Remove these before importing)
+# john.doe@asr.com,John,Doe,619-555-0123,DIVISION_LEADER,CONSTR,true,TempPass123!,true
+# jane.smith@asr.com,Jane,Smith,619-555-0124,OPERATIONS_MANAGER,CONSTR,true,TempPass456!,true
+# accounting@asr.com,Robert,Johnson,619-555-0125,ACCOUNTING,,true,TempPass789!,true
+
+#
+# VALIDATION CHECKLIST BEFORE IMPORT:
+# □ All {{PLACEHOLDER}} values have been replaced
+# □ Email addresses are valid and follow company domain pattern
+# □ Phone numbers are in consistent format (###-###-#### recommended)
+# □ All roles are from the valid set (MAJORITY_OWNER, DIVISION_LEADER, OPERATIONS_MANAGER, ACCOUNTING)
+# □ Division codes match exactly with configured divisions in system
+# □ Temporary passwords meet security requirements (8+ chars, mixed case, numbers, symbols)
+# □ No duplicate email addresses in the file
+# □ All required fields are populated (email, first_name, last_name, role, is_active)
+# □ Division codes are provided for DIVISION_LEADER and OPERATIONS_MANAGER roles
+# □ File saved in CSV format without # comment lines
+#
+# SECURITY CONSIDERATIONS:
+# □ Temporary passwords are unique for each user
+# □ Users will be forced to change passwords on first login
+# □ Welcome emails contain secure login instructions only
+# □ File is transmitted securely and deleted after import
+# □ Access to this template is restricted to authorized administrators
+#
+# POST-IMPORT STEPS:
+# 1. Verify all users were created successfully
+# 2. Check that division assignments are correct
+# 3. Test login for a sample of users
+# 4. Confirm welcome emails were sent
+# 5. Monitor for any bounce-back emails
+# 6. Document any failed imports and reasons
+# 7. Securely delete the import file
+#
+# SUPPORT:
+# For assistance with bulk user import:
+# - Reference: docs/ADMIN-GUIDE.md Section 2 (User Management)
+# - API Documentation: docs/API-REFERENCE.md Section 2 (User Management API)
+# - Contact: {{SYSTEM_ADMINISTRATOR_EMAIL}}

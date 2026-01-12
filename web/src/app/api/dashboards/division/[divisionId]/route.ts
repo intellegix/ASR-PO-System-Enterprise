@@ -158,7 +158,7 @@ const getDivisionKPIs = async (divisionId: string, userRole: string, userDivisio
         poNumber: po.po_number,
         amount: po.total_amount?.toNumber() || 0,
         vendor: po.vendors?.vendor_name,
-        daysOld: Math.floor((now.getTime() - po.created_at.getTime()) / (1000 * 60 * 60 * 24)),
+        daysOld: po.created_at ? Math.floor((now.getTime() - po.created_at.getTime()) / (1000 * 60 * 60 * 24)) : 0,
       })) : [],
     },
     canViewDetails,

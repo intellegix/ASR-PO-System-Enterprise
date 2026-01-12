@@ -93,7 +93,7 @@ const getCrossDivisionKPIs = async (userRole: string) => {
     );
 
     const pendingCount = divisionCurrentMonth.filter(po =>
-      ['Draft', 'Submitted'].includes(po.status)
+      po.status && ['Draft', 'Submitted'].includes(po.status)
     ).length;
 
     return {
@@ -196,7 +196,7 @@ const getCrossDivisionKPIs = async (userRole: string) => {
       amount: po.total_amount?.toNumber() || 0,
       division: po.divisions?.division_name,
       vendor: po.vendors?.vendor_name,
-      daysOld: Math.floor((now.getTime() - po.created_at.getTime()) / (1000 * 60 * 60 * 24)),
+      daysOld: po.created_at ? Math.floor((now.getTime() - po.created_at.getTime()) / (1000 * 60 * 60 * 24)) : 0,
     })),
     approvalVelocity: approvalVelocityData.sort((a, b) => a.avgApprovalTimeHours - b.avgApprovalTimeHours),
   };

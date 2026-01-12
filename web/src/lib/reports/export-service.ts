@@ -581,7 +581,7 @@ export class ReportExportService {
 
       await browser.close();
 
-      return new NextResponse(pdfBuffer, {
+      return new NextResponse(pdfBuffer as BodyInit, {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': `attachment; filename="${options.filename}.pdf"`,

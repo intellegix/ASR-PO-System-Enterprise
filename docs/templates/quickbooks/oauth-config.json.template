@@ -1,0 +1,238 @@
+{
+  "description": "QuickBooks OAuth 2.0 Configuration Template for ASR Purchase Order System",
+  "version": "1.0.0",
+  "lastUpdated": "2024-01-12",
+
+  "environments": {
+    "sandbox": {
+      "description": "QuickBooks Sandbox environment for testing",
+      "clientId": "{{QB_SANDBOX_CLIENT_ID}}",
+      "clientSecret": "{{QB_SANDBOX_CLIENT_SECRET}}",
+      "environment": "sandbox",
+      "baseUrl": "https://sandbox-quickbooks.api.intuit.com",
+      "discoveryDocument": "https://api.intuit.com/.well-known/openid_sandbox",
+      "redirectUri": "{{STAGING_APP_URL}}/api/quickbooks/callback",
+      "scope": "com.intuit.quickbooks.accounting",
+      "responseType": "code",
+      "accessType": "offline"
+    },
+
+    "production": {
+      "description": "QuickBooks Production environment for live operations",
+      "clientId": "{{QB_PRODUCTION_CLIENT_ID}}",
+      "clientSecret": "{{QB_PRODUCTION_CLIENT_SECRET}}",
+      "environment": "production",
+      "baseUrl": "https://api.intuit.com",
+      "discoveryDocument": "https://api.intuit.com/.well-known/openid_production",
+      "redirectUri": "{{PRODUCTION_APP_URL}}/api/quickbooks/callback",
+      "scope": "com.intuit.quickbooks.accounting",
+      "responseType": "code",
+      "accessType": "offline"
+    }
+  },
+
+  "apiConfiguration": {
+    "timeout": 30000,
+    "retryAttempts": 3,
+    "retryDelay": 1000,
+    "rateLimitBuffer": 0.8,
+    "maxConcurrentRequests": 5,
+    "requestQueueSize": 100
+  },
+
+  "syncConfiguration": {
+    "defaultSchedule": "0 */6 * * *",
+    "batchSize": 50,
+    "enableRealTimeSync": true,
+    "syncEntities": {
+      "vendors": {
+        "enabled": true,
+        "frequency": "daily",
+        "lastSync": null
+      },
+      "chartOfAccounts": {
+        "enabled": true,
+        "frequency": "weekly",
+        "lastSync": null
+      },
+      "purchaseOrders": {
+        "enabled": true,
+        "frequency": "realtime",
+        "lastSync": null
+      },
+      "bills": {
+        "enabled": true,
+        "frequency": "hourly",
+        "lastSync": null
+      }
+    }
+  },
+
+  "dataMapping": {
+    "vendor": {
+      "qbFields": ["Id", "Name", "CompanyName", "PrintOnCheckName", "Active", "Balance", "BillAddr", "PaymentMethodRef", "TermRef"],
+      "systemFields": ["qb_vendor_id", "name", "company_name", "display_name", "is_active", "balance", "address", "payment_method", "payment_terms"],
+      "required": ["Name", "Active"]
+    },
+
+    "chartOfAccounts": {
+      "qbFields": ["Id", "Name", "FullyQualifiedName", "Active", "AccountType", "AccountSubType", "Classification"],
+      "systemFields": ["qb_account_id", "account_name", "full_name", "is_active", "account_type", "account_subtype", "classification"],
+      "required": ["Name", "AccountType", "Active"]
+    },
+
+    "purchaseOrder": {
+      "qbFields": ["Id", "DocNumber", "TxnDate", "VendorRef", "Line", "TotalAmt", "PrivateNote", "CustomField"],
+      "systemFields": ["qb_po_id", "po_number", "date_created", "vendor_id", "line_items", "total_amount", "notes", "custom_fields"],
+      "required": ["VendorRef", "Line", "TotalAmt"]
+    }
+  },
+
+  "errorHandling": {
+    "retryableErrors": [
+      "service_unavailable",
+      "internal_server_error",
+      "rate_limit_exceeded",
+      "timeout"
+    ],
+    "nonRetryableErrors": [
+      "unauthorized",
+      "forbidden",
+      "invalid_request",
+      "validation_fault"
+    ],
+    "errorNotification": {
+      "enabled": true,
+      "emailRecipients": ["{{SYSTEM_ADMINISTRATOR_EMAIL}}", "{{BACKUP_ADMINISTRATOR_EMAIL}}"],
+      "slackWebhook": "{{SLACK_WEBHOOK_URL}}",
+      "severityThreshold": "error"
+    }
+  },
+
+  "webhooks": {
+    "enabled": true,
+    "verifier": "{{QB_WEBHOOK_VERIFIER}}",
+    "endpoint": "{{PRODUCTION_APP_URL}}/api/quickbooks/webhooks",
+    "entities": ["Vendor", "Account", "PurchaseOrder", "Bill"],
+    "retryConfiguration": {
+      "maxRetries": 3,
+      "backoffMultiplier": 2,
+      "initialDelay": 1000
+    }
+  },
+
+  "security": {
+    "tokenEncryption": {
+      "enabled": true,
+      "algorithm": "AES-256-GCM",
+      "keyRotationDays": 90
+    },
+    "accessTokenStorage": {
+      "type": "encrypted_database",
+      "location": "qb_tokens table"
+    },
+    "auditLogging": {
+      "enabled": true,
+      "logLevel": "info",
+      "includeRequestBodies": false,
+      "retention": "365 days"
+    }
+  },
+
+  "monitoring": {
+    "healthCheck": {
+      "enabled": true,
+      "endpoint": "/api/quickbooks/health",
+      "interval": "5 minutes"
+    },
+    "metrics": {
+      "enabled": true,
+      "trackSyncDuration": true,
+      "trackApiLatency": true,
+      "trackErrorRates": true
+    },
+    "alerting": {
+      "syncFailures": {
+        "threshold": 3,
+        "window": "1 hour"
+      },
+      "apiErrors": {
+        "threshold": 10,
+        "window": "5 minutes"
+      },
+      "tokenExpiration": {
+        "warningDays": 7,
+        "criticalDays": 1
+      }
+    }
+  },
+
+  "setupInstructions": {
+    "steps": [
+      "1. Create QuickBooks app at https://developer.intuit.com",
+      "2. Configure redirect URI to match your environment",
+      "3. Replace {{PLACEHOLDER}} values with actual configuration",
+      "4. Set up webhook endpoint if using real-time sync",
+      "5. Configure database tables for token storage",
+      "6. Test OAuth flow in sandbox environment",
+      "7. Verify data sync functionality",
+      "8. Deploy to production environment"
+    ],
+    "requiredPermissions": [
+      "com.intuit.quickbooks.accounting",
+      "Read/Write access to Vendors",
+      "Read/Write access to Chart of Accounts",
+      "Read/Write access to Purchase Orders",
+      "Read access to Company Info"
+    ]
+  },
+
+  "validationChecklist": {
+    "preDeployment": [
+      "□ Client ID and secret configured for correct environment",
+      "□ Redirect URI registered in QuickBooks developer console",
+      "□ Database tables created for token storage",
+      "□ Webhook endpoint accessible if enabled",
+      "□ SSL certificate valid for OAuth callbacks",
+      "□ Error notification emails configured",
+      "□ Sync schedule tested in staging environment"
+    ],
+    "postDeployment": [
+      "□ OAuth flow completes successfully",
+      "□ Test data sync for all enabled entities",
+      "□ Webhook delivery working (if enabled)",
+      "□ Error handling triggers notifications",
+      "□ Health check endpoint responding",
+      "□ Token refresh working automatically",
+      "□ Audit logs capturing API calls"
+    ]
+  },
+
+  "troubleshooting": {
+    "commonIssues": {
+      "oauthCallbackFails": {
+        "symptoms": "Redirect URI mismatch error",
+        "solution": "Verify redirect URI matches exactly in QB developer console"
+      },
+      "tokenExpiredErrors": {
+        "symptoms": "401 Unauthorized on API calls",
+        "solution": "Check token refresh mechanism and ensure refresh tokens are stored"
+      },
+      "syncFailures": {
+        "symptoms": "Data not syncing between systems",
+        "solution": "Check sync logs, verify API permissions, validate data mapping"
+      },
+      "webhookTimeouts": {
+        "symptoms": "Webhook deliveries failing",
+        "solution": "Verify endpoint accessibility, check response times, validate verifier token"
+      }
+    }
+  },
+
+  "support": {
+    "documentation": "docs/ADMIN-GUIDE.md Section 6 (QuickBooks Integration)",
+    "apiReference": "docs/API-REFERENCE.md Section 4 (QuickBooks Integration API)",
+    "troubleshooting": "docs/TROUBLESHOOTING-GUIDE.md Section 3 (QuickBooks Integration Issues)",
+    "contact": "{{SYSTEM_ADMINISTRATOR_EMAIL}}"
+  }
+}

@@ -37,20 +37,18 @@ const getQuickKPIs = async (filter: KPIFilter, userRole: string, userDivisionId:
   const timeRange = timeRanges[timeframe];
 
   // Build WHERE clause based on permissions and filters
-  const baseWhere = {
+  let whereClause: any = {
     deleted_at: null,
     created_at: { gte: timeRange.start },
   };
 
   // Add division filter if specified or if user has limited access
-  let whereClause = { ...baseWhere };
-
   if (divisionId) {
-    whereClause = { ...whereClause, division_id: divisionId };
+    whereClause.division_id = divisionId;
   } else if (userRole === 'DIVISION_LEADER' || userRole === 'OPERATIONS_MANAGER') {
     // These roles can only see their own division by default
     if (userDivisionId) {
-      whereClause = { ...whereClause, division_id: userDivisionId };
+      whereClause.division_id = userDivisionId;
     }
   }
 
@@ -76,12 +74,14 @@ const getQuickKPIs = async (filter: KPIFilter, userRole: string, userDivisionId:
 
   // Status breakdown
   const statusBreakdown = pos.reduce((acc, po) => {
-    acc[po.status] = (acc[po.status] || 0) + 1;
+    if (po.status) {
+      acc[po.status] = (acc[po.status] || 0) + 1;
+    }
     return acc;
   }, {} as Record<string, number>);
 
   // Pending items
-  const pendingPOs = pos.filter(po => ['Draft', 'Submitted'].includes(po.status));
+  const pendingPOs = pos.filter(po => po.status && ['Draft', 'Submitted'].includes(po.status));
   const pendingAmount = pendingPOs.reduce((sum, po) => sum + (po.total_amount?.toNumber() || 0), 0);
 
   // High-value alerts ($25K+)
@@ -89,7 +89,7 @@ const getQuickKPIs = async (filter: KPIFilter, userRole: string, userDivisionId:
 
   // Approval bottlenecks (pending >24 hours)
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const bottlenecks = pendingPOs.filter(po => po.created_at < oneDayAgo);
+  const bottlenecks = pendingPOs.filter(po => po.created_at && po.created_at < oneDayAgo);
 
   return {
     timeframe: {

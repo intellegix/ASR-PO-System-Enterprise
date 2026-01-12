@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
+import { Prisma } from '@prisma/client';
 import { hasPermission } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
@@ -14,14 +15,14 @@ interface VendorAnalysisData {
     code: string;
     type: string;
     contactInfo: {
-      contactName?: string;
-      contactPhone?: string;
-      contactEmail?: string;
+      contactName: string | undefined;
+      contactPhone: string | undefined;
+      contactEmail: string | undefined;
     };
     compliance: {
       is1099Required: boolean;
       w9OnFile: boolean;
-      taxId?: string;
+      taxId: string | undefined;
     };
   };
   financialMetrics: {
@@ -163,7 +164,6 @@ const generateVendorAnalysisReport = async (
       vendor_id: true,
       total_amount: true,
       status: true,
-      payment_terms: true,
       required_by_date: true,
       created_at: true,
       division_id: true,
@@ -187,7 +187,7 @@ const generateVendorAnalysisReport = async (
   const totalCompanySpend = pos.reduce((sum, po) => sum + (po.total_amount?.toNumber() || 0), 0);
 
   // Process each vendor
-  const vendorAnalysis: VendorAnalysisData[] = await Promise.all(
+  const vendorAnalysisRaw = await Promise.all(
     vendors.map(async (vendor, index) => {
       // Get POs for this vendor
       const vendorPOs = pos.filter(po => po.vendor_id === vendor.id);
@@ -208,12 +208,12 @@ const generateVendorAnalysisReport = async (
 
       // Performance metrics
       const completedStatuses = ['Received', 'Paid'];
-      const completedPOs = vendorPOs.filter(po => completedStatuses.includes(po.status));
+      const completedPOs = vendorPOs.filter(po => po.status && completedStatuses.includes(po.status));
       const completionRate = totalPOCount > 0 ? (completedPOs.length / totalPOCount) * 100 : 0;
 
       // On-time delivery calculation (using required_by_date vs created_at as proxy)
       const onTimeCount = vendorPOs.filter(po => {
-        if (!po.required_by_date) return true; // No requirement = on time
+        if (!po.required_by_date || !po.created_at) return true; // No requirement = on time
         const daysDiff = (po.required_by_date.getTime() - po.created_at.getTime()) / (1000 * 60 * 60 * 24);
         return daysDiff >= 0; // Created before or on required date
       }).length;
@@ -221,8 +221,8 @@ const generateVendorAnalysisReport = async (
 
       // Average delivery days (estimated from creation to requirement)
       const deliveryTimes = vendorPOs
-        .filter(po => po.required_by_date)
-        .map(po => (po.required_by_date!.getTime() - po.created_at.getTime()) / (1000 * 60 * 60 * 24));
+        .filter(po => po.required_by_date && po.created_at)
+        .map(po => (po.required_by_date!.getTime() - po.created_at!.getTime()) / (1000 * 60 * 60 * 24));
       const averageDeliveryDays = deliveryTimes.length > 0
         ? deliveryTimes.reduce((sum, days) => sum + days, 0) / deliveryTimes.length
         : 0;
@@ -238,7 +238,7 @@ const generateVendorAnalysisReport = async (
       // Payment terms analysis
       const paymentTermsUsed = new Map<string, number>();
       vendorPOs.forEach(po => {
-        const terms = po.payment_terms || vendor.payment_terms_default || 'Net30';
+        const terms = vendor.payment_terms_default || 'Net30';
         paymentTermsUsed.set(terms, (paymentTermsUsed.get(terms) || 0) + 1);
       });
 
@@ -325,7 +325,7 @@ const generateVendorAnalysisReport = async (
           id: vendor.id,
           name: vendor.vendor_name,
           code: vendor.vendor_code,
-          type: vendor.vendor_type || 'Other',
+          type: (vendor.vendor_type as string) || 'Other',
           contactInfo: {
             contactName: vendor.contact_name || undefined,
             contactPhone: vendor.contact_phone || undefined,
@@ -371,8 +371,8 @@ const generateVendorAnalysisReport = async (
   );
 
   // Filter out null results and sort by spend
-  const activeVendorAnalysis = vendorAnalysis
-    .filter((analysis): analysis is VendorAnalysisData => analysis !== null)
+  const activeVendorAnalysis = (vendorAnalysisRaw
+    .filter((analysis) => analysis !== null) as VendorAnalysisData[])
     .sort((a, b) => b.financialMetrics.totalSpend - a.financialMetrics.totalSpend);
 
   // Assign spend ranks
@@ -399,8 +399,8 @@ const generateVendorAnalysisReport = async (
       AND created_at >= ${startDate}
       AND created_at <= ${endDate}
       AND vendor_id IS NOT NULL
-      ${divisionFilter ? prisma.Prisma.sql`AND division_id = ${divisionFilter}` : prisma.Prisma.empty}
-      ${vendorIdFilter ? prisma.Prisma.sql`AND vendor_id = ${vendorIdFilter}` : prisma.Prisma.empty}
+      ${divisionFilter ? Prisma.sql`AND division_id = ${divisionFilter}` : Prisma.empty}
+      ${vendorIdFilter ? Prisma.sql`AND vendor_id = ${vendorIdFilter}` : Prisma.empty}
     GROUP BY vendor_id, TO_CHAR(created_at, 'Month'), EXTRACT(YEAR FROM created_at), EXTRACT(MONTH FROM created_at)
     ORDER BY vendor_id, year, EXTRACT(MONTH FROM created_at)
   `;
@@ -440,7 +440,7 @@ const generateVendorAnalysisReport = async (
     totalSpend: data.totalSpend,
     averageSpend: data.totalSpend / data.vendors.length,
     performanceScore: Math.round(
-      data.vendors.reduce((sum, v) => sum + v.performance.qualityScore, 0) / data.vendors.length
+      data.vendors.reduce((sum: number, v: any) => sum + v.performance.qualityScore, 0) / data.vendors.length
     ),
   }));
 
@@ -610,7 +610,7 @@ const getHandler = async (request: NextRequest) => {
 
       const csvContent = `${csvHeader}\n${csvRows}`;
 
-      return new Response(csvContent, {
+      return new NextResponse(csvContent, {
         headers: {
           'Content-Type': 'text/csv',
           'Content-Disposition': 'attachment; filename=vendor-analysis-report.csv',

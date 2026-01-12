@@ -1,0 +1,5141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASR Purchase Order System - Standard Operating Procedure</title>
+    
+        <style>
+            @page {
+                size: A4;
+                margin: 1in;
+                @top-center {
+                    content: "ASR Purchase Order System - Standard Operating Procedure";
+                    font-size: 10pt;
+                    color: #1E3A8A;
+                }
+                @bottom-center {
+                    content: "Page " counter(page);
+                    font-size: 9pt;
+                    color: #666;
+                }
+                @bottom-left {
+                    content: "Generated: January 12, 2026";
+                    font-size: 8pt;
+                    color: #666;
+                }
+                @bottom-right {
+                    content: "CONFIDENTIAL - Internal Use Only";
+                    font-size: 8pt;
+                    color: #666;
+                }
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #1F2937;
+                max-width: 8.5in;
+                margin: 0 auto;
+                background: white;
+            }
+
+            .title-page {
+                text-align: center;
+                margin-top: 2in;
+                page-break-after: always;
+            }
+
+            .doc-title {
+                font-size: 28pt;
+                color: #1E3A8A;
+                font-weight: bold;
+                margin-bottom: 20px;
+            }
+
+            .doc-subtitle {
+                font-size: 18pt;
+                color: #3B82F6;
+                margin-bottom: 40px;
+            }
+
+            .doc-info-table {
+                margin: 40px auto;
+                border-collapse: collapse;
+                background: #F9FAFB;
+                border: 2px solid #1E3A8A;
+            }
+
+            .doc-info-table th {
+                background: #1E3A8A;
+                color: white;
+                padding: 12px;
+                text-align: left;
+                font-weight: bold;
+            }
+
+            .doc-info-table td {
+                padding: 10px 12px;
+                border-bottom: 1px solid #E5E7EB;
+            }
+
+            .company-info {
+                margin-top: 40px;
+            }
+
+            h1 {
+                color: #1E3A8A;
+                font-size: 18pt;
+                margin-top: 30px;
+                margin-bottom: 15px;
+                border-bottom: 2px solid #1E3A8A;
+                padding-bottom: 5px;
+                page-break-before: always;
+            }
+
+            h2 {
+                color: #3B82F6;
+                font-size: 14pt;
+                margin-top: 20px;
+                margin-bottom: 10px;
+                page-break-after: avoid;
+            }
+
+            h3 {
+                color: #1E3A8A;
+                font-size: 12pt;
+                margin-top: 16px;
+                margin-bottom: 8px;
+                page-break-after: avoid;
+            }
+
+            p {
+                margin: 8px 0;
+                text-align: justify;
+                line-height: 1.5;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 15px 0;
+                page-break-inside: avoid;
+            }
+
+            table th {
+                background: #1E3A8A;
+                color: white;
+                padding: 8px 6px;
+                text-align: left;
+                font-weight: bold;
+                font-size: 10pt;
+                word-wrap: break-word;
+            }
+
+            table td {
+                padding: 6px;
+                border-bottom: 1px solid #E5E7EB;
+                vertical-align: top;
+                word-wrap: break-word;
+                font-size: 9pt;
+                line-height: 1.4;
+            }
+
+            table tr:nth-child(even) {
+                background: #F9FAFB;
+            }
+
+            table tr:hover {
+                background: #F3F4F6;
+            }
+
+            ul, ol {
+                margin: 10px 0;
+                padding-left: 25px;
+            }
+
+            li {
+                margin: 4px 0;
+                line-height: 1.5;
+            }
+
+            .code-block {
+                background: #F3F4F6;
+                border: 1px solid #E5E7EB;
+                border-radius: 4px;
+                padding: 12px;
+                font-family: 'Courier New', monospace;
+                font-size: 9pt;
+                margin: 10px 0;
+                overflow-x: auto;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+
+            .highlight {
+                background: #FEF3C7;
+                padding: 2px 4px;
+                border-radius: 2px;
+            }
+
+            .important {
+                background: #FECACA;
+                border-left: 4px solid #DC2626;
+                padding: 10px 15px;
+                margin: 10px 0;
+            }
+
+            .note {
+                background: #DBEAFE;
+                border-left: 4px solid #3B82F6;
+                padding: 10px 15px;
+                margin: 10px 0;
+            }
+
+            .toc {
+                background: #F9FAFB;
+                border: 1px solid #E5E7EB;
+                padding: 20px;
+                margin: 20px 0;
+                page-break-inside: avoid;
+            }
+
+            .toc h2 {
+                margin-top: 0;
+                color: #1E3A8A;
+            }
+
+            .toc ol {
+                margin: 0;
+                padding-left: 20px;
+            }
+
+            .toc li {
+                margin: 5px 0;
+            }
+
+            @media print {
+                body { margin: 0; }
+                .no-print { display: none; }
+                h1 { page-break-before: always; }
+                h2, h3 { page-break-after: avoid; }
+                table { page-break-inside: avoid; }
+                tr { page-break-inside: avoid; }
+            }
+        </style>
+        
+</head>
+<body>
+    
+        <div class="title-page">
+            <div class="doc-title">ASR Purchase Order System</div>
+            <div class="doc-subtitle">Standard Operating Procedure</div>
+
+            <table class="doc-info-table">
+                <tr><td><strong>Document ID:</strong></td><td>ASR-SOP-PO-001</td></tr>
+                <tr><td><strong>Version:</strong></td><td>1.0</td></tr>
+                <tr><td><strong>Effective Date:</strong></td><td>January 12, 2026</td></tr>
+                <tr><td><strong>Document Owner:</strong></td><td>Austin Kidwell, CEO</td></tr>
+                <tr><td><strong>Contact:</strong></td><td>akidwell@asr-inc.us</td></tr>
+                <tr><td><strong>Classification:</strong></td><td>Internal Use Only</td></tr>
+            </table>
+
+            <div class="company-info">
+                <h3>ASR Inc</h3>
+                <p>Systems Integration & Construction Services</p>
+                <p>San Diego, California</p>
+            </div>
+        </div>
+        
+    <h1>ASR Purchase Order System</h1>
+<h2>Standard Operating Procedure (SOP)</h2>
+---
+<p>
+<strong>Document Control Information</strong>
+</p>
+<table>
+<tr>
+<th>Field</th>
+<th>Value</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Document Title</strong></td>
+<td>ASR Purchase Order System - Standard Operating Procedure</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Document ID</strong></td>
+<td>ASR-SOP-PO-001</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Version</strong></th>
+<th>1.0</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Effective Date</strong></th>
+<th>January 12, 2026</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Next Review Date</strong></th>
+<th>January 12, 2027</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Document Owner</strong></th>
+<th>Austin Kidwell, CEO (akidwell@asr-inc.us)</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Document Type</strong></th>
+<th>Standard Operating Procedure</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Classification</strong></th>
+<th>Internal Use Only</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Distribution</strong></th>
+<th>All ASR Staff</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+<strong>Approval Matrix</strong>
+</p>
+<table>
+<tr>
+<th>Role</th>
+<th>Name</th>
+<th>Signature</th>
+<th>Date</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Author</strong></td>
+<td>Austin Kidwell</td>
+<td>_[Digital Signature Required]_</td>
+<td>2026-01-12</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Technical Reviewer</strong></td>
+<td>IT Operations Manager</td>
+<td>_[Pending Review]_</td>
+<td>_[Pending]_</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Quality Assurance</strong></th>
+<th>Compliance Officer</th>
+<th>_[Pending Review]_</th>
+<th>_[Pending]_</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Final Approver</strong></th>
+<th>CEO</th>
+<th>_[Pending Final Approval]_</th>
+<th>_[Pending]_</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+<strong>Revision History</strong>
+</p>
+<table>
+<tr>
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Description of Changes</th>
+<p>
+</tr>
+</p>
+<tr>
+<td>1.0</td>
+<td>2026-01-12</td>
+<td>Austin Kidwell</td>
+<td>Initial SOP creation</td>
+<p>
+</tr>
+</p>
+</table>
+---
+<h2>Table of Contents</h2>
+<ol>
+<li>[Purpose and Scope](#1-purpose-and-scope)</li>
+<li>[Definitions and Abbreviations](#2-definitions-and-abbreviations)</li>
+<li>[Roles and Responsibilities](#3-roles-and-responsibilities)</li>
+<li>[System Overview and Architecture](#4-system-overview-and-architecture)</li>
+<li>[Purchase Order Creation Procedures](#5-purchase-order-creation-procedures)</li>
+<li>[Approval Workflow Procedures](#6-approval-workflow-procedures)</li>
+<li>[Reporting and Analytics Procedures](#7-reporting-and-analytics-procedures)</li>
+<li>[Mobile Application Procedures](#8-mobile-application-procedures)</li>
+<li>[Quality Assurance and Compliance](#9-quality-assurance-and-compliance)</li>
+<li>[Training and Competency Requirements](#10-training-and-competency-requirements)</li>
+<li>[Risk Management and Security](#11-risk-management-and-security)</li>
+<li>[Audit and Review Procedures](#12-audit-and-review-procedures)</li>
+<li>[Document Control and Change Management](#13-document-control-and-change-management)</li>
+<li>[Emergency Procedures](#14-emergency-procedures)</li>
+<li>[Appendices](#15-appendices)</li>
+</ul>
+---
+<h2>1. Purpose and Scope</h2>
+<h3>1.1 Purpose</h3>
+<p>
+This Standard Operating Procedure (SOP) establishes the mandatory processes, procedures, and controls for the ASR Purchase Order System. It ensures consistent, compliant, and efficient purchase order management across all ASR divisions while maintaining proper financial controls and audit trails.
+</p>
+<h3>1.2 Scope</h3>
+<p>
+This SOP applies to:
+</p>
+<ul>
+<li><strong>Personnel</strong>: All ASR staff members across all divisions (CH, PW, WS, LS)</li>
+<li><strong>Systems</strong>: The ASR Purchase Order System (Web and Mobile applications)</li>
+<li><strong>Processes</strong>: Purchase order creation, approval, reporting, and financial integration</li>
+<li><strong>Data</strong>: All purchase order transactions, vendor management, and financial reporting</li>
+<li><strong>Compliance</strong>: Internal controls, audit requirements, and QuickBooks integration</li>
+</ul>
+<h3>1.3 Regulatory and Compliance Framework</h3>
+<p>
+This SOP ensures compliance with:
+</p>
+<ul>
+<li><strong>SOX Controls</strong>: Sarbanes-Oxley financial reporting requirements</li>
+<li><strong>Internal Audit Standards</strong>: ASR internal control framework</li>
+<li><strong>Financial Controls</strong>: Segregation of duties and approval hierarchies</li>
+<li><strong>Data Privacy</strong>: Protection of financial and vendor information</li>
+<li><strong>Industry Standards</strong>: Construction industry best practices</li>
+</ul>
+<h3>1.4 Business Objectives</h3>
+<p>
+The ASR PO System supports the following business objectives:
+</p>
+<ul>
+<li><strong>Financial Control</strong>: Maintain proper authorization and approval controls</li>
+<li><strong>Operational Efficiency</strong>: Streamline purchase order workflows</li>
+<li><strong>Visibility</strong>: Provide real-time transparency into spending and commitments</li>
+<li><strong>Compliance</strong>: Ensure audit trails and proper documentation</li>
+<li><strong>Integration</strong>: Seamless QuickBooks synchronization</li>
+</ul>
+---
+<h2>2. Definitions and Abbreviations</h2>
+<h3>2.1 Key Definitions</h3>
+<table>
+<tr>
+<th>Term</th>
+<th>Definition</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Purchase Order (PO)</strong></td>
+<td>A legally binding document issued by ASR to a vendor requesting goods or services</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Work Order (WO)</strong></td>
+<td>Internal project authorization with associated budget and GL account coding</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>GL Account</strong></th>
+<th>General Ledger account code for financial categorization and QuickBooks integration</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Approver</strong></th>
+<th>Authorized personnel with delegation to approve purchase orders within defined limits</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Audit Trail</strong></th>
+<th>Complete chronological record of all system activities and user actions</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Business Intelligence (BI)</strong></th>
+<th>Analytical tools and reports for data-driven decision making</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Progressive Web App (PWA)</strong></th>
+<th>Web application technology providing native app functionality</th>
+<p>
+</tr>
+</p>
+</table>
+<h3>2.2 System Abbreviations</h3>
+<table>
+<tr>
+<th>Abbreviation</th>
+<th>Full Term</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>PO</strong></td>
+<td>Purchase Order</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>WO</strong></td>
+<td>Work Order</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>GL</strong></th>
+<th>General Ledger</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>QB</strong></th>
+<th>QuickBooks</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>API</strong></th>
+<th>Application Programming Interface</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>PWA</strong></th>
+<th>Progressive Web App</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>SOP</strong></th>
+<th>Standard Operating Procedure</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>KPI</strong></th>
+<th>Key Performance Indicator</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>BI</strong></th>
+<th>Business Intelligence</th>
+<p>
+</tr>
+</p>
+</table>
+<h3>2.3 Division Codes</h3>
+<table>
+<tr>
+<th>Code</th>
+<th>Division Name</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>CH</strong></td>
+<td>Corporate Housing</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>PW</strong></td>
+<td>Property Works</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>WS</strong></th>
+<th>Workplace Solutions</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>LS</strong></th>
+<th>Logistics Solutions</th>
+<p>
+</tr>
+</p>
+</table>
+---
+<h2>3. Roles and Responsibilities</h2>
+<h3>3.1 Responsibility Matrix (RACI)</h3>
+<table>
+<tr>
+<th>Activity</th>
+<th>Division Leader</th>
+<th>Operations Manager</th>
+<th>Accounting</th>
+<th>Majority Owner</th>
+<th>IT Support</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>PO Creation</strong></td>
+<td>R</td>
+<td>A</td>
+<td>I</td>
+<td>I</td>
+<td>S</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>PO Approval (≤$25K)</strong></td>
+<td>R/A</td>
+<td>I</td>
+<td>I</td>
+<td>I</td>
+<td>S</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>PO Approval (>$25K)</strong></th>
+<th>R</th>
+<th>R/A</th>
+<th>I</th>
+<th>I</th>
+<th>S</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Financial Oversight</strong></th>
+<th>I</th>
+<th>I</th>
+<th>R/A</th>
+<th>I</th>
+<th>S</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Vendor Management</strong></th>
+<th>C</th>
+<th>R/A</th>
+<th>I</th>
+<th>I</th>
+<th>S</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>System Administration</strong></th>
+<th>I</th>
+<th>I</th>
+<th>I</th>
+<th>A</th>
+<th>R</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Audit and Compliance</strong></th>
+<th>I</th>
+<th>C</th>
+<th>R</th>
+<th>A</th>
+<th>S</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Training Delivery</strong></th>
+<th>C</th>
+<th>R</th>
+<th>C</th>
+<th>A</th>
+<th>S</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+<strong>Legend</strong>: R=Responsible, A=Accountable, C=Consulted, I=Informed, S=Supporting
+</p>
+<h3>3.2 Detailed Role Descriptions</h3>
+<p>
+#### 3.2.1 Division Leader Responsibilities
+</p>
+<p>
+<strong>Primary Duties:</strong>
+</p>
+<ul>
+<li>Create and submit purchase orders for division operations</li>
+<li>Approve purchase orders within authorization limits ($25,000 maximum)</li>
+<li>Monitor division budget utilization and spending patterns</li>
+<li>Ensure compliance with division-specific procurement policies</li>
+<li>Train and oversee team members in system usage</li>
+</ul>
+<p>
+<strong>Authority Levels:</strong>
+</p>
+<ul>
+<li>Purchase order approval: Up to $25,000 per transaction</li>
+<li>Budget oversight: Division-level budget management</li>
+<li>Team management: Division staff training and compliance</li>
+</ul>
+<p>
+<strong>Performance Metrics:</strong>
+</p>
+<ul>
+<li>Average PO processing time: Target ≤ 4 hours</li>
+<li>Budget variance: Target within ±5% monthly</li>
+<li>Compliance rate: Target 100% adherence to procedures</li>
+</ul>
+<p>
+#### 3.2.2 Operations Manager Responsibilities
+</p>
+<p>
+<strong>Primary Duties:</strong>
+</p>
+<ul>
+<li>Approve high-value purchase orders ($25,000+ transactions)</li>
+<li>Oversee cross-division procurement activities</li>
+<li>Manage vendor relationships and performance evaluation</li>
+<li>Monitor approval workflow efficiency and identify bottlenecks</li>
+<li>Ensure compliance with corporate procurement policies</li>
+</ul>
+<p>
+<strong>Authority Levels:</strong>
+</p>
+<ul>
+<li>Purchase order approval: Up to $50,000 per transaction</li>
+<li>Vendor management: Add/remove vendors from approved list</li>
+<li>Process improvement: Modify workflow procedures (with approval)</li>
+</ul>
+<p>
+<strong>Performance Metrics:</strong>
+</p>
+<ul>
+<li>High-value PO processing: Target ≤ 8 hours</li>
+<li>Vendor performance: 95% satisfaction rating</li>
+<li>Process efficiency: 90% approval within SLA</li>
+</ul>
+<p>
+#### 3.2.3 Accounting Team Responsibilities
+</p>
+<p>
+<strong>Primary Duties:</strong>
+</p>
+<ul>
+<li>Provide final financial review and approval for all purchase orders</li>
+<li>Manage GL account structure and coding requirements</li>
+<li>Oversee QuickBooks integration and data synchronization</li>
+<li>Generate financial reports and ensure audit compliance</li>
+<li>Monitor tax implications and compliance requirements</li>
+</ul>
+<p>
+<strong>Authority Levels:</strong>
+</p>
+<ul>
+<li>Financial approval: No transaction limit (final approval authority)</li>
+<li>GL management: Chart of accounts maintenance</li>
+<li>System configuration: Financial settings and integration parameters</li>
+</ul>
+<p>
+<strong>Performance Metrics:</strong>
+</p>
+<ul>
+<li>QuickBooks sync accuracy: Target 99.9%</li>
+<li>Financial reporting timeliness: 100% within deadlines</li>
+<li>Audit compliance: Zero findings</li>
+</ul>
+<p>
+#### 3.2.4 Majority Owner Responsibilities
+</p>
+<p>
+<strong>Primary Duties:</strong>
+</p>
+<ul>
+<li>Establish overall procurement policies and approval limits</li>
+<li>Monitor enterprise-wide performance and compliance</li>
+<li>Approve system configuration changes and policy updates</li>
+<li>Oversee strategic vendor relationships and major contracts</li>
+<li>Ensure regulatory compliance and audit readiness</li>
+</ul>
+<p>
+<strong>Authority Levels:</strong>
+</p>
+<ul>
+<li>Policy establishment: Complete authority over procurement policies</li>
+<li>System governance: Final approval for major system changes</li>
+<li>Strategic oversight: Enterprise-wide performance monitoring</li>
+</ul>
+<p>
+#### 3.2.5 IT Support Responsibilities
+</p>
+<p>
+<strong>Primary Duties:</strong>
+</p>
+<ul>
+<li>Maintain system infrastructure and ensure 99.9% uptime</li>
+<li>Provide user support and troubleshooting assistance</li>
+<li>Manage system security and user access controls</li>
+<li>Oversee data backup and disaster recovery procedures</li>
+<li>Coordinate system updates and maintenance windows</li>
+</ul>
+<p>
+<strong>Authority Levels:</strong>
+</p>
+<ul>
+<li>System maintenance: Technical administration</li>
+<li>User support: Troubleshooting and training assistance</li>
+<li>Security management: Access control and data protection</li>
+</ul>
+---
+<h2>4. System Overview and Architecture</h2>
+<h3>4.1 System Architecture</h3>
+<p>
+The ASR Purchase Order System is built on a modern, scalable architecture designed for enterprise reliability:
+</p>
+<p>
+<code></code>`
+┌─────────────────────────────────────────────────┐
+│                  USER LAYER                     │
+├─────────────────────────────────────────────────┤
+│  Web Application │  Mobile PWA │  API Interface │
+├─────────────────────────────────────────────────┤
+│                APPLICATION LAYER                │
+├─────────────────────────────────────────────────┤
+│  Business Logic │ Workflow Engine │ Auth Service │
+├─────────────────────────────────────────────────┤
+│                  DATA LAYER                     │
+├─────────────────────────────────────────────────┤
+│   PostgreSQL   │    Redis Cache    │  File Storage│
+├─────────────────────────────────────────────────┤
+│                INTEGRATION LAYER                │
+├─────────────────────────────────────────────────┤
+│   QuickBooks API  │  Email Service  │  Audit Log │
+└─────────────────────────────────────────────────┘
+<code></code>`
+</p>
+<h3>4.2 Technical Specifications</h3>
+<p>
+<strong>Infrastructure:</strong>
+</p>
+<ul>
+<li><strong>Platform</strong>: Cloud-hosted (Render.com)</li>
+<li><strong>Database</strong>: PostgreSQL 15+ with automated backups</li>
+<li><strong>Cache Layer</strong>: Redis for session management and performance</li>
+<li><strong>Security</strong>: TLS 1.3 encryption, role-based access control</li>
+<li><strong>Monitoring</strong>: Real-time performance and error tracking</li>
+</ul>
+<p>
+<strong>Performance Standards:</strong>
+</p>
+<ul>
+<li><strong>Availability</strong>: 99.9% uptime SLA</li>
+<li><strong>Response Time</strong>: < 2 seconds for standard operations</li>
+<li><strong>Data Backup</strong>: Automated daily backups with 30-day retention</li>
+<li><strong>Disaster Recovery</strong>: 4-hour RTO, 1-hour RPO</li>
+</ul>
+<h3>4.3 Security Framework</h3>
+<p>
+<strong>Access Controls:</strong>
+</p>
+<ul>
+<li><strong>Authentication</strong>: Multi-factor authentication required</li>
+<li><strong>Authorization</strong>: Role-based permissions with least privilege principle</li>
+<li><strong>Audit Logging</strong>: Complete activity tracking for compliance</li>
+<li><strong>Data Encryption</strong>: At rest and in transit</li>
+</ul>
+<p>
+<strong>Compliance Measures:</strong>
+</p>
+<ul>
+<li><strong>SOX Controls</strong>: Segregation of duties enforcement</li>
+<li><strong>Audit Trail</strong>: Immutable transaction logging</li>
+<li><strong>Data Privacy</strong>: PII protection and access controls</li>
+<li><strong>Regular Reviews</strong>: Quarterly security assessments</li>
+</ul>
+---
+<h2>5. Purchase Order Creation Procedures</h2>
+<h3>5.1 Mandatory Pre-Creation Checklist</h3>
+<p>
+Before creating any purchase order, users MUST verify:
+</p>
+<p>
+<strong>☐ Project Authorization</strong>
+</p>
+<ul>
+<li>[ ] Project code exists and is active in system</li>
+<li>[ ] Work order has been properly authorized</li>
+<li>[ ] Sufficient budget remains for proposed purchase</li>
+<li>[ ] GL account codes are properly identified</li>
+</ul>
+<p>
+<strong>☐ Vendor Verification</strong>
+</p>
+<ul>
+<li>[ ] Vendor is on approved vendor list</li>
+<li>[ ] Vendor information is current and accurate</li>
+<li>[ ] Payment terms are properly established</li>
+<li>[ ] Vendor insurance and licensing verified (if applicable)</li>
+</ul>
+<p>
+<strong>☐ Purchase Justification</strong>
+</p>
+<ul>
+<li>[ ] Purchase is necessary for project completion</li>
+<li>[ ] Items/services align with work order scope</li>
+<li>[ ] Pricing is competitive and reasonable</li>
+<li>[ ] Delivery timeline meets project requirements</li>
+</ul>
+<h3>5.2 Step-by-Step Creation Procedure</h3>
+<p>
+#### Step 5.2.1: System Access and Authentication
+</p>
+<p>
+<strong>Procedure:</strong>
+</p>
+<ol>
+<li><strong>Navigate</strong> to https://asr-po.yourdomain.com</li>
+<li><strong>Authenticate</strong> using ASR credentials</li>
+<li><strong>Verify</strong> role assignment and permissions display correctly</li>
+<li><strong>Confirm</strong> dashboard shows current division and access level</li>
+</ul>
+<p>
+<strong>Quality Control:</strong>
+</p>
+<ul>
+<li>System must display correct user role and division</li>
+<li>Dashboard must show relevant KPIs and pending actions</li>
+<li>Any authentication issues must be reported immediately to IT</li>
+</ul>
+<p>
+#### Step 5.2.2: Project and Work Order Selection
+</p>
+<p>
+<strong>Procedure:</strong>
+</p>
+<ol>
+<li><strong>Click</strong> "Create New PO" from dashboard or navigation menu</li>
+<li><strong>Select Project Code:</strong></li>
+<li>Use dropdown search functionality</li>
+<li>Verify project shows "Active" status</li>
+<li>Confirm project details match intended work</li>
+<li><strong>Select Work Order:</strong></li>
+<li>Choose appropriate work order sequence</li>
+<li>Verify budget availability shown in green</li>
+<li>Note any budget warnings or constraints</li>
+</ul>
+<p>
+<strong>Validation Requirements:</strong>
+</p>
+<ul>
+<li>Project code must be active and accessible to user's division</li>
+<li>Work order must have available budget for proposed purchase</li>
+<li>System must display real-time budget information</li>
+</ul>
+<p>
+#### Step 5.2.3: Vendor Information Entry
+</p>
+<p>
+<strong>For Existing Vendors:</strong>
+</p>
+<ol>
+<li><strong>Search</strong> vendor database using name or ID</li>
+<li><strong>Select</strong> appropriate vendor from results</li>
+<li><strong>Verify</strong> contact information is current</li>
+<li><strong>Confirm</strong> payment terms are acceptable</li>
+</ul>
+<p>
+<strong>For New Vendors:</strong>
+</p>
+<ol>
+<li><strong>Click</strong> "Add New Vendor" option</li>
+<li><strong>Complete</strong> mandatory vendor information form:</li>
+<li>Legal business name</li>
+<li>Primary contact information</li>
+<li>Tax identification number</li>
+<li>Payment terms preference</li>
+<li>Insurance information (if applicable)</li>
+<li><strong>Submit</strong> for vendor approval workflow</li>
+<li><strong>Wait</strong> for approval confirmation before proceeding</li>
+</ul>
+<p>
+<strong>Vendor Approval Workflow:</strong>
+</p>
+<ul>
+<li>New vendors require Operations Manager approval</li>
+<li>Insurance verification required for construction vendors</li>
+<li>Tax forms must be completed before first payment</li>
+<li>Approval typically completed within 24-48 hours</li>
+</ul>
+<p>
+#### Step 5.2.4: Purchase Order Detail Entry
+</p>
+<p>
+<strong>Required Information:</strong>
+</p>
+<ol>
+<li><strong>Header Details:</strong></li>
+<li>Delivery location (auto-populated from project)</li>
+<li>Required delivery date</li>
+<li>Special delivery instructions</li>
+<li>Tax applicability determination</li>
+</ul>
+<ol>
+<li><strong>Line Item Details:</strong></li>
+</ul>
+<p>
+For each item or service:
+</p>
+<ul>
+<li><strong>Description</strong>: Detailed, specific description</li>
+<li><strong>Quantity</strong>: Exact amount needed</li>
+<li><strong>Unit of Measure</strong>: Each, square feet, linear feet, etc.</li>
+<li><strong>Unit Price</strong>: Current market pricing</li>
+<li><strong>Extended Amount</strong>: Auto-calculated total</li>
+<li><strong>GL Account Code</strong>: Proper expense categorization</li>
+</ul>
+<p>
+<strong>GL Account Code Reference:</strong>
+</p>
+<ul>
+<li><strong>50-54</strong>: Direct Labor costs</li>
+<li><strong>55-59</strong>: Materials and supplies</li>
+<li><strong>60-64</strong>: Equipment rental and purchases</li>
+<li><strong>65-69</strong>: Capital equipment and tools</li>
+<li><strong>70-74</strong>: Subcontractor services</li>
+<li><strong>75-79</strong>: Professional services and consulting</li>
+<li><strong>80-84</strong>: Utilities and facilities costs</li>
+<li><strong>85-89</strong>: Administrative expenses</li>
+<li><strong>90-94</strong>: Travel and transportation</li>
+<li><strong>95-99</strong>: Other/miscellaneous expenses</li>
+</ul>
+<p>
+#### Step 5.2.5: Quality Review and Submission
+</p>
+<p>
+<strong>Pre-Submission Review Checklist:</strong>
+</p>
+<ul>
+<li>[ ] All required fields completed accurately</li>
+<li>[ ] Line item descriptions are specific and detailed</li>
+<li>[ ] Quantities and prices are reasonable and accurate</li>
+<li>[ ] GL account codes match expense types</li>
+<li>[ ] Total amount aligns with work order budget</li>
+<li>[ ] Delivery date is realistic and meets project needs</li>
+<li>[ ] Special instructions are clear and complete</li>
+</ul>
+<p>
+<strong>Submission Process:</strong>
+</p>
+<ol>
+<li><strong>Review</strong> PO summary for accuracy</li>
+<li><strong>Verify</strong> calculated totals and tax amounts</li>
+<li><strong>Add</strong> any final comments or special instructions</li>
+<li><strong>Click</strong> "Submit for Approval"</li>
+<li><strong>Record</strong> generated PO number for tracking</li>
+<li><strong>Verify</strong> confirmation email receipt</li>
+</ul>
+<h3>5.3 PO Numbering System</h3>
+<p>
+<strong>Format Structure:</strong>
+<code></code>`
+[GL]-[DIV]-[WO]-[VENDOR]-[SEQ]
+</p>
+<p>
+Example: 65-CH-1234-HOMEDEPOT-001
+</p>
+<p>
+Components:
+</p>
+<ul>
+<li>GL: Primary GL account code (65 = Equipment)</li>
+<li>DIV: Division code (CH = Corporate Housing)</li>
+<li>WO: Work order number (1234)</li>
+<li>VENDOR: Vendor identifier (HOMEDEPOT)</li>
+<li>SEQ: Sequential number (001, 002, 003...)</li>
+</ul>
+<p>
+<code></code>`
+</p>
+<p>
+<strong>Numbering Rules:</strong>
+</p>
+<ul>
+<li>System automatically generates sequential numbers</li>
+<li>No duplicate numbers can exist within same parameters</li>
+<li>Numbers cannot be manually modified after generation</li>
+<li>Historical numbers maintain referential integrity</li>
+</ul>
+<h3>5.4 Error Prevention and Quality Assurance</h3>
+<p>
+#### Common Error Prevention Measures
+</p>
+<p>
+<strong>Budget Overruns:</strong>
+</p>
+<ul>
+<li>System displays real-time budget remaining</li>
+<li>Red warnings appear when PO exceeds available budget</li>
+<li>Automatic escalation triggered for budget exceptions</li>
+<li>Detailed justification required for overrides</li>
+</ul>
+<p>
+<strong>Vendor Issues:</strong>
+</p>
+<ul>
+<li>Vendor validation checks performed automatically</li>
+<li>Insurance expiration alerts for construction vendors</li>
+<li>Payment terms verification against company policies</li>
+<li>Vendor performance history displayed during selection</li>
+</ul>
+<p>
+<strong>Data Quality:</strong>
+</p>
+<ul>
+<li>Required field validation prevents incomplete submissions</li>
+<li>GL account suggestions based on item descriptions</li>
+<li>Price reasonableness checks against historical data</li>
+<li>Duplicate PO detection and prevention</li>
+</ul>
+<p>
+#### Quality Control Checkpoints
+</p>
+<p>
+<strong>Automated Validations:</strong>
+</p>
+<ol>
+<li><strong>Budget Verification</strong>: Available funds vs. PO amount</li>
+<li><strong>Vendor Status</strong>: Active/approved vendor confirmation</li>
+<li><strong>GL Code Validation</strong>: Valid account codes for division</li>
+<li><strong>Data Completeness</strong>: All required fields populated</li>
+<li><strong>Business Rules</strong>: Compliance with corporate policies</li>
+</ul>
+<p>
+<strong>Manual Review Requirements:</strong>
+</p>
+<ul>
+<li>Operations Manager review for vendor additions</li>
+<li>Division Leader verification for large purchases</li>
+<li>Accounting review for GL code exceptions</li>
+<li>Executive approval for policy deviations</li>
+</ul>
+---
+<h2>6. Approval Workflow Procedures</h2>
+<h3>6.1 Approval Hierarchy and Authority Matrix</h3>
+<p>
+#### 6.1.1 Standard Approval Workflow
+</p>
+<p>
+<code></code>`mermaid
+graph TD
+A[PO Submitted] --> B{Amount < $1,000?}
+</p>
+<table>
+<tr>
+<th>Yes</th>
+<p>
+</tr>
+</p>
+<tr>
+<th>No</th>
+<p>
+</tr>
+</p>
+<tr>
+<th>Yes</th>
+<p>
+</tr>
+</p>
+<tr>
+<th>No</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+C --> G[Accounting Final Review]
+E --> G
+F --> G
+G --> H[QuickBooks Integration]
+H --> I[PO Active]
+<code></code>`
+</p>
+<p>
+#### 6.1.2 Approval Authority Limits
+</p>
+<table>
+<tr>
+<th>Approver Level</th>
+<th>Amount Limit</th>
+<th>Additional Requirements</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Division Leader</strong></td>
+<td>$25,000</td>
+<td>Within division budget</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Operations Manager</strong></td>
+<td>$50,000</td>
+<td>Cross-division authority</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Accounting</strong></th>
+<th>No Limit</th>
+<th>Final financial review</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Majority Owner</strong></th>
+<th>No Limit</th>
+<th>Policy exception authority</th>
+<p>
+</tr>
+</p>
+</table>
+<h3>6.2 Approval Procedures by Role</h3>
+<p>
+#### 6.2.1 Division Leader Approval Process
+</p>
+<p>
+<strong>Access Requirements:</strong>
+</p>
+<ul>
+<li>Must be logged in with Division Leader role</li>
+<li>PO must be from assigned division</li>
+<li>Must be within approval authority limits</li>
+</ul>
+<p>
+<strong>Step-by-Step Approval Procedure:</strong>
+</p>
+<ol>
+<li><strong>Access Pending Approvals</strong></li>
+<li>Navigate to dashboard "Pending Approvals" widget</li>
+<li>Click on PO number to open detailed view</li>
+<li>Review appears in dedicated approval interface</li>
+</ul>
+<ol>
+<li><strong>Conduct Thorough Review</strong></li>
+<li><strong>Project Verification</strong>: Confirm project code and work order validity</li>
+<li><strong>Budget Analysis</strong>: Verify sufficient budget remains</li>
+<li><strong>Vendor Assessment</strong>: Ensure vendor appropriateness for work type</li>
+<li><strong>Cost Analysis</strong>: Compare pricing against market rates</li>
+<li><strong>Scope Alignment</strong>: Confirm items match project requirements</li>
+</ul>
+<ol>
+<li><strong>Decision Documentation</strong></li>
+<li><strong>For Approval</strong>: Add supporting comments</li>
+<li><strong>For Rejection</strong>: Provide specific feedback and improvement guidance</li>
+<li><strong>For Questions</strong>: Use comment system to request clarification</li>
+</ul>
+<ol>
+<li><strong>Action Execution</strong></li>
+<li>Click appropriate action button (Approve/Reject/Request Changes)</li>
+<li>System automatically routes to next approval level</li>
+<li>Confirmation email sent to all relevant parties</li>
+</ul>
+<p>
+<strong>Service Level Agreements:</strong>
+</p>
+<ul>
+<li><strong>Standard POs</strong>: Approval within 8 business hours</li>
+<li><strong>Rush POs</strong>: Approval within 4 business hours</li>
+<li><strong>Emergency POs</strong>: Approval within 2 hours (with notification)</li>
+</ul>
+<p>
+<strong>Escalation Procedures:</strong>
+</p>
+<ul>
+<li>If approver unavailable, automatic escalation after 24 hours</li>
+<li>Backup approvers designated for each division</li>
+<li>Emergency contact procedures for urgent approvals</li>
+</ul>
+<p>
+#### 6.2.2 Operations Manager Approval Process
+</p>
+<p>
+<strong>Advanced Review Criteria:</strong>
+</p>
+<ol>
+<li><strong>Cross-Division Impact Analysis</strong></li>
+<li>Evaluate impact on other divisions</li>
+<li>Consider resource allocation implications</li>
+<li>Assess vendor capacity and performance</li>
+</ul>
+<ol>
+<li><strong>Strategic Alignment Review</strong></li>
+<li>Confirm alignment with corporate objectives</li>
+<li>Evaluate long-term vendor relationships</li>
+<li>Consider bulk purchase opportunities</li>
+</ul>
+<ol>
+<li><strong>Risk Assessment</strong></li>
+<li>Identify potential project risks</li>
+<li>Evaluate vendor financial stability</li>
+<li>Consider insurance and liability implications</li>
+</ul>
+<p>
+<strong>Approval Documentation Requirements:</strong>
+</p>
+<ul>
+<li>Detailed justification for high-value approvals</li>
+<li>Risk mitigation strategies documented</li>
+<li>Vendor performance history reviewed</li>
+<li>Budget impact analysis completed</li>
+</ul>
+<p>
+#### 6.2.3 Accounting Final Review Process
+</p>
+<p>
+<strong>Financial Control Verification:</strong>
+</p>
+<ol>
+<li><strong>GL Account Validation</strong></li>
+<li>Verify correct expense categorization</li>
+<li>Confirm compliance with chart of accounts</li>
+<li>Validate tax treatment and implications</li>
+</ul>
+<ol>
+<li><strong>Budget Compliance Check</strong></li>
+<li>Final budget availability confirmation</li>
+<li>Cash flow impact analysis</li>
+<li>Monthly spending limit verification</li>
+</ul>
+<ol>
+<li><strong>QuickBooks Integration Preparation</strong></li>
+<li>Verify all required data present</li>
+<li>Confirm GL mapping accuracy</li>
+<li>Prepare for automated sync process</li>
+</ul>
+<p>
+<strong>Final Approval Checklist:</strong>
+</p>
+<ul>
+<li>[ ] All approvals properly documented</li>
+<li>[ ] Financial data complete and accurate</li>
+<li>[ ] GL codes validated and confirmed</li>
+<li>[ ] No outstanding compliance issues</li>
+<li>[ ] Ready for QuickBooks integration</li>
+</ul>
+<h3>6.3 Special Approval Scenarios</h3>
+<p>
+#### 6.3.1 Emergency Purchase Orders
+</p>
+<p>
+<strong>Definition</strong>: Purchases required within 24 hours for critical business operations
+</p>
+<p>
+<strong>Emergency Criteria:</strong>
+</p>
+<ul>
+<li>Immediate threat to health and safety</li>
+<li>Critical equipment failure affecting operations</li>
+<li>Time-sensitive project requirements</li>
+<li>Regulatory compliance deadlines</li>
+</ul>
+<p>
+<strong>Expedited Approval Process:</strong>
+</p>
+<ol>
+<li><strong>Emergency Declaration</strong></li>
+<li>Creator marks PO as "Emergency" with justification</li>
+<li>System sends immediate notifications to all approvers</li>
+<li>Mobile push notifications activated</li>
+</ul>
+<ol>
+<li><strong>Accelerated Review</strong></li>
+<li>All approvers notified simultaneously</li>
+<li>2-hour response time requirement</li>
+<li>Phone confirmation process available</li>
+</ul>
+<ol>
+<li><strong>Documentation Requirements</strong></li>
+<li>Detailed emergency justification required</li>
+<li>Follow-up documentation within 48 hours</li>
+<li>Post-emergency review process</li>
+</ul>
+<p>
+#### 6.3.2 Budget Override Approvals
+</p>
+<p>
+<strong>Trigger Conditions:</strong>
+</p>
+<ul>
+<li>PO amount exceeds available work order budget</li>
+<li>Project budget modification required</li>
+<li>Scope change authorization needed</li>
+</ul>
+<p>
+<strong>Override Approval Process:</strong>
+</p>
+<ol>
+<li><strong>Automatic Escalation</strong></li>
+<li>System automatically routes to Operations Manager</li>
+<li>Budget variance report generated</li>
+<li>Project Manager notified</li>
+</ul>
+<ol>
+<li><strong>Enhanced Review Requirements</strong></li>
+<li>Detailed budget justification required</li>
+<li>Impact analysis on other work orders</li>
+<li>Client approval verification (if applicable)</li>
+</ul>
+<ol>
+<li><strong>Documentation and Tracking</strong></li>
+<li>Budget modification permanently recorded</li>
+<li>Future impact analysis maintained</li>
+<li>Monthly variance reporting updated</li>
+</ul>
+<p>
+#### 6.3.3 Vendor Exception Approvals
+</p>
+<p>
+<strong>Exception Scenarios:</strong>
+</p>
+<ul>
+<li>Non-approved vendor required for specialized work</li>
+<li>Single-source vendor situations</li>
+<li>Emergency vendor additions</li>
+</ul>
+<p>
+<strong>Exception Process:</strong>
+</p>
+<ol>
+<li><strong>Vendor Evaluation</strong></li>
+<li>Detailed vendor assessment completed</li>
+<li>Insurance and licensing verification</li>
+<li>Financial stability review</li>
+</ul>
+<ol>
+<li><strong>Approval Authorization</strong></li>
+<li>Operations Manager approval required</li>
+<li>Majority Owner notification for high-value exceptions</li>
+<li>Risk assessment documentation</li>
+</ul>
+<ol>
+<li><strong>Temporary vs. Permanent Addition</strong></li>
+<li>One-time use approval process</li>
+<li>Full vendor approval workflow for ongoing relationships</li>
+<li>Performance evaluation requirements</li>
+</ul>
+<h3>6.4 Rejection and Modification Procedures</h3>
+<p>
+#### 6.4.1 Purchase Order Rejection Process
+</p>
+<p>
+<strong>Rejection Criteria:</strong>
+</p>
+<ul>
+<li>Insufficient budget availability</li>
+<li>Non-approved vendor selection</li>
+<li>Inappropriate scope or specifications</li>
+<li>Pricing concerns or policy violations</li>
+</ul>
+<p>
+<strong>Rejection Procedure:</strong>
+</p>
+<ol>
+<li><strong>Detailed Feedback Requirement</strong></li>
+<li>Specific reasons for rejection documented</li>
+<li>Corrective action recommendations provided</li>
+<li>Contact information for questions</li>
+</ul>
+<ol>
+<li><strong>System Processing</strong></li>
+<li>PO status updated to "Rejected"</li>
+<li>Automatic notification sent to creator</li>
+<li>Rejection logged in audit trail</li>
+</ul>
+<ol>
+<li><strong>Resubmission Process</strong></li>
+<li>Creator must address all rejection reasons</li>
+<li>New PO number generated for resubmission</li>
+<li>Original PO maintains rejection status</li>
+</ul>
+<p>
+#### 6.4.2 Modification Requests
+</p>
+<p>
+<strong>Modification Scenarios:</strong>
+</p>
+<ul>
+<li>Minor adjustments to quantities or specifications</li>
+<li>Delivery date changes</li>
+<li>Vendor contact updates</li>
+</ul>
+<p>
+<strong>Modification Process:</strong>
+</p>
+<ol>
+<li><strong>Request Submission</strong></li>
+<li>Approver requests specific changes through comments</li>
+<li>System notifies creator of modification request</li>
+<li>Creator receives detailed change requirements</li>
+</ul>
+<ol>
+<li><strong>Creator Response</strong></li>
+<li>Creator can accept and resubmit with changes</li>
+<li>Creator can provide additional justification</li>
+<li>Creator can withdraw PO if modifications not feasible</li>
+</ul>
+<ol>
+<li><strong>Re-approval Process</strong></li>
+<li>Modified PO enters approval workflow again</li>
+<li>Previous approvers may expedite re-review</li>
+<li>Full audit trail maintained for changes</li>
+</ul>
+---
+<h2>7. Reporting and Analytics Procedures</h2>
+<h3>7.1 Enterprise Reporting Framework</h3>
+<p>
+#### 7.1.1 Report Categories and Business Purpose
+</p>
+<p>
+<strong>Financial Reports:</strong>
+</p>
+<ul>
+<li><strong>GL Analysis Report</strong>: Expense categorization and budget tracking</li>
+<li><strong>Budget vs Actual Report</strong>: Project cost control and variance analysis</li>
+<li><strong>Vendor Analysis Report</strong>: Supplier relationship management</li>
+</ul>
+<p>
+<strong>Operational Reports:</strong>
+</p>
+<ul>
+<li><strong>PO Summary Report</strong>: Workflow efficiency and volume tracking</li>
+<li><strong>Approval Bottleneck Analysis</strong>: Process optimization insights</li>
+<li><strong>Project Details Report</strong>: Project-specific cost analysis</li>
+</ul>
+<p>
+<strong>Executive Reports:</strong>
+</p>
+<ul>
+<li><strong>Cross-Division Performance</strong>: Strategic overview and KPIs</li>
+<li><strong>Compliance Dashboard</strong>: Audit readiness and control effectiveness</li>
+<li><strong>Trend Analysis</strong>: Predictive insights and forecasting</li>
+</ul>
+<p>
+#### 7.1.2 Report Access Matrix
+</p>
+<table>
+<tr>
+<th>Report Type</th>
+<th>Division Leader</th>
+<th>Operations Manager</th>
+<th>Accounting</th>
+<th>Majority Owner</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>GL Analysis</strong></td>
+<td>Division Only</td>
+<td>All Divisions</td>
+<td>Full Access</td>
+<td>Full Access</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Budget vs Actual</strong></td>
+<td>Division Only</td>
+<td>All Divisions</td>
+<td>Full Access</td>
+<td>Full Access</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Vendor Analysis</strong></th>
+<th>Division Only</th>
+<th>Full Access</th>
+<th>Full Access</th>
+<th>Full Access</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>PO Summary</strong></th>
+<th>Division Only</th>
+<th>All Divisions</th>
+<th>Full Access</th>
+<th>Full Access</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Bottleneck Analysis</strong></th>
+<th>Limited View</th>
+<th>Full Access</th>
+<th>Full Access</th>
+<th>Full Access</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Project Details</strong></th>
+<th>Division Projects</th>
+<th>All Projects</th>
+<th>Full Access</th>
+<th>Full Access</th>
+<p>
+</tr>
+</p>
+</table>
+<h3>7.2 Standard Reporting Procedures</h3>
+<p>
+#### 7.2.1 Daily Reporting Requirements
+</p>
+<p>
+<strong>For Division Leaders:</strong>
+</p>
+<ol>
+<li><strong>Morning Review</strong> (8:00 AM - 9:00 AM)</li>
+<li>Review overnight PO submissions</li>
+<li>Check pending approvals requiring attention</li>
+<li>Monitor budget utilization alerts</li>
+</ul>
+<ol>
+<li><strong>End-of-Day Summary</strong> (4:00 PM - 5:00 PM)</li>
+<li>Review daily PO activity</li>
+<li>Confirm all approvals completed</li>
+<li>Check for any urgent issues</li>
+</ul>
+<p>
+<strong>For Operations Manager:</strong>
+</p>
+<ol>
+<li><strong>Cross-Division Dashboard Review</strong> (Daily)</li>
+<li>Monitor high-value PO activity</li>
+<li>Review approval bottlenecks</li>
+<li>Assess vendor performance metrics</li>
+</ul>
+<p>
+<strong>For Accounting Team:</strong>
+</p>
+<ol>
+<li><strong>Daily Reconciliation</strong> (End of business day)</li>
+<li>Verify QuickBooks sync completion</li>
+<li>Review GL account assignments</li>
+<li>Confirm tax calculations</li>
+</ul>
+<p>
+#### 7.2.2 Weekly Reporting Procedures
+</p>
+<p>
+<strong>Executive Dashboard Preparation:</strong>
+</p>
+<ul>
+<li><strong>Every Monday 10:00 AM</strong>: Generate executive summary report</li>
+<li><strong>Key Metrics Included</strong>:</li>
+<li>Total PO volume and value (previous week)</li>
+<li>Budget variance analysis</li>
+<li>Approval efficiency metrics</li>
+<li>Vendor performance indicators</li>
+</ul>
+<p>
+<strong>Variance Analysis Report:</strong>
+</p>
+<ul>
+<li><strong>Every Friday 2:00 PM</strong>: Generate budget variance report</li>
+<li><strong>Distribution</strong>: Division Leaders, Operations Manager, Accounting</li>
+<li><strong>Required Actions</strong>: Variance explanations for deviations >10%</li>
+</ul>
+<p>
+#### 7.2.3 Monthly Reporting Requirements
+</p>
+<p>
+<strong>Comprehensive Monthly Package:</strong>
+</p>
+<ol>
+<li><strong>GL Analysis Report</strong></li>
+<li>Complete expense categorization</li>
+<li>Year-over-year comparison</li>
+<li>Budget vs actual analysis</li>
+<li>Tax summary and implications</li>
+</ul>
+<ol>
+<li><strong>Vendor Performance Report</strong></li>
+<li>Top vendor analysis</li>
+<li>New vendor additions</li>
+<li>Performance metrics and ratings</li>
+<li>Contract renewal recommendations</li>
+</ul>
+<ol>
+<li><strong>Executive Summary</strong></li>
+<li>High-level KPIs and trends</li>
+<li>Strategic insights and recommendations</li>
+<li>Risk assessment and mitigation</li>
+<li>Operational efficiency metrics</li>
+</ul>
+<h3>7.3 Report Generation Procedures</h3>
+<p>
+#### 7.3.1 Standard Report Generation
+</p>
+<p>
+<strong>Step-by-Step Process:</strong>
+</p>
+<ol>
+<li><strong>Access Reports Module</strong></li>
+<li>Navigate to Reports section from main menu</li>
+<li>Select appropriate report category</li>
+<li>Choose specific report type</li>
+</ul>
+<ol>
+<li><strong>Configure Report Parameters</strong></li>
+<li><strong>Date Range</strong>: Select appropriate time period</li>
+<li><strong>Division Filter</strong>: Choose applicable divisions</li>
+<li><strong>Status Filter</strong>: Include/exclude specific PO statuses</li>
+<li><strong>Additional Filters</strong>: Apply vendor, project, or amount filters</li>
+</ul>
+<ol>
+<li><strong>Generate and Review</strong></li>
+<li>Click "Generate Report" button</li>
+<li>Wait for processing completion</li>
+<li>Review report data for accuracy</li>
+<li>Verify filters applied correctly</li>
+</ul>
+<ol>
+<li><strong>Export and Distribution</strong></li>
+<li>Select appropriate export format (PDF/Excel/CSV)</li>
+<li>Choose distribution method (download/email)</li>
+<li>Send to required recipients</li>
+<li>Archive report as required</li>
+</ul>
+<p>
+#### 7.3.2 Custom Report Procedures
+</p>
+<p>
+<strong>Custom Report Request Process:</strong>
+</p>
+<ol>
+<li><strong>Submit Request</strong></li>
+<li>Complete custom report request form</li>
+<li>Provide detailed requirements and business justification</li>
+<li>Specify required delivery timeline</li>
+</ul>
+<ol>
+<li><strong>Review and Approval</strong></li>
+<li>IT team reviews technical feasibility</li>
+<li>Operations Manager approves business justification</li>
+<li>Estimated development timeline provided</li>
+</ul>
+<ol>
+<li><strong>Development and Testing</strong></li>
+<li>Custom report development</li>
+<li>User acceptance testing</li>
+<li>Documentation and training materials</li>
+</ul>
+<ol>
+<li><strong>Deployment and Training</strong></li>
+<li>Production deployment</li>
+<li>User training and documentation</li>
+<li>Ongoing support procedures</li>
+</ul>
+<h3>7.4 Report Quality Assurance and Compliance</h3>
+<p>
+#### 7.4.1 Data Accuracy Procedures
+</p>
+<p>
+<strong>Automated Validation:</strong>
+</p>
+<ul>
+<li><strong>Data Source Verification</strong>: Confirm all data sources connected</li>
+<li><strong>Calculation Validation</strong>: Verify mathematical accuracy</li>
+<li><strong>Period Consistency</strong>: Ensure consistent date ranges</li>
+<li><strong>Filter Accuracy</strong>: Confirm filters applied correctly</li>
+</ul>
+<p>
+<strong>Manual Review Requirements:</strong>
+</p>
+<ul>
+<li><strong>Accounting Review</strong>: Monthly financial reports require accounting sign-off</li>
+<li><strong>Management Review</strong>: Executive reports require management approval</li>
+<li><strong>Exception Analysis</strong>: Investigate unusual variances or trends</li>
+</ul>
+<p>
+#### 7.4.2 Compliance and Audit Requirements
+</p>
+<p>
+<strong>Audit Trail Maintenance:</strong>
+</p>
+<ul>
+<li>All report generation activities logged</li>
+<li>User access and permissions tracked</li>
+<li>Report modifications documented</li>
+<li>Distribution lists maintained</li>
+</ul>
+<p>
+<strong>Regulatory Compliance:</strong>
+</p>
+<ul>
+<li>SOX compliance for financial reports</li>
+<li>Data retention policies enforced</li>
+<li>Access controls regularly reviewed</li>
+<li>Security measures maintained</li>
+</ul>
+<p>
+<strong>Report Archival Procedures:</strong>
+</p>
+<ol>
+<li><strong>Monthly Reports</strong>: Archive for 7 years</li>
+<li><strong>Quarterly Reports</strong>: Archive for 10 years</li>
+<li><strong>Annual Reports</strong>: Archive permanently</li>
+<li><strong>Custom Reports</strong>: Archive per business requirements</li>
+</ul>
+---
+<h2>8. Mobile Application Procedures</h2>
+<h3>8.1 Mobile Application Architecture and Standards</h3>
+<p>
+#### 8.1.1 Progressive Web App (PWA) Technology
+</p>
+<p>
+The ASR PO System mobile application is built as a Progressive Web App, providing:
+</p>
+<ul>
+<li><strong>Native App Experience</strong>: Full-screen operation without browser chrome</li>
+<li><strong>Offline Capability</strong>: Limited functionality without internet connection</li>
+<li><strong>Push Notifications</strong>: Real-time alerts and notifications</li>
+<li><strong>Home Screen Installation</strong>: Direct access from device home screen</li>
+<li><strong>Cross-Platform Compatibility</strong>: Unified experience across iOS and Android</li>
+</ul>
+<p>
+#### 8.1.2 Mobile Security Framework
+</p>
+<p>
+<strong>Authentication Requirements:</strong>
+</p>
+<ul>
+<li>Same credential system as web application</li>
+<li>Biometric authentication support (fingerprint/face recognition)</li>
+<li>Session timeout configured for mobile usage patterns</li>
+<li>Automatic logout after 8 hours of inactivity</li>
+</ul>
+<p>
+<strong>Data Protection Measures:</strong>
+</p>
+<ul>
+<li>Local data encryption on device</li>
+<li>Secure transmission protocols (TLS 1.3)</li>
+<li>No sensitive data cached locally</li>
+<li>Remote wipe capability for lost/stolen devices</li>
+</ul>
+<h3>8.2 Mobile Installation Procedures</h3>
+<p>
+#### 8.2.1 iOS Installation (iPhone/iPad)
+</p>
+<p>
+<strong>Standard Installation Process:</strong>
+</p>
+<ol>
+<li><strong>Open Safari Browser</strong></li>
+<li>Navigate to https://asr-po.yourdomain.com</li>
+<li>Ensure WiFi or cellular connection available</li>
+<li>Allow location access if prompted</li>
+</ul>
+<ol>
+<li><strong>Authentication and Verification</strong></li>
+<li>Log in with ASR credentials</li>
+<li>Verify role assignment displays correctly</li>
+<li>Confirm dashboard loads with appropriate data</li>
+</ul>
+<ol>
+<li><strong>Home Screen Installation</strong></li>
+<li>Tap Share button (square with arrow pointing up)</li>
+<li>Scroll down and select "Add to Home Screen"</li>
+<li>Customize app name if desired (default: "ASR PO System")</li>
+<li>Tap "Add" to complete installation</li>
+</ul>
+<ol>
+<li><strong>Initial Configuration</strong></li>
+<li>Open app from home screen</li>
+<li>Configure notification preferences</li>
+<li>Enable biometric authentication if desired</li>
+<li>Test core functionality</li>
+</ul>
+<p>
+<strong>iOS-Specific Requirements:</strong>
+</p>
+<ul>
+<li>Safari 14+ required</li>
+<li>iOS 13.0+ required for full PWA functionality</li>
+<li>50MB available storage recommended</li>
+<li>Cellular or WiFi connection for initial setup</li>
+</ul>
+<p>
+#### 8.2.2 Android Installation
+</p>
+<p>
+<strong>Standard Installation Process:</strong>
+</p>
+<ol>
+<li><strong>Open Chrome Browser</strong></li>
+<li>Navigate to https://asr-po.yourdomain.com</li>
+<li>Ensure internet connection available</li>
+<li>Accept any security prompts</li>
+</ul>
+<ol>
+<li><strong>PWA Installation Prompt</strong></li>
+<li>Chrome should display "Install App" prompt automatically</li>
+<li>If not visible, tap three-dot menu → "Install App"</li>
+<li>Confirm installation when prompted</li>
+</ul>
+<ol>
+<li><strong>Alternative Installation Method</strong></li>
+<li>Tap Chrome menu (three dots)</li>
+<li>Select "Add to Home Screen"</li>
+<li>Confirm app name and icon</li>
+<li>Tap "Add" to install</li>
+</ul>
+<ol>
+<li><strong>Post-Installation Setup</strong></li>
+<li>Launch app from home screen or app drawer</li>
+<li>Complete authentication</li>
+<li>Configure notifications and preferences</li>
+<li>Verify all features accessible</li>
+</ul>
+<p>
+<strong>Android-Specific Requirements:</strong>
+</p>
+<ul>
+<li>Chrome 90+ required</li>
+<li>Android 8.0+ for optimal experience</li>
+<li>75MB available storage recommended</li>
+<li>Google Play Services updated</li>
+</ul>
+<h3>8.3 Mobile Usage Procedures</h3>
+<p>
+#### 8.3.1 Purchase Order Creation on Mobile
+</p>
+<p>
+<strong>Optimized Mobile Workflow:</strong>
+</p>
+<ol>
+<li><strong>Quick Access Creation</strong></li>
+<li>Large "Create PO" button prominently displayed</li>
+<li>Streamlined form layout for touch interaction</li>
+<li>Auto-complete functionality for repetitive entries</li>
+</ul>
+<ol>
+<li><strong>Voice Input Capabilities</strong></li>
+<li>Use device voice-to-text for item descriptions</li>
+<li>Speak quantities and prices for faster entry</li>
+<li>Voice commands for navigation between sections</li>
+</ul>
+<ol>
+<li><strong>Camera Integration Features</strong></li>
+<li>Scan vendor business cards for contact information</li>
+<li>Photograph estimates or quotes for reference</li>
+<li>Attach supporting documentation directly</li>
+</ul>
+<p>
+<strong>Mobile-Specific Validation:</strong>
+</p>
+<ul>
+<li>Touch-friendly form validation</li>
+<li>Large error messages and indicators</li>
+<li>Swipe gestures for navigation</li>
+<li>Haptic feedback for confirmations</li>
+</ul>
+<p>
+#### 8.3.2 Mobile Approval Procedures
+</p>
+<p>
+<strong>Streamlined Approval Interface:</strong>
+</p>
+<ol>
+<li><strong>Push Notification Workflow</strong></li>
+<li>Instant notifications for new PO approvals</li>
+<li>Tap notification to open approval interface directly</li>
+<li>Background app refresh for real-time updates</li>
+</ul>
+<ol>
+<li><strong>Quick Approval Actions</strong></li>
+<li>Large approve/reject buttons</li>
+<li>Swipe gestures for bulk actions</li>
+<li>Voice-to-text for approval comments</li>
+<li>Biometric confirmation for security</li>
+</ul>
+<ol>
+<li><strong>Offline Review Capability</strong></li>
+<li>Download pending approvals for offline review</li>
+<li>Queue approval decisions for automatic sync</li>
+<li>Visual indicators for offline/online status</li>
+</ul>
+<p>
+<strong>Mobile Approval Quality Controls:</strong>
+</p>
+<ul>
+<li>Confirmation prompts for all approval actions</li>
+<li>Required justification for rejections</li>
+<li>Automatic audit trail logging</li>
+<li>Real-time sync verification</li>
+</ul>
+<p>
+#### 8.3.3 Mobile Reporting Access
+</p>
+<p>
+<strong>Mobile-Optimized Reports:</strong>
+</p>
+<ol>
+<li><strong>Dashboard View</strong></li>
+<li>Key metrics displayed in large, touch-friendly cards</li>
+<li>Swipe gestures for navigation between metrics</li>
+<li>Tap to drill down into detailed views</li>
+</ul>
+<ol>
+<li><strong>Responsive Report Design</strong></li>
+<li>Charts and graphs optimized for mobile screens</li>
+<li>Horizontal scroll for wide tables</li>
+<li>Pinch-to-zoom for detailed analysis</li>
+<li>Export functionality maintained</li>
+</ul>
+<ol>
+<li><strong>Offline Report Access</strong></li>
+<li>Recently viewed reports cached for offline access</li>
+<li>Automatic sync when connection restored</li>
+<li>Storage management for cached data</li>
+</ul>
+<h3>8.4 Mobile Performance and Troubleshooting</h3>
+<p>
+#### 8.4.1 Performance Optimization
+</p>
+<p>
+<strong>Speed Enhancement Measures:</strong>
+</p>
+<ul>
+<li><strong>Progressive Loading</strong>: Critical data loads first</li>
+<li><strong>Image Optimization</strong>: Compressed images for faster loading</li>
+<li><strong>Caching Strategy</strong>: Frequently used data cached locally</li>
+<li><strong>Network Optimization</strong>: Minimal data transfer requirements</li>
+</ul>
+<p>
+<strong>Performance Monitoring:</strong>
+</p>
+<ul>
+<li><strong>Load Time Targets</strong>: < 3 seconds on 4G connection</li>
+<li><strong>Responsiveness</strong>: < 1 second for user interactions</li>
+<li><strong>Battery Efficiency</strong>: Optimized background processing</li>
+<li><strong>Data Usage</strong>: < 5MB per session typical usage</li>
+</ul>
+<p>
+#### 8.4.2 Common Mobile Issues and Solutions
+</p>
+<p>
+<strong>Connection Issues:</strong>
+</p>
+<ul>
+<li><strong>Symptom</strong>: App won't load or sync data</li>
+<li><strong>Solution</strong>: Check WiFi/cellular connection, restart app</li>
+<li><strong>Escalation</strong>: Clear browser cache, reinstall if persistent</li>
+</ul>
+<p>
+<strong>Authentication Problems:</strong>
+</p>
+<ul>
+<li><strong>Symptom</strong>: Unable to log in or frequent logouts</li>
+<li><strong>Solution</strong>: Clear cookies, check password, verify account status</li>
+<li><strong>Escalation</strong>: Contact IT support with specific error messages</li>
+</ul>
+<p>
+<strong>Performance Issues:</strong>
+</p>
+<ul>
+<li><strong>Symptom</strong>: Slow loading or freezing</li>
+<li><strong>Solution</strong>: Close other apps, restart device, check available storage</li>
+<li><strong>Escalation</strong>: Update browser, check device compatibility</li>
+</ul>
+<p>
+<strong>Notification Problems:</strong>
+</p>
+<ul>
+<li><strong>Symptom</strong>: Not receiving push notifications</li>
+<li><strong>Solution</strong>: Check notification settings, verify permissions</li>
+<li><strong>Escalation</strong>: Reinstall app, check device notification settings</li>
+</ul>
+<p>
+#### 8.4.3 Mobile Support Procedures
+</p>
+<p>
+<strong>User Self-Service:</strong>
+</p>
+<ol>
+<li><strong>Built-in Help System</strong></li>
+<li>Context-sensitive help available</li>
+<li>Video tutorials for common tasks</li>
+<li>FAQ section with mobile-specific guidance</li>
+</ul>
+<ol>
+<li><strong>Diagnostic Tools</strong></li>
+<li>Connection status indicator</li>
+<li>Sync status display</li>
+<li>Performance metrics available</li>
+</ul>
+<p>
+<strong>IT Support Escalation:</strong>
+</p>
+<ol>
+<li><strong>Initial Contact Information Required</strong></li>
+<li>Device type and operating system version</li>
+<li>Browser version and app installation method</li>
+<li>Specific error messages or screenshots</li>
+<li>Steps to reproduce the issue</li>
+</ul>
+<ol>
+<li><strong>Remote Support Capabilities</strong></li>
+<li>Screen sharing for troubleshooting</li>
+<li>Remote diagnostic tools</li>
+<li>Configuration assistance</li>
+</ul>
+<ol>
+<li><strong>Hardware Compatibility</strong></li>
+<li>Minimum device requirements verification</li>
+<li>Browser compatibility testing</li>
+<li>Performance optimization recommendations</li>
+</ul>
+---
+<h2>9. Quality Assurance and Compliance</h2>
+<h3>9.1 Quality Management Framework</h3>
+<p>
+#### 9.1.1 Quality Objectives
+</p>
+<p>
+The ASR Purchase Order System quality framework ensures:
+</p>
+<ul>
+<li><strong>Data Integrity</strong>: 99.9% accuracy in financial transactions</li>
+<li><strong>Process Compliance</strong>: 100% adherence to established procedures</li>
+<li><strong>System Reliability</strong>: 99.9% uptime with < 2 second response times</li>
+<li><strong>User Satisfaction</strong>: 95% user satisfaction rating</li>
+<li><strong>Audit Readiness</strong>: Continuous audit trail and documentation</li>
+</ul>
+<p>
+#### 9.1.2 Quality Control Checkpoints
+</p>
+<p>
+<strong>Automated Quality Controls:</strong>
+<code></code>`
+Data Entry → Validation Rules → Business Logic → Approval Workflow → Financial Integration
+↓              ↓               ↓              ↓                    ↓
+Error Detection → Format Checking → Rule Compliance → Authority Verification → Sync Validation
+<code></code>`
+</p>
+<p>
+<strong>Manual Quality Reviews:</strong>
+</p>
+<ul>
+<li>Daily transaction sampling (10% of POs reviewed)</li>
+<li>Weekly process compliance audits</li>
+<li>Monthly system performance reviews</li>
+<li>Quarterly user satisfaction surveys</li>
+</ul>
+<h3>9.2 Compliance Framework</h3>
+<p>
+#### 9.2.1 Regulatory Compliance Requirements
+</p>
+<p>
+<strong>Sarbanes-Oxley (SOX) Compliance:</strong>
+</p>
+<ul>
+<li><strong>Internal Controls</strong>: Documented procedures and segregation of duties</li>
+<li><strong>Financial Reporting</strong>: Accurate and timely financial data</li>
+<li><strong>Audit Trail</strong>: Complete transaction history and documentation</li>
+<li><strong>Management Certification</strong>: Regular attestation of control effectiveness</li>
+</ul>
+<p>
+<strong>Industry Standards:</strong>
+</p>
+<ul>
+<li><strong>Construction Industry Best Practices</strong>: Project-based accounting and cost tracking</li>
+<li><strong>Financial Controls</strong>: Multi-level approval and authorization controls</li>
+<li><strong>Data Protection</strong>: Secure handling of financial and vendor information</li>
+</ul>
+<p>
+#### 9.2.2 Internal Control Framework
+</p>
+<p>
+<strong>Control Activities:</strong>
+</p>
+<ol>
+<li><strong>Authorization Controls</strong></li>
+<li>Role-based approval limits enforced by system</li>
+<li>Dual authorization required for high-value transactions</li>
+<li>Segregation of duties between creation and approval</li>
+</ul>
+<ol>
+<li><strong>Documentation Controls</strong></li>
+<li>Complete audit trail for all transactions</li>
+<li>Required documentation for vendor setup and changes</li>
+<li>Approval justification documentation</li>
+</ul>
+<ol>
+<li><strong>Physical Controls</strong></li>
+<li>Secure system access with multi-factor authentication</li>
+<li>Regular security assessments and penetration testing</li>
+<li>Data backup and disaster recovery procedures</li>
+</ul>
+<ol>
+<li><strong>Performance Controls</strong></li>
+<li>Regular monitoring of system performance metrics</li>
+<li>User access reviews and permission audits</li>
+<li>Process efficiency measurements and improvements</li>
+</ul>
+<h3>9.3 Quality Assurance Procedures</h3>
+<p>
+#### 9.3.1 Daily Quality Checks
+</p>
+<p>
+<strong>Automated System Checks:</strong>
+</p>
+<ul>
+<li><strong>Data Integrity</strong>: Database consistency checks</li>
+<li><strong>Interface Validation</strong>: QuickBooks sync status verification</li>
+<li><strong>Performance Monitoring</strong>: Response time and error rate tracking</li>
+<li><strong>Security Scanning</strong>: Access log analysis and intrusion detection</li>
+</ul>
+<p>
+<strong>Manual Quality Reviews:</strong>
+</p>
+<ol>
+<li><strong>Transaction Sampling</strong> (10% daily)</li>
+<li>Random selection of completed transactions</li>
+<li>Verification of approval workflow compliance</li>
+<li>GL code accuracy validation</li>
+<li>Vendor information verification</li>
+</ul>
+<ol>
+<li><strong>Exception Reporting</strong></li>
+<li>Identification of unusual transactions or patterns</li>
+<li>Investigation of system errors or failures</li>
+<li>Resolution of data quality issues</li>
+<li>Documentation of corrective actions</li>
+</ul>
+<p>
+#### 9.3.2 Weekly Quality Audits
+</p>
+<p>
+<strong>Process Compliance Audit:</strong>
+</p>
+<ol>
+<li><strong>Approval Workflow Review</strong></li>
+<li>Verification of proper approval hierarchy</li>
+<li>Confirmation of authority limits compliance</li>
+<li>Documentation of approval justifications</li>
+</ul>
+<ol>
+<li><strong>Data Quality Assessment</strong></li>
+<li>Vendor master data accuracy</li>
+<li>GL account assignment verification</li>
+<li>Project and work order validity</li>
+</ul>
+<ol>
+<li><strong>System Performance Review</strong></li>
+<li>Response time analysis</li>
+<li>Error rate trending</li>
+<li>User satisfaction feedback</li>
+</ul>
+<p>
+<strong>Quality Metrics Dashboard:</strong>
+</p>
+<table>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+<th>Current</th>
+<th>Trend</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Data Accuracy</strong></td>
+<td>99.9%</td>
+<td>99.95%</td>
+<td>↗</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Process Compliance</strong></td>
+<td>100%</td>
+<td>99.8%</td>
+<td>→</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>System Uptime</strong></th>
+<th>99.9%</th>
+<th>99.97%</th>
+<th>↗</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>User Satisfaction</strong></th>
+<th>95%</th>
+<th>94%</th>
+<th>↗</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Approval SLA</strong></th>
+<th>8 hours</th>
+<th>6.2 hours</th>
+<th>↗</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+#### 9.3.3 Monthly Compliance Review
+</p>
+<p>
+<strong>Comprehensive Compliance Assessment:</strong>
+</p>
+<ol>
+<li><strong>SOX Controls Testing</strong></li>
+<li>Test effectiveness of key controls</li>
+<li>Document any control deficiencies</li>
+<li>Implement corrective action plans</li>
+<li>Management attestation preparation</li>
+</ul>
+<ol>
+<li><strong>Internal Audit Preparation</strong></li>
+<li>Documentation review and update</li>
+<li>Process walkthrough verification</li>
+<li>Evidence collection and organization</li>
+<li>Corrective action status review</li>
+</ul>
+<ol>
+<li><strong>Vendor Compliance Review</strong></li>
+<li>Vendor master data accuracy verification</li>
+<li>Insurance and licensing status confirmation</li>
+<li>Performance evaluation documentation</li>
+<li>Contract compliance assessment</li>
+</ul>
+<h3>9.4 Continuous Improvement Procedures</h3>
+<p>
+#### 9.4.1 Performance Monitoring and Analysis
+</p>
+<p>
+<strong>Key Performance Indicators (KPIs):</strong>
+</p>
+<ul>
+<li><strong>Process Efficiency</strong>: Average PO processing time</li>
+<li><strong>System Performance</strong>: Response times and availability</li>
+<li><strong>User Adoption</strong>: Usage statistics and satisfaction scores</li>
+<li><strong>Financial Accuracy</strong>: Error rates and correction frequency</li>
+</ul>
+<p>
+<strong>Monthly Performance Reviews:</strong>
+</p>
+<ol>
+<li><strong>Trend Analysis</strong></li>
+<li>Identification of performance trends</li>
+<li>Comparison against established benchmarks</li>
+<li>Root cause analysis for performance degradation</li>
+</ul>
+<ol>
+<li><strong>Improvement Opportunities</strong></li>
+<li>Process optimization recommendations</li>
+<li>Technology enhancement proposals</li>
+<li>Training and development needs assessment</li>
+</ul>
+<p>
+#### 9.4.2 Feedback Collection and Implementation
+</p>
+<p>
+<strong>User Feedback Mechanisms:</strong>
+</p>
+<ul>
+<li><strong>Quarterly User Surveys</strong>: Comprehensive satisfaction assessment</li>
+<li><strong>Suggestion System</strong>: Continuous improvement idea collection</li>
+<li><strong>Focus Groups</strong>: Detailed feedback sessions with key users</li>
+<li><strong>Help Desk Analytics</strong>: Issue trending and resolution analysis</li>
+</ul>
+<p>
+<strong>Feedback Implementation Process:</strong>
+</p>
+<ol>
+<li><strong>Collection and Analysis</strong></li>
+<li>Gather feedback from all sources</li>
+<li>Categorize and prioritize suggestions</li>
+<li>Assess implementation feasibility</li>
+</ul>
+<ol>
+<li><strong>Review and Approval</strong></li>
+<li>Technical feasibility assessment</li>
+<li>Business impact analysis</li>
+<li>Resource requirement evaluation</li>
+<li>Management approval process</li>
+</ul>
+<ol>
+<li><strong>Implementation and Communication</strong></li>
+<li>Development and testing procedures</li>
+<li>User training and change management</li>
+<li>Progress communication and updates</li>
+<li>Success measurement and reporting</li>
+</ul>
+---
+<h2>10. Training and Competency Requirements</h2>
+<h3>10.1 Training Framework and Objectives</h3>
+<p>
+#### 10.1.1 Training Program Overview
+</p>
+<p>
+The ASR Purchase Order System training program ensures all users can effectively and compliantly use the system. The program includes:
+</p>
+<ul>
+<li><strong>Role-based Training</strong>: Customized content for each user role</li>
+<li><strong>Competency Validation</strong>: Measurable skill assessments</li>
+<li><strong>Ongoing Education</strong>: Regular updates and refresher training</li>
+<li><strong>Performance Support</strong>: Just-in-time help and guidance</li>
+</ul>
+<p>
+#### 10.1.2 Learning Objectives by Role
+</p>
+<p>
+<strong>Division Leaders:</strong>
+</p>
+<ul>
+<li>Create purchase orders efficiently and accurately</li>
+<li>Perform approval reviews within established timeframes</li>
+<li>Generate and interpret division-specific reports</li>
+<li>Understand budget management and variance analysis</li>
+</ul>
+<p>
+<strong>Operations Managers:</strong>
+</p>
+<ul>
+<li>Execute complex approval workflows</li>
+<li>Manage vendor relationships effectively</li>
+<li>Analyze cross-division performance metrics</li>
+<li>Identify and resolve process bottlenecks</li>
+</ul>
+<p>
+<strong>Accounting Personnel:</strong>
+</p>
+<ul>
+<li>Perform financial oversight and GL account management</li>
+<li>Monitor QuickBooks integration and resolve issues</li>
+<li>Generate comprehensive financial reports</li>
+<li>Ensure compliance with financial controls</li>
+</ul>
+<h3>10.2 Initial Training Requirements</h3>
+<p>
+#### 10.2.1 New User Onboarding Process
+</p>
+<p>
+<strong>Pre-Training Preparation:</strong>
+</p>
+<ol>
+<li><strong>Account Provisioning</strong></li>
+<li>User account creation in system</li>
+<li>Role assignment based on position</li>
+<li>Initial password and security setup</li>
+<li>Email notification of account activation</li>
+</ul>
+<ol>
+<li><strong>Training Material Access</strong></li>
+<li>Login credentials for training environment</li>
+<li>Access to training documentation and videos</li>
+<li>Training schedule and milestone timeline</li>
+<li>Contact information for training support</li>
+</ul>
+<p>
+<strong>Phase 1: System Fundamentals (2 hours)</strong>
+</p>
+<ul>
+<li>System overview and business objectives</li>
+<li>Navigation and user interface orientation</li>
+<li>Security protocols and best practices</li>
+<li>Basic troubleshooting and support resources</li>
+</ul>
+<p>
+<strong>Phase 2: Role-Specific Training (3-4 hours)</strong>
+</p>
+<ul>
+<li>Detailed procedures for user's specific role</li>
+<li>Hands-on practice in training environment</li>
+<li>Common scenarios and case studies</li>
+<li>Error prevention and quality assurance</li>
+</ul>
+<p>
+<strong>Phase 3: Competency Assessment (1 hour)</strong>
+</p>
+<ul>
+<li>Practical skill demonstration</li>
+<li>Written assessment of key concepts</li>
+<li>Performance benchmarks achievement</li>
+<li>Certification issuance upon successful completion</li>
+</ul>
+<p>
+#### 10.2.2 Training Delivery Methods
+</p>
+<p>
+<strong>Instructor-Led Training:</strong>
+</p>
+<ul>
+<li>Initial onboarding sessions for new users</li>
+<li>Complex feature training for advanced users</li>
+<li>Group training for system updates</li>
+<li>Customized training for special requirements</li>
+</ul>
+<p>
+<strong>Self-Paced Learning:</strong>
+</p>
+<ul>
+<li>Online training modules with interactive elements</li>
+<li>Video tutorials for common procedures</li>
+<li>Written documentation and quick reference guides</li>
+<li>Practice environment for skill development</li>
+</ul>
+<p>
+<strong>On-the-Job Training:</strong>
+</p>
+<ul>
+<li>Mentorship programs with experienced users</li>
+<li>Shadowing experienced staff during real transactions</li>
+<li>Graduated responsibility with supervisor oversight</li>
+<li>Real-time feedback and coaching</li>
+</ul>
+<h3>10.3 Competency Requirements and Assessment</h3>
+<p>
+#### 10.3.1 Core Competency Standards
+</p>
+<p>
+<strong>All Users Must Demonstrate:</strong>
+</p>
+<ul>
+<li><strong>System Navigation</strong>: Efficient movement between system sections</li>
+<li><strong>Security Compliance</strong>: Proper authentication and data protection</li>
+<li><strong>Basic Procedures</strong>: Fundamental system operations</li>
+<li><strong>Error Recognition</strong>: Identification and resolution of common issues</li>
+</ul>
+<p>
+<strong>Role-Specific Competencies:</strong>
+</p>
+<p>
+<strong>Division Leaders:</strong>
+</p>
+<ul>
+<li><strong>PO Creation</strong>: Complete accurate purchase orders in < 5 minutes</li>
+<li><strong>Approval Processing</strong>: Review and approve POs within 4-hour SLA</li>
+<li><strong>Report Generation</strong>: Create division reports with 100% accuracy</li>
+<li><strong>Budget Management</strong>: Identify and address budget variances</li>
+</ul>
+<p>
+<strong>Operations Managers:</strong>
+</p>
+<ul>
+<li><strong>Complex Approvals</strong>: Process high-value POs with proper documentation</li>
+<li><strong>Vendor Management</strong>: Evaluate and approve new vendors effectively</li>
+<li><strong>Cross-Division Analysis</strong>: Generate and interpret multi-division reports</li>
+<li><strong>Process Optimization</strong>: Identify and resolve workflow bottlenecks</li>
+</ul>
+<p>
+<strong>Accounting Personnel:</strong>
+</p>
+<ul>
+<li><strong>Financial Controls</strong>: Execute financial oversight with 99.9% accuracy</li>
+<li><strong>QuickBooks Integration</strong>: Monitor and resolve sync issues promptly</li>
+<li><strong>GL Management</strong>: Maintain chart of accounts and ensure proper coding</li>
+<li><strong>Compliance Reporting</strong>: Generate audit-ready financial reports</li>
+</ul>
+<p>
+#### 10.3.2 Assessment Methods and Criteria
+</p>
+<p>
+<strong>Practical Skills Assessment:</strong>
+</p>
+<ul>
+<li><strong>Simulation Exercises</strong>: Complete realistic scenarios in training environment</li>
+<li><strong>Time-Based Tasks</strong>: Demonstrate efficiency in common procedures</li>
+<li><strong>Error Detection</strong>: Identify and correct problematic transactions</li>
+<li><strong>Documentation Skills</strong>: Produce accurate and complete documentation</li>
+</ul>
+<p>
+<strong>Knowledge Verification:</strong>
+</p>
+<ul>
+<li><strong>Written Assessments</strong>: Multiple choice and scenario-based questions</li>
+<li><strong>Oral Examinations</strong>: Discussion of complex procedures and policies</li>
+<li><strong>Case Study Analysis</strong>: Problem-solving with real-world examples</li>
+<li><strong>Compliance Testing</strong>: Understanding of regulatory and policy requirements</li>
+</ul>
+<p>
+<strong>Performance Standards:</strong>
+</p>
+<ul>
+<li><strong>Accuracy Requirement</strong>: 95% accuracy on all assessment components</li>
+<li><strong>Time Requirements</strong>: Complete tasks within established timeframes</li>
+<li><strong>Compliance Knowledge</strong>: 100% on regulatory and policy questions</li>
+<li><strong>Practical Application</strong>: Demonstrate real-world application of skills</li>
+</ul>
+<h3>10.4 Ongoing Training and Professional Development</h3>
+<p>
+#### 10.4.1 Refresher Training Schedule
+</p>
+<p>
+<strong>Quarterly Updates (1 hour per quarter):</strong>
+</p>
+<ul>
+<li>System enhancements and new features</li>
+<li>Policy changes and procedure updates</li>
+<li>Performance feedback and improvement areas</li>
+<li>Industry best practices and trends</li>
+</ul>
+<p>
+<strong>Annual Recertification (4 hours annually):</strong>
+</p>
+<ul>
+<li>Comprehensive competency reassessment</li>
+<li>Advanced feature training and optimization</li>
+<li>Compliance update training</li>
+<li>Career development and skill advancement</li>
+</ul>
+<p>
+<strong>Just-in-Time Training:</strong>
+</p>
+<ul>
+<li>On-demand help system and tutorials</li>
+<li>Contextual guidance within system interface</li>
+<li>Quick reference materials and cheat sheets</li>
+<li>Peer mentoring and knowledge sharing</li>
+</ul>
+<p>
+#### 10.4.2 Advanced Training Opportunities
+</p>
+<p>
+<strong>Power User Development:</strong>
+</p>
+<ul>
+<li><strong>Advanced Reporting</strong>: Complex analytics and custom report creation</li>
+<li><strong>Process Optimization</strong>: Workflow analysis and improvement techniques</li>
+<li><strong>System Administration</strong>: User management and system configuration</li>
+<li><strong>Integration Management</strong>: QuickBooks and third-party system integration</li>
+</ul>
+<p>
+<strong>Leadership Training:</strong>
+</p>
+<ul>
+<li><strong>Change Management</strong>: Leading system implementations and updates</li>
+<li><strong>Performance Management</strong>: Using system data for team development</li>
+<li><strong>Strategic Analysis</strong>: Leveraging system data for business decisions</li>
+<li><strong>Compliance Leadership</strong>: Ensuring team compliance and best practices</li>
+</ul>
+<p>
+#### 10.4.3 Training Documentation and Records
+</p>
+<p>
+<strong>Training Record Management:</strong>
+</p>
+<ul>
+<li><strong>Individual Training Records</strong>: Complete history of all training completed</li>
+<li><strong>Competency Tracking</strong>: Current certification status and renewal dates</li>
+<li><strong>Performance Monitoring</strong>: Ongoing assessment of skill application</li>
+<li><strong>Development Planning</strong>: Individual development plans and goals</li>
+</ul>
+<p>
+<strong>Documentation Requirements:</strong>
+</p>
+<ul>
+<li><strong>Training Materials</strong>: Current version control and accessibility</li>
+<li><strong>Assessment Records</strong>: Secure storage of assessment results</li>
+<li><strong>Certification Tracking</strong>: Valid certification status for all users</li>
+<li><strong>Compliance Evidence</strong>: Audit trail of training completion and effectiveness</li>
+</ul>
+---
+<h2>11. Risk Management and Security</h2>
+<h3>11.1 Risk Assessment Framework</h3>
+<p>
+#### 11.1.1 Risk Categories and Impact Analysis
+</p>
+<p>
+<strong>Financial Risks:</strong>
+</p>
+<ul>
+<li><strong>Unauthorized Purchases</strong>: Potential for fraud or policy violations</li>
+<li><strong>Budget Overruns</strong>: Exceeding project or division budgets</li>
+<li><strong>Duplicate Payments</strong>: System integration or process failures</li>
+<li><strong>Vendor Fraud</strong>: Fictitious vendors or inflated pricing</li>
+</ul>
+<p>
+<strong>Operational Risks:</strong>
+</p>
+<ul>
+<li><strong>System Downtime</strong>: Business disruption and productivity loss</li>
+<li><strong>Data Loss</strong>: Critical business information unavailability</li>
+<li><strong>Process Failures</strong>: Approval delays or workflow breakdowns</li>
+<li><strong>User Errors</strong>: Incorrect data entry or process execution</li>
+</ul>
+<p>
+<strong>Compliance Risks:</strong>
+</p>
+<ul>
+<li><strong>Regulatory Violations</strong>: Non-compliance with SOX or industry standards</li>
+<li><strong>Audit Findings</strong>: Control deficiencies or documentation gaps</li>
+<li><strong>Policy Violations</strong>: Non-adherence to corporate policies</li>
+<li><strong>Vendor Compliance</strong>: Supplier regulatory or contractual violations</li>
+</ul>
+<p>
+<strong>Technology Risks:</strong>
+</p>
+<ul>
+<li><strong>Cybersecurity Threats</strong>: Unauthorized access or data breaches</li>
+<li><strong>Integration Failures</strong>: QuickBooks or other system connectivity issues</li>
+<li><strong>Performance Degradation</strong>: System slowdowns or capacity issues</li>
+<li><strong>Obsolescence</strong>: Technology platform or dependency risks</li>
+</ul>
+<p>
+#### 11.1.2 Risk Assessment Matrix
+</p>
+<table>
+<tr>
+<th>Risk Category</th>
+<th>Likelihood</th>
+<th>Impact</th>
+<th>Risk Level</th>
+<th>Mitigation Priority</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Unauthorized Access</strong></td>
+<td>Low</td>
+<td>High</td>
+<td>Medium</td>
+<td>High</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>System Downtime</strong></td>
+<td>Medium</td>
+<td>High</td>
+<td>High</td>
+<td>High</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Data Breach</strong></th>
+<th>Low</th>
+<th>Very High</th>
+<th>High</th>
+<th>Critical</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Process Failure</strong></th>
+<th>Medium</th>
+<th>Medium</th>
+<th>Medium</th>
+<th>Medium</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Budget Overruns</strong></th>
+<th>High</th>
+<th>Medium</th>
+<th>High</th>
+<th>High</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Vendor Fraud</strong></th>
+<th>Low</th>
+<th>High</th>
+<th>Medium</th>
+<th>High</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Integration Failure</strong></th>
+<th>Medium</th>
+<th>Medium</th>
+<th>Medium</th>
+<th>Medium</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>User Errors</strong></th>
+<th>High</th>
+<th>Low</th>
+<th>Medium</th>
+<th>Medium</th>
+<p>
+</tr>
+</p>
+</table>
+<h3>11.2 Security Framework and Controls</h3>
+<p>
+#### 11.2.1 Information Security Architecture
+</p>
+<p>
+<strong>Defense in Depth Strategy:</strong>
+<code></code>`
+┌─────────────────────────────────────────────────┐
+│                 USER LAYER                      │
+│  Multi-Factor Authentication │ Role-Based Access │
+├─────────────────────────────────────────────────┤
+│               APPLICATION LAYER                 │
+│   Input Validation │ Session Management │ Logging│
+├─────────────────────────────────────────────────┤
+│                 NETWORK LAYER                   │
+│    WAF Protection │ TLS Encryption │ VPN Access │
+├─────────────────────────────────────────────────┤
+│                INFRASTRUCTURE LAYER             │
+│  Server Hardening │ Database Encryption │ Backup │
+└─────────────────────────────────────────────────┘
+<code></code>`
+</p>
+<p>
+<strong>Security Control Categories:</strong>
+</p>
+<ul>
+<li><strong>Preventive Controls</strong>: Access controls, input validation, encryption</li>
+<li><strong>Detective Controls</strong>: Audit logging, intrusion detection, monitoring</li>
+<li><strong>Corrective Controls</strong>: Incident response, data recovery, system restoration</li>
+<li><strong>Administrative Controls</strong>: Policies, procedures, training, governance</li>
+</ul>
+<p>
+#### 11.2.2 Access Control Framework
+</p>
+<p>
+<strong>Authentication Requirements:</strong>
+</p>
+<ul>
+<li><strong>Primary Authentication</strong>: Username and password (minimum 12 characters)</li>
+<li><strong>Multi-Factor Authentication</strong>: SMS, email, or authenticator app</li>
+<li><strong>Biometric Support</strong>: Fingerprint or facial recognition for mobile</li>
+<li><strong>Session Management</strong>: 8-hour timeout, secure session tokens</li>
+</ul>
+<p>
+<strong>Authorization Matrix:</strong>
+</p>
+<table>
+<tr>
+<th>Function</th>
+<th>Division Leader</th>
+<th>Operations Manager</th>
+<th>Accounting</th>
+<th>Majority Owner</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Create PO</strong></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Approve PO (≤$25K)</strong></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Approve PO (>$25K)</strong></th>
+<th>✗</th>
+<th>✓</th>
+<th>✓</th>
+<th>✓</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Vendor Management</strong></th>
+<th>Limited</th>
+<th>✓</th>
+<th>✓</th>
+<th>✓</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>User Administration</strong></th>
+<th>✗</th>
+<th>Limited</th>
+<th>Limited</th>
+<th>✓</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>System Configuration</strong></th>
+<th>✗</th>
+<th>✗</th>
+<th>Limited</th>
+<th>✓</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Audit Reports</strong></th>
+<th>Division</th>
+<th>All</th>
+<th>All</th>
+<th>All</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+#### 11.2.3 Data Protection Measures
+</p>
+<p>
+<strong>Data Classification:</strong>
+</p>
+<ul>
+<li><strong>Public</strong>: Marketing materials, general system information</li>
+<li><strong>Internal</strong>: Operational procedures, system documentation</li>
+<li><strong>Confidential</strong>: Purchase orders, vendor information, financial data</li>
+<li><strong>Restricted</strong>: User credentials, audit logs, compliance data</li>
+</ul>
+<p>
+<strong>Encryption Standards:</strong>
+</p>
+<ul>
+<li><strong>Data at Rest</strong>: AES-256 encryption for database and file storage</li>
+<li><strong>Data in Transit</strong>: TLS 1.3 for all network communications</li>
+<li><strong>Backup Data</strong>: Encrypted backups with separate key management</li>
+<li><strong>Mobile Data</strong>: Local encryption on mobile devices</li>
+</ul>
+<p>
+<strong>Data Retention and Disposal:</strong>
+</p>
+<ul>
+<li><strong>Transaction Data</strong>: 7-year retention requirement</li>
+<li><strong>Audit Logs</strong>: 10-year retention for compliance</li>
+<li><strong>User Data</strong>: Retained during active employment + 3 years</li>
+<li><strong>Secure Disposal</strong>: Cryptographic erasure and physical destruction</li>
+</ul>
+<h3>11.3 Risk Mitigation Strategies</h3>
+<p>
+#### 11.3.1 Preventive Risk Controls
+</p>
+<p>
+<strong>Financial Risk Mitigation:</strong>
+</p>
+<ol>
+<li><strong>Approval Hierarchies</strong></li>
+<li>Multi-level approval requirements based on transaction value</li>
+<li>Segregation of duties between creation and approval</li>
+<li>Real-time budget checking and availability verification</li>
+<li>Automated escalation for policy exceptions</li>
+</ul>
+<ol>
+<li><strong>Vendor Management Controls</strong></li>
+<li>Comprehensive vendor verification and approval process</li>
+<li>Regular vendor performance monitoring and evaluation</li>
+<li>Insurance and licensing requirement verification</li>
+<li>Blacklist management and fraud prevention</li>
+</ul>
+<ol>
+<li><strong>Budget Controls</strong></li>
+<li>Real-time budget availability checking</li>
+<li>Automatic alerts for budget thresholds</li>
+<li>Project budget allocation and tracking</li>
+<li>Variance analysis and reporting</li>
+</ul>
+<p>
+<strong>Operational Risk Mitigation:</strong>
+</p>
+<ol>
+<li><strong>System Reliability</strong></li>
+<li>99.9% uptime service level agreement</li>
+<li>Redundant infrastructure and failover capabilities</li>
+<li>Regular system maintenance and updates</li>
+<li>Performance monitoring and capacity planning</li>
+</ul>
+<ol>
+<li><strong>Data Protection</strong></li>
+<li>Automated daily backups with offsite storage</li>
+<li>Database replication and disaster recovery</li>
+<li>Regular backup testing and restoration validation</li>
+<li>Encryption at rest and in transit</li>
+</ul>
+<ol>
+<li><strong>Process Controls</strong></li>
+<li>Standardized workflows with built-in validations</li>
+<li>User training and competency requirements</li>
+<li>Process documentation and regular updates</li>
+<li>Quality assurance monitoring and testing</li>
+</ul>
+<p>
+#### 11.3.2 Detective Risk Controls
+</p>
+<p>
+<strong>Security Monitoring:</strong>
+</p>
+<ul>
+<li><strong>Real-time Intrusion Detection</strong>: Automated threat detection and alerting</li>
+<li><strong>Access Monitoring</strong>: User activity logging and anomaly detection</li>
+<li><strong>Performance Monitoring</strong>: System health and availability tracking</li>
+<li><strong>Compliance Monitoring</strong>: Regular audit and control testing</li>
+</ul>
+<p>
+<strong>Audit and Compliance:</strong>
+</p>
+<ul>
+<li><strong>Comprehensive Audit Trail</strong>: Complete transaction and user activity logging</li>
+<li><strong>Regular Internal Audits</strong>: Quarterly compliance and control testing</li>
+<li><strong>External Assessments</strong>: Annual security penetration testing</li>
+<li><strong>Regulatory Compliance</strong>: SOX and industry standard adherence</li>
+</ul>
+<p>
+#### 11.3.3 Corrective Risk Controls
+</p>
+<p>
+<strong>Incident Response Procedures:</strong>
+</p>
+<ol>
+<li><strong>Security Incident Response</strong></li>
+<li>24/7 security monitoring and alert system</li>
+<li>Defined escalation procedures and response teams</li>
+<li>Incident classification and response protocols</li>
+<li>Post-incident analysis and improvement processes</li>
+</ul>
+<ol>
+<li><strong>Business Continuity</strong></li>
+<li>Disaster recovery procedures with 4-hour RTO</li>
+<li>Alternative processing capabilities during outages</li>
+<li>Emergency communication procedures</li>
+<li>Business impact assessment and prioritization</li>
+</ul>
+<ol>
+<li><strong>Data Recovery</strong></li>
+<li>Point-in-time recovery capabilities</li>
+<li>Automated backup verification and testing</li>
+<li>Offsite storage and geographic distribution</li>
+<li>Recovery time objectives and testing procedures</li>
+</ul>
+<h3>11.4 Security Governance and Compliance</h3>
+<p>
+#### 11.4.1 Security Governance Structure
+</p>
+<p>
+<strong>Security Roles and Responsibilities:</strong>
+</p>
+<ul>
+<li><strong>Chief Executive Officer</strong>: Overall security accountability and policy approval</li>
+<li><strong>Operations Manager</strong>: Day-to-day security oversight and incident management</li>
+<li><strong>IT Administrator</strong>: Technical security implementation and monitoring</li>
+<li><strong>All Users</strong>: Security awareness and compliance with policies</li>
+</ul>
+<p>
+<strong>Security Committees:</strong>
+</p>
+<ul>
+<li><strong>Security Review Board</strong>: Quarterly security posture assessment</li>
+<li><strong>Incident Response Team</strong>: 24/7 security incident management</li>
+<li><strong>Compliance Committee</strong>: Regular regulatory compliance monitoring</li>
+</ul>
+<p>
+#### 11.4.2 Regular Security Assessments
+</p>
+<p>
+<strong>Monthly Security Reviews:</strong>
+</p>
+<ul>
+<li>User access rights review and validation</li>
+<li>Security log analysis and anomaly investigation</li>
+<li>Vulnerability assessment and patch management</li>
+<li>Security awareness training effectiveness</li>
+</ul>
+<p>
+<strong>Quarterly Security Audits:</strong>
+</p>
+<ul>
+<li>Comprehensive security control testing</li>
+<li>Penetration testing and vulnerability scanning</li>
+<li>Business continuity and disaster recovery testing</li>
+<li>Security policy review and updates</li>
+</ul>
+<p>
+<strong>Annual Security Certification:</strong>
+</p>
+<ul>
+<li>External security assessment and certification</li>
+<li>Compliance audit and regulatory review</li>
+<li>Security training program evaluation</li>
+<li>Strategic security planning and improvement</li>
+</ul>
+<p>
+#### 11.4.3 Compliance Monitoring and Reporting
+</p>
+<p>
+<strong>Regulatory Compliance:</strong>
+</p>
+<ul>
+<li><strong>SOX Compliance</strong>: Quarterly controls testing and documentation</li>
+<li><strong>Industry Standards</strong>: Annual compliance assessment and certification</li>
+<li><strong>Data Privacy</strong>: Regular privacy impact assessments</li>
+<li><strong>Financial Regulations</strong>: Continuous monitoring and reporting</li>
+</ul>
+<p>
+<strong>Compliance Reporting:</strong>
+</p>
+<ul>
+<li><strong>Management Dashboard</strong>: Real-time compliance metrics and KPIs</li>
+<li><strong>Quarterly Reports</strong>: Comprehensive compliance status and trends</li>
+<li><strong>Annual Certification</strong>: Executive attestation and external validation</li>
+<li><strong>Exception Reporting</strong>: Immediate notification of compliance issues</li>
+</ul>
+---
+<h2>12. Audit and Review Procedures</h2>
+<h3>12.1 Audit Framework and Objectives</h3>
+<p>
+#### 12.1.1 Audit Program Overview
+</p>
+<p>
+The ASR Purchase Order System audit program ensures:
+</p>
+<ul>
+<li><strong>Process Effectiveness</strong>: Verification that procedures achieve intended results</li>
+<li><strong>Compliance Verification</strong>: Confirmation of adherence to policies and regulations</li>
+<li><strong>Control Testing</strong>: Validation of internal control design and operation</li>
+<li><strong>Continuous Improvement</strong>: Identification of optimization opportunities</li>
+</ul>
+<p>
+#### 12.1.2 Audit Scope and Frequency
+</p>
+<p>
+<strong>Internal Audit Schedule:</strong>
+</p>
+<ul>
+<li><strong>Daily</strong>: Automated system checks and exception reporting</li>
+<li><strong>Weekly</strong>: Process compliance sampling and review</li>
+<li><strong>Monthly</strong>: Comprehensive control testing and validation</li>
+<li><strong>Quarterly</strong>: Management review and certification</li>
+<li><strong>Annually</strong>: Complete system audit and external validation</li>
+</ul>
+<p>
+<strong>Audit Coverage Areas:</strong>
+</p>
+<ul>
+<li><strong>Financial Controls</strong>: Authorization, approval, and financial integration</li>
+<li><strong>Operational Processes</strong>: Workflow efficiency and effectiveness</li>
+<li><strong>Data Integrity</strong>: Accuracy, completeness, and consistency</li>
+<li><strong>Security Controls</strong>: Access management and data protection</li>
+<li><strong>Compliance Adherence</strong>: Policy and regulatory compliance</li>
+</ul>
+<h3>12.2 Daily Audit Procedures</h3>
+<p>
+#### 12.2.1 Automated System Monitoring
+</p>
+<p>
+<strong>Real-time Control Monitoring:</strong>
+<code></code>`
+System Process → Control Point → Automated Check → Exception Alert
+↓               ↓               ↓                ↓
+PO Creation → Budget Validation → Available Funds → Budget Alert
+PO Approval → Authority Check → Approval Limits → Authority Alert
+QB Sync → Data Integrity → Field Validation → Sync Error Alert
+<code></code>`
+</p>
+<p>
+<strong>Daily Automated Checks:</strong>
+</p>
+<ol>
+<li><strong>Transaction Completeness</strong></li>
+<li>All PO transactions properly logged</li>
+<li>No orphaned records or data inconsistencies</li>
+<li>Complete audit trail for all activities</li>
+<li>Proper transaction sequencing and numbering</li>
+</ul>
+<ol>
+<li><strong>Control Effectiveness</strong></li>
+<li>Approval hierarchy properly enforced</li>
+<li>Authority limits respected and validated</li>
+<li>Budget controls functioning correctly</li>
+<li>Security controls operating as designed</li>
+</ul>
+<ol>
+<li><strong>System Performance</strong></li>
+<li>Response times within acceptable limits</li>
+<li>Error rates below established thresholds</li>
+<li>System availability meeting SLA requirements</li>
+<li>Database performance and optimization</li>
+</ul>
+<p>
+#### 12.2.2 Exception Reporting and Investigation
+</p>
+<p>
+<strong>Daily Exception Categories:</strong>
+</p>
+<ul>
+<li><strong>Budget Overruns</strong>: Transactions exceeding available budget</li>
+<li><strong>Authority Violations</strong>: Approvals beyond authorized limits</li>
+<li><strong>Data Quality Issues</strong>: Incomplete or inconsistent data</li>
+<li><strong>System Errors</strong>: Technical failures or performance issues</li>
+</ul>
+<p>
+<strong>Exception Resolution Process:</strong>
+</p>
+<ol>
+<li><strong>Immediate Investigation</strong></li>
+<li>Exception identified through automated monitoring</li>
+<li>Initial assessment and classification performed</li>
+<li>Responsible parties notified within 1 hour</li>
+<li>Immediate corrective action initiated if required</li>
+</ul>
+<ol>
+<li><strong>Root Cause Analysis</strong></li>
+<li>Detailed investigation of underlying causes</li>
+<li>Documentation of findings and contributing factors</li>
+<li>Identification of systemic issues or patterns</li>
+<li>Development of corrective action plans</li>
+</ul>
+<ol>
+<li><strong>Resolution and Follow-up</strong></li>
+<li>Implementation of corrective measures</li>
+<li>Verification of resolution effectiveness</li>
+<li>Documentation of lessons learned</li>
+<li>Process improvements to prevent recurrence</li>
+</ul>
+<h3>12.3 Weekly Audit Procedures</h3>
+<p>
+#### 12.3.1 Process Compliance Audit
+</p>
+<p>
+<strong>Sample Selection Methodology:</strong>
+</p>
+<ul>
+<li><strong>Random Sampling</strong>: 10% of weekly transactions</li>
+<li><strong>Risk-Based Sampling</strong>: Focus on high-value or high-risk transactions</li>
+<li><strong>Targeted Sampling</strong>: Specific areas of concern or improvement</li>
+<li><strong>Statistical Sampling</strong>: Representative sample for broader conclusions</li>
+</ul>
+<p>
+<strong>Compliance Testing Procedures:</strong>
+</p>
+<ol>
+<li><strong>Authorization Testing</strong></li>
+<li>Verify proper approval hierarchy followed</li>
+<li>Confirm approver authority for transaction amounts</li>
+<li>Validate approval timing and documentation</li>
+<li>Test segregation of duties compliance</li>
+</ul>
+<ol>
+<li><strong>Documentation Review</strong></li>
+<li>Complete transaction documentation present</li>
+<li>Required signatures and approvals obtained</li>
+<li>Proper supporting documentation attached</li>
+<li>Audit trail integrity and completeness</li>
+</ul>
+<ol>
+<li><strong>Data Accuracy Verification</strong></li>
+<li>Mathematical accuracy of calculations</li>
+<li>Proper GL account coding and categorization</li>
+<li>Vendor information accuracy and completeness</li>
+<li>Project and work order allocation correctness</li>
+</ul>
+<p>
+#### 12.3.2 Performance Metrics Analysis
+</p>
+<p>
+<strong>Key Performance Indicators Review:</strong>
+</p>
+<table>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+<th>Current Performance</th>
+<th>Variance</th>
+<th>Action Required</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>PO Processing Time</strong></td>
+<td>8 hours</td>
+<td>6.2 hours</td>
+<td>-22.5%</td>
+<td>Monitor for sustainability</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Approval Accuracy</strong></td>
+<td>99%</td>
+<td>99.8%</td>
+<td>+0.8%</td>
+<td>Continue current practices</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Budget Compliance</strong></th>
+<th>95%</th>
+<th>94.2%</th>
+<th>-0.8%</th>
+<th>Investigate variance causes</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>System Uptime</strong></th>
+<th>99.9%</th>
+<th>99.97%</th>
+<th>+0.07%</th>
+<th>Excellent performance</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>User Satisfaction</strong></th>
+<th>95%</th>
+<th>94%</th>
+<th>-1%</th>
+<th>Review user feedback</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+<strong>Trend Analysis:</strong>
+</p>
+<ul>
+<li><strong>Monthly Trends</strong>: Identification of performance patterns</li>
+<li><strong>Seasonal Variations</strong>: Recognition of cyclical performance changes</li>
+<li><strong>Process Improvements</strong>: Measurement of enhancement effectiveness</li>
+<li><strong>Benchmark Comparisons</strong>: Performance against industry standards</li>
+</ul>
+<h3>12.4 Monthly Audit Procedures</h3>
+<p>
+#### 12.4.1 Comprehensive Control Testing
+</p>
+<p>
+<strong>Internal Control Assessment:</strong>
+</p>
+<ol>
+<li><strong>Design Effectiveness Testing</strong></li>
+<li>Validation of control design adequacy</li>
+<li>Assessment of control logic and workflow</li>
+<li>Evaluation of system configuration compliance</li>
+<li>Review of policy and procedure alignment</li>
+</ul>
+<ol>
+<li><strong>Operating Effectiveness Testing</strong></li>
+<li>Testing of control execution consistency</li>
+<li>Validation of control performance reliability</li>
+<li>Assessment of user compliance with procedures</li>
+<li>Measurement of control efficiency and effectiveness</li>
+</ul>
+<ol>
+<li><strong>Compensating Control Evaluation</strong></li>
+<li>Identification of control gaps or weaknesses</li>
+<li>Assessment of compensating control adequacy</li>
+<li>Evaluation of risk mitigation effectiveness</li>
+<li>Recommendation for control improvements</li>
+</ul>
+<p>
+<strong>Control Testing Results Documentation:</strong>
+</p>
+<ul>
+<li><strong>Testing Procedures</strong>: Detailed methodology and scope</li>
+<li><strong>Sample Selection</strong>: Criteria and rationale for sample selection</li>
+<li><strong>Test Results</strong>: Findings, exceptions, and observations</li>
+<li><strong>Recommendations</strong>: Proposed improvements and corrective actions</li>
+</ul>
+<p>
+#### 12.4.2 Financial Reconciliation and Validation
+</p>
+<p>
+<strong>QuickBooks Integration Audit:</strong>
+</p>
+<ol>
+<li><strong>Data Synchronization Verification</strong></li>
+<li>Complete transaction synchronization confirmation</li>
+<li>Timing accuracy of data transfer</li>
+<li>Data integrity and completeness validation</li>
+<li>Error handling and exception management</li>
+</ul>
+<ol>
+<li><strong>GL Account Reconciliation</strong></li>
+<li>Account balance reconciliation between systems</li>
+<li>Transaction detail matching and validation</li>
+<li>Period cutoff accuracy and completeness</li>
+<li>Chart of accounts consistency maintenance</li>
+</ul>
+<ol>
+<li><strong>Vendor Master Data Audit</strong></li>
+<li>Vendor information accuracy verification</li>
+<li>Duplicate vendor identification and resolution</li>
+<li>Inactive vendor cleanup and maintenance</li>
+<li>Payment terms and tax setup validation</li>
+</ul>
+<h3>12.5 Quarterly and Annual Audit Procedures</h3>
+<p>
+#### 12.5.1 Management Review and Certification
+</p>
+<p>
+<strong>Quarterly Management Certification:</strong>
+</p>
+<ol>
+<li><strong>Control Environment Assessment</strong></li>
+<li>Management oversight effectiveness evaluation</li>
+<li>Organizational structure and responsibility clarity</li>
+<li>Policy and procedure currency and adequacy</li>
+<li>Risk management framework effectiveness</li>
+</ul>
+<ol>
+<li><strong>Performance Review</strong></li>
+<li>Achievement of established performance targets</li>
+<li>Trend analysis and improvement identification</li>
+<li>Resource adequacy and efficiency assessment</li>
+<li>Strategic alignment and goal achievement</li>
+</ul>
+<ol>
+<li><strong>Compliance Certification</strong></li>
+<li>Regulatory compliance status verification</li>
+<li>Policy adherence and exception management</li>
+<li>Training and competency program effectiveness</li>
+<li>Corrective action completion and effectiveness</li>
+</ul>
+<p>
+<strong>Management Attestation Requirements:</strong>
+</p>
+<ul>
+<li>Quarterly certification of control effectiveness</li>
+<li>Documentation of significant control changes</li>
+<li>Identification of material weaknesses or deficiencies</li>
+<li>Commitment to corrective action implementation</li>
+</ul>
+<p>
+#### 12.5.2 Annual External Audit Coordination
+</p>
+<p>
+<strong>External Audit Preparation:</strong>
+</p>
+<ol>
+<li><strong>Documentation Preparation</strong></li>
+<li>Complete audit trail documentation</li>
+<li>Control testing evidence compilation</li>
+<li>Process documentation update and validation</li>
+<li>Exception and corrective action documentation</li>
+</ul>
+<ol>
+<li><strong>External Auditor Coordination</strong></li>
+<li>Audit scope and timeline coordination</li>
+<li>Information request response and support</li>
+<li>Walkthrough and testing support provision</li>
+<li>Finding response and corrective action planning</li>
+</ul>
+<ol>
+<li><strong>Post-Audit Activities</strong></li>
+<li>Audit finding analysis and response</li>
+<li>Management letter comment resolution</li>
+<li>Process improvement implementation</li>
+<li>Lessons learned documentation and application</li>
+</ul>
+<p>
+<strong>Annual Audit Scope:</strong>
+</p>
+<ul>
+<li><strong>SOX Compliance</strong>: Full compliance audit and testing</li>
+<li><strong>Financial Controls</strong>: Complete financial control assessment</li>
+<li><strong>Operational Efficiency</strong>: Process effectiveness evaluation</li>
+<li><strong>Technology Controls</strong>: IT general and application controls testing</li>
+</ul>
+<h3>12.6 Audit Documentation and Reporting</h3>
+<p>
+#### 12.6.1 Audit Documentation Standards
+</p>
+<p>
+<strong>Documentation Requirements:</strong>
+</p>
+<ul>
+<li><strong>Audit Planning</strong>: Scope, objectives, and methodology documentation</li>
+<li><strong>Testing Procedures</strong>: Detailed testing steps and criteria</li>
+<li><strong>Test Results</strong>: Findings, conclusions, and supporting evidence</li>
+<li><strong>Follow-up Actions</strong>: Corrective action plans and implementation status</li>
+</ul>
+<p>
+<strong>Documentation Retention:</strong>
+</p>
+<ul>
+<li><strong>Internal Audit</strong>: 7-year retention requirement</li>
+<li><strong>External Audit</strong>: 10-year retention for compliance</li>
+<li><strong>Management Reviews</strong>: 5-year retention for performance tracking</li>
+<li><strong>Exception Reports</strong>: 3-year retention for trend analysis</li>
+</ul>
+<p>
+#### 12.6.2 Audit Reporting and Communication
+</p>
+<p>
+<strong>Internal Audit Reporting:</strong>
+</p>
+<ul>
+<li><strong>Daily</strong>: Exception reports and immediate findings</li>
+<li><strong>Weekly</strong>: Compliance testing results and trends</li>
+<li><strong>Monthly</strong>: Comprehensive audit summary and recommendations</li>
+<li><strong>Quarterly</strong>: Management certification and strategic review</li>
+</ul>
+<p>
+<strong>External Audit Reporting:</strong>
+</p>
+<ul>
+<li><strong>Management Letter</strong>: Annual findings and recommendations</li>
+<li><strong>Compliance Reports</strong>: Regulatory requirement documentation</li>
+<li><strong>Certification Letters</strong>: External validation and attestation</li>
+<li><strong>Special Reports</strong>: Issue-specific investigation and analysis</li>
+</ul>
+<p>
+<strong>Stakeholder Communication:</strong>
+</p>
+<ul>
+<li><strong>Executive Management</strong>: Strategic oversight and decision support</li>
+<li><strong>Operational Management</strong>: Process improvement and efficiency</li>
+<li><strong>Audit Committee</strong>: Governance oversight and risk management</li>
+<li><strong>External Auditors</strong>: Compliance demonstration and cooperation</li>
+</ul>
+---
+<h2>13. Document Control and Change Management</h2>
+<h3>13.1 Document Control Framework</h3>
+<p>
+#### 13.1.1 Document Hierarchy and Classification
+</p>
+<p>
+<strong>Document Classification System:</strong>
+<code></code>`
+Level 1: Policies (Board/Executive Approved)
+↓
+Level 2: Standards and Procedures (Management Approved)
+↓
+Level 3: Work Instructions and Guidelines (Operational Approval)
+↓
+Level 4: Forms and Templates (Administrative Control)
+<code></code>`
+</p>
+<p>
+<strong>Document Types and Ownership:</strong>
+</p>
+<table>
+<tr>
+<th>Document Type</th>
+<th>Owner</th>
+<th>Approver</th>
+<th>Review Frequency</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>System Policies</strong></td>
+<td>CEO</td>
+<td>Board</td>
+<td>Annually</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>SOPs</strong></td>
+<td>Operations Manager</td>
+<td>CEO</td>
+<td>Annually</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Work Instructions</strong></th>
+<th>Process Owner</th>
+<th>Operations Manager</th>
+<th>Bi-annually</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>User Guides</strong></th>
+<th>Training Coordinator</th>
+<th>Operations Manager</th>
+<th>Quarterly</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Technical Documentation</strong></th>
+<th>IT Manager</th>
+<th>Operations Manager</th>
+<th>Bi-annually</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Forms and Templates</strong></th>
+<th>Process Owner</th>
+<th>Functional Manager</th>
+<th>As needed</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+#### 13.1.2 Document Identification and Version Control
+</p>
+<p>
+<strong>Document Numbering System:</strong>
+<code></code>`
+Format: [CATEGORY]-[TYPE]-[SEQUENCE]-[VERSION]
+Example: ASR-SOP-PO-001-v1.0
+</p>
+<p>
+Categories:
+</p>
+<ul>
+<li>ASR: ASR Inc. documents</li>
+<li>POL: Policy documents</li>
+<li>SOP: Standard Operating Procedures</li>
+<li>WI: Work Instructions</li>
+<li>FORM: Forms and templates</li>
+<li>TECH: Technical documentation</li>
+</ul>
+<p>
+<code></code>`
+</p>
+<p>
+<strong>Version Control Standards:</strong>
+</p>
+<ul>
+<li><strong>Major Changes</strong>: Full version increment (1.0 → 2.0)</li>
+<li><strong>Minor Changes</strong>: Decimal increment (1.0 → 1.1)</li>
+<li><strong>Editorial Changes</strong>: Sub-decimal increment (1.0 → 1.01)</li>
+<li><strong>Draft Documents</strong>: DRAFT designation with date</li>
+</ul>
+<h3>13.2 Change Management Procedures</h3>
+<p>
+#### 13.2.1 Change Request Process
+</p>
+<p>
+<strong>Change Categories:</strong>
+</p>
+<ol>
+<li><strong>Emergency Changes</strong>: Critical system fixes or security updates</li>
+<li><strong>Standard Changes</strong>: Regular updates and improvements</li>
+<li><strong>Major Changes</strong>: Significant system or process modifications</li>
+<li><strong>Policy Changes</strong>: Regulatory or strategic policy updates</li>
+</ul>
+<p>
+<strong>Change Request Workflow:</strong>
+<code></code>`
+Change Identification → Request Submission → Impact Assessment →
+Approval Process → Implementation Planning → Testing and Validation →
+Deployment → Post-Implementation Review
+<code></code>`
+</p>
+<p>
+#### 13.2.2 Change Approval Matrix
+</p>
+<table>
+<tr>
+<th>Change Type</th>
+<th>Requestor</th>
+<th>Reviewer</th>
+<th>Approver</th>
+<th>Implementation Authority</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Emergency</strong></td>
+<td>Any User</td>
+<td>IT Manager</td>
+<td>Operations Manager</td>
+<td>IT Team</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Standard</strong></td>
+<td>Process Owner</td>
+<td>Functional Manager</td>
+<td>Operations Manager</td>
+<td>Process Owner</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Major</strong></th>
+<th>Management</th>
+<th>Change Board</th>
+<th>CEO</th>
+<th>Project Manager</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Policy</strong></th>
+<th>Management</th>
+<th>Legal/Compliance</th>
+<th>CEO/Board</th>
+<th>Management</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+#### 13.2.3 Change Implementation Procedures
+</p>
+<p>
+<strong>Pre-Implementation Requirements:</strong>
+</p>
+<ol>
+<li><strong>Impact Analysis</strong></li>
+<li>Business impact assessment</li>
+<li>Technical feasibility analysis</li>
+<li>Resource requirement evaluation</li>
+<li>Risk assessment and mitigation planning</li>
+</ul>
+<ol>
+<li><strong>Implementation Planning</strong></li>
+<li>Detailed implementation timeline</li>
+<li>Resource allocation and scheduling</li>
+<li>Communication plan and stakeholder notification</li>
+<li>Rollback procedures and contingency planning</li>
+</ul>
+<ol>
+<li><strong>Testing and Validation</strong></li>
+<li>User acceptance testing completion</li>
+<li>System integration testing</li>
+<li>Performance and security validation</li>
+<li>Documentation update and verification</li>
+</ul>
+<p>
+<strong>Implementation Execution:</strong>
+</p>
+<ol>
+<li><strong>Pre-Implementation Checklist</strong></li>
+<li>All approvals obtained and documented</li>
+<li>Testing completed and results validated</li>
+<li>Communication plan executed</li>
+<li>Rollback procedures prepared and tested</li>
+</ul>
+<ol>
+<li><strong>Implementation Monitoring</strong></li>
+<li>Real-time monitoring during deployment</li>
+<li>Issue identification and immediate resolution</li>
+<li>Stakeholder communication and status updates</li>
+<li>Success criteria validation and confirmation</li>
+</ul>
+<ol>
+<li><strong>Post-Implementation Activities</strong></li>
+<li>Implementation success verification</li>
+<li>Issue resolution and corrective actions</li>
+<li>Lessons learned documentation</li>
+<li>Process improvement identification</li>
+</ul>
+<h3>13.3 Document Review and Approval Procedures</h3>
+<p>
+#### 13.3.1 Regular Review Schedule
+</p>
+<p>
+<strong>Scheduled Review Requirements:</strong>
+</p>
+<ul>
+<li><strong>Policies</strong>: Annual review and reaffirmation</li>
+<li><strong>SOPs</strong>: Annual review with bi-annual updates as needed</li>
+<li><strong>Work Instructions</strong>: Bi-annual review and validation</li>
+<li><strong>User Documentation</strong>: Quarterly review for accuracy</li>
+<li><strong>Technical Documentation</strong>: Annual review with system updates</li>
+</ul>
+<p>
+<strong>Review Triggering Events:</strong>
+</p>
+<ul>
+<li>System upgrades or major changes</li>
+<li>Regulatory or compliance requirement changes</li>
+<li>Process improvement implementations</li>
+<li>Audit findings or recommendations</li>
+<li>User feedback indicating documentation gaps</li>
+</ul>
+<p>
+#### 13.3.2 Review Process Methodology
+</p>
+<p>
+<strong>Document Review Steps:</strong>
+</p>
+<ol>
+<li><strong>Content Accuracy Verification</strong></li>
+<li>Technical accuracy and current state validation</li>
+<li>Process flow and procedure correctness</li>
+<li>Reference and link verification</li>
+<li>Example and screenshot currency</li>
+</ul>
+<ol>
+<li><strong>Compliance Assessment</strong></li>
+<li>Regulatory requirement alignment</li>
+<li>Company policy compliance</li>
+<li>Industry standard adherence</li>
+<li>Best practice incorporation</li>
+</ul>
+<ol>
+<li><strong>Usability Evaluation</strong></li>
+<li>User feedback integration</li>
+<li>Clarity and comprehensiveness assessment</li>
+<li>Navigation and organization optimization</li>
+<li>Format and presentation improvement</li>
+</ul>
+<ol>
+<li><strong>Approval and Publication</strong></li>
+<li>Review completion and sign-off</li>
+<li>Final approval authority authorization</li>
+<li>Version control and distribution</li>
+<li>Training and communication planning</li>
+</ul>
+<h3>13.4 Document Distribution and Access Control</h3>
+<p>
+#### 13.4.1 Distribution Management
+</p>
+<p>
+<strong>Distribution Categories:</strong>
+</p>
+<ul>
+<li><strong>Public</strong>: Available to all system users</li>
+<li><strong>Internal</strong>: Available to ASR employees only</li>
+<li><strong>Restricted</strong>: Available to specific roles or departments</li>
+<li><strong>Confidential</strong>: Available to named individuals only</li>
+</ul>
+<p>
+<strong>Distribution Channels:</strong>
+</p>
+<ul>
+<li><strong>System Help</strong>: Built-in help system and documentation</li>
+<li><strong>Intranet</strong>: Company intranet portal and document library</li>
+<li><strong>Training Materials</strong>: Learning management system integration</li>
+<li><strong>Print Distribution</strong>: Controlled hard copy distribution</li>
+</ul>
+<p>
+#### 13.4.2 Access Control and Security
+</p>
+<p>
+<strong>Document Security Measures:</strong>
+</p>
+<ul>
+<li><strong>Role-Based Access</strong>: Document access aligned with job responsibilities</li>
+<li><strong>Authentication Required</strong>: Login required for internal and restricted documents</li>
+<li><strong>Download Control</strong>: Tracking of document downloads and access</li>
+<li><strong>Watermarking</strong>: Confidential documents marked with user identification</li>
+</ul>
+<p>
+<strong>Version Control and Obsolescence:</strong>
+</p>
+<ul>
+<li><strong>Current Version Availability</strong>: Only current versions accessible</li>
+<li><strong>Obsolete Document Removal</strong>: Automatic removal of superseded versions</li>
+<li><strong>Change Notification</strong>: Automatic notification of document updates</li>
+<li><strong>Historical Archive</strong>: Controlled access to historical versions</li>
+</ul>
+<h3>13.5 Training and Communication of Changes</h3>
+<p>
+#### 13.5.1 Change Communication Strategy
+</p>
+<p>
+<strong>Communication Requirements:</strong>
+</p>
+<ol>
+<li><strong>Advance Notification</strong></li>
+<li>30-day advance notice for major changes</li>
+<li>14-day notice for standard changes</li>
+<li>Immediate notification for emergency changes</li>
+<li>Change summary and impact explanation</li>
+</ul>
+<ol>
+<li><strong>Multi-Channel Communication</strong></li>
+<li>Email notifications to affected users</li>
+<li>System announcements and alerts</li>
+<li>Team meetings and training sessions</li>
+<li>Documentation updates and help materials</li>
+</ul>
+<ol>
+<li><strong>Feedback Collection</strong></li>
+<li>User feedback mechanisms and channels</li>
+<li>Change effectiveness monitoring</li>
+<li>Improvement suggestion collection</li>
+<li>Satisfaction measurement and follow-up</li>
+</ul>
+<p>
+#### 13.5.2 Training Requirements for Changes
+</p>
+<p>
+<strong>Training Needs Assessment:</strong>
+</p>
+<ul>
+<li><strong>Impact Analysis</strong>: Determination of training requirements</li>
+<li><strong>Audience Identification</strong>: Affected user groups and roles</li>
+<li><strong>Training Method Selection</strong>: Appropriate delivery mechanisms</li>
+<li><strong>Timeline Development</strong>: Training schedule and milestone planning</li>
+</ul>
+<p>
+<strong>Training Delivery:</strong>
+</p>
+<ul>
+<li><strong>Pre-Change Training</strong>: Advanced training before implementation</li>
+<li><strong>Just-in-Time Support</strong>: Support during initial implementation</li>
+<li><strong>Follow-up Training</strong>: Reinforcement and advanced skill development</li>
+<li><strong>Performance Monitoring</strong>: Training effectiveness measurement</li>
+</ul>
+<p>
+<strong>Training Documentation:</strong>
+</p>
+<ul>
+<li><strong>Training Records</strong>: Individual training completion tracking</li>
+<li><strong>Material Updates</strong>: Training material revision and currency</li>
+<li><strong>Competency Validation</strong>: Skill assessment and certification</li>
+<li><strong>Continuous Improvement</strong>: Training program enhancement and optimization</li>
+</ul>
+---
+<h2>14. Emergency Procedures</h2>
+<h3>14.1 Emergency Response Framework</h3>
+<p>
+#### 14.1.1 Emergency Classification System
+</p>
+<p>
+<strong>Emergency Categories:</strong>
+</p>
+<ol>
+<li><strong>System Outage</strong>: Complete system unavailability</li>
+<li><strong>Security Incident</strong>: Unauthorized access or data breach</li>
+<li><strong>Data Loss</strong>: Database corruption or data unavailability</li>
+<li><strong>Critical Business Need</strong>: Urgent purchase order requirements</li>
+<li><strong>Integration Failure</strong>: QuickBooks or external system connectivity loss</li>
+</ul>
+<p>
+<strong>Emergency Severity Levels:</strong>
+</p>
+<table>
+<tr>
+<th>Level</th>
+<th>Description</th>
+<th>Response Time</th>
+<th>Escalation</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Critical</strong></td>
+<td>Complete business disruption</td>
+<td>15 minutes</td>
+<td>CEO + IT Manager</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>High</strong></td>
+<td>Significant business impact</td>
+<td>1 hour</td>
+<td>Operations Manager + IT</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Medium</strong></th>
+<th>Limited business impact</th>
+<th>4 hours</th>
+<th>IT Support</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Low</strong></th>
+<th>Minimal impact, planned resolution</th>
+<th>Next business day</th>
+<th>Standard Support</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+#### 14.1.2 Emergency Response Team Structure
+</p>
+<p>
+<strong>Core Response Team:</strong>
+</p>
+<ul>
+<li><strong>Incident Commander</strong>: Operations Manager (primary) / CEO (escalated)</li>
+<li><strong>Technical Lead</strong>: IT Manager / External IT Support</li>
+<li><strong>Business Continuity Lead</strong>: Operations Manager</li>
+<li><strong>Communications Lead</strong>: Administrative Manager</li>
+<li><strong>External Coordinator</strong>: CEO (vendor/customer communications)</li>
+</ul>
+<p>
+<strong>Extended Response Team:</strong>
+</p>
+<ul>
+<li><strong>Division Leaders</strong>: Business impact assessment and user communication</li>
+<li><strong>Accounting Lead</strong>: Financial system restoration and verification</li>
+<li><strong>Legal/Compliance</strong>: Regulatory notification and compliance management</li>
+<li><strong>External Support</strong>: Vendor support teams and specialized consultants</li>
+</ul>
+<h3>14.2 System Outage Procedures</h3>
+<p>
+#### 14.2.1 Immediate Response Protocol
+</p>
+<p>
+<strong>First 15 Minutes - Assessment and Notification:</strong>
+</p>
+<ol>
+<li><strong>Incident Detection and Verification</strong></li>
+<li>Confirm system outage scope and impact</li>
+<li>Identify affected users and business processes</li>
+<li>Determine root cause if immediately apparent</li>
+<li>Document incident start time and initial assessment</li>
+</ul>
+<ol>
+<li><strong>Initial Notification</strong></li>
+<li>Notify Operations Manager and IT support immediately</li>
+<li>Send system status alert to all users</li>
+<li>Activate emergency response team</li>
+<li>Begin detailed impact assessment</li>
+</ul>
+<ol>
+<li><strong>Immediate Stabilization</strong></li>
+<li>Prevent further system damage or data loss</li>
+<li>Activate backup systems if available</li>
+<li>Secure affected systems and data</li>
+<li>Begin root cause investigation</li>
+</ul>
+<p>
+#### 14.2.2 Business Continuity Activation
+</p>
+<p>
+<strong>Manual Process Procedures:</strong>
+During system outage, critical purchase order functions continue using manual procedures:
+</p>
+<ol>
+<li><strong>Emergency PO Authorization Process</strong></li>
+<li><strong>Verbal Authorization</strong>: Division Leaders may authorize emergency purchases up to $5,000</li>
+<li><strong>Documentation Requirement</strong>: Complete written documentation within 4 hours</li>
+<li><strong>Escalation Path</strong>: Operations Manager approval for amounts $5,000-$25,000</li>
+<li><strong>CEO Authorization</strong>: Required for amounts exceeding $25,000</li>
+</ul>
+<ol>
+<li><strong>Manual Documentation Requirements</strong></li>
+<li><strong>Emergency PO Form</strong>: Pre-printed forms for critical purchases</li>
+<li><strong>Approval Signatures</strong>: Physical signatures required</li>
+<li><strong>Vendor Communication</strong>: Direct vendor contact and confirmation</li>
+<li><strong>Financial Tracking</strong>: Manual tracking spreadsheet maintenance</li>
+</ul>
+<ol>
+<li><strong>Post-Recovery Data Entry</strong></li>
+<li><strong>Priority System</strong>: Urgent transactions entered first</li>
+<li><strong>Verification Process</strong>: Dual verification for manual transaction entry</li>
+<li><strong>Audit Trail</strong>: Complete documentation of manual process usage</li>
+<li><strong>Reconciliation</strong>: Verification of manual vs. system data</li>
+</ul>
+<p>
+#### 14.2.3 System Recovery Procedures
+</p>
+<p>
+<strong>Recovery Priority Sequence:</strong>
+</p>
+<ol>
+<li><strong>Core System Restoration</strong></li>
+<li>Database recovery and integrity verification</li>
+<li>Application services restoration</li>
+<li>Basic user authentication and access</li>
+</ul>
+<ol>
+<li><strong>Critical Function Restoration</strong></li>
+<li>Purchase order creation and approval capabilities</li>
+<li>Real-time budget checking and availability</li>
+<li>Vendor database and contact information</li>
+</ul>
+<ol>
+<li><strong>Integration Restoration</strong></li>
+<li>QuickBooks connectivity and synchronization</li>
+<li>Email notification systems</li>
+<li>Reporting and analytics capabilities</li>
+</ul>
+<ol>
+<li><strong>Full Service Restoration</strong></li>
+<li>Mobile application functionality</li>
+<li>Advanced reporting and analytics</li>
+<li>System optimization and performance tuning</li>
+</ul>
+<h3>14.3 Security Incident Response</h3>
+<p>
+#### 14.3.1 Immediate Security Response
+</p>
+<p>
+<strong>Security Incident Detection:</strong>
+</p>
+<ul>
+<li><strong>Automated Alerts</strong>: Intrusion detection system notifications</li>
+<li><strong>User Reports</strong>: Suspicious activity or unauthorized access reports</li>
+<li><strong>System Anomalies</strong>: Unusual system behavior or performance issues</li>
+<li><strong>External Notifications</strong>: Vendor or partner security alerts</li>
+</ul>
+<p>
+<strong>Immediate Response Actions (First 30 Minutes):</strong>
+</p>
+<ol>
+<li><strong>Incident Containment</strong></li>
+<li>Isolate affected systems and prevent spread</li>
+<li>Disable compromised user accounts</li>
+<li>Preserve evidence and system logs</li>
+<li>Document all response actions taken</li>
+</ul>
+<ol>
+<li><strong>Impact Assessment</strong></li>
+<li>Identify compromised data and systems</li>
+<li>Assess potential business and financial impact</li>
+<li>Determine if customer or vendor data affected</li>
+<li>Evaluate regulatory notification requirements</li>
+</ul>
+<ol>
+<li><strong>Stakeholder Notification</strong></li>
+<li>Notify CEO and legal counsel immediately</li>
+<li>Inform cyber insurance carrier if applicable</li>
+<li>Prepare regulatory notifications if required</li>
+<li>Coordinate with law enforcement if criminal activity suspected</li>
+</ul>
+<p>
+#### 14.3.2 Security Incident Investigation
+</p>
+<p>
+<strong>Forensic Investigation Process:</strong>
+</p>
+<ol>
+<li><strong>Evidence Preservation</strong></li>
+<li>Create forensic copies of affected systems</li>
+<li>Preserve system logs and audit trails</li>
+<li>Document system state and configuration</li>
+<li>Maintain chain of custody for all evidence</li>
+</ul>
+<ol>
+<li><strong>Root Cause Analysis</strong></li>
+<li>Identify attack vector and methodology</li>
+<li>Determine extent of system compromise</li>
+<li>Assess effectiveness of existing security controls</li>
+<li>Identify vulnerabilities exploited in attack</li>
+</ul>
+<ol>
+<li><strong>Damage Assessment</strong></li>
+<li>Catalog all affected data and systems</li>
+<li>Assess financial impact and recovery costs</li>
+<li>Evaluate reputation and business relationship impact</li>
+<li>Determine regulatory and legal implications</li>
+</ul>
+<p>
+#### 14.3.3 Security Recovery and Remediation
+</p>
+<p>
+<strong>System Hardening and Recovery:</strong>
+</p>
+<ol>
+<li><strong>Vulnerability Remediation</strong></li>
+<li>Patch all identified security vulnerabilities</li>
+<li>Update security configurations and controls</li>
+<li>Implement additional security measures as needed</li>
+<li>Conduct security testing before system restoration</li>
+</ul>
+<ol>
+<li><strong>Account and Access Recovery</strong></li>
+<li>Reset all potentially compromised passwords</li>
+<li>Review and update user access permissions</li>
+<li>Implement additional authentication requirements</li>
+<li>Monitor user activity for ongoing threats</li>
+</ul>
+<ol>
+<li><strong>System Monitoring Enhancement</strong></li>
+<li>Enhance security monitoring and alerting</li>
+<li>Implement additional intrusion detection capabilities</li>
+<li>Increase audit logging and review procedures</li>
+<li>Conduct regular security assessments</li>
+</ul>
+<h3>14.4 Critical Business Continuity</h3>
+<p>
+#### 14.4.1 Emergency Purchase Authorization
+</p>
+<p>
+<strong>Emergency Purchase Criteria:</strong>
+</p>
+<ul>
+<li><strong>Health and Safety</strong>: Immediate threat to employee or public safety</li>
+<li><strong>Regulatory Compliance</strong>: Legal deadline or regulatory requirement</li>
+<li><strong>Business Continuity</strong>: Critical system or equipment failure</li>
+<li><strong>Customer Commitment</strong>: Contractual obligation or customer emergency</li>
+</ul>
+<p>
+<strong>Expedited Approval Process:</strong>
+</p>
+<ol>
+<li><strong>Immediate Authorization</strong> (Within 2 Hours)</li>
+<li>Division Leader: Up to $5,000 emergency authorization</li>
+<li>Operations Manager: Up to $25,000 with documentation</li>
+<li>CEO: Unlimited authority with full justification</li>
+</ul>
+<ol>
+<li><strong>Documentation Requirements</strong></li>
+<li><strong>Emergency Justification</strong>: Detailed explanation of emergency nature</li>
+<li><strong>Business Impact</strong>: Description of impact if purchase delayed</li>
+<li><strong>Approval Authority</strong>: Clear identification of approving authority</li>
+<li><strong>Follow-up Actions</strong>: Required post-emergency documentation</li>
+</ul>
+<ol>
+<li><strong>Post-Emergency Procedures</strong></li>
+<li><strong>System Entry</strong>: Enter emergency PO within 24 hours of system restoration</li>
+<li><strong>Audit Trail</strong>: Complete documentation of emergency authorization</li>
+<li><strong>Process Review</strong>: Evaluation of emergency response effectiveness</li>
+<li><strong>Improvement Planning</strong>: Identification of process improvements</li>
+</ul>
+<p>
+#### 14.4.2 Vendor and Supplier Coordination
+</p>
+<p>
+<strong>Emergency Vendor Communication:</strong>
+</p>
+<ul>
+<li><strong>Primary Contacts</strong>: Direct phone numbers for key vendor contacts</li>
+<li><strong>Alternative Contacts</strong>: Backup contacts for critical suppliers</li>
+<li><strong>Emergency Procedures</strong>: Vendor-specific emergency ordering procedures</li>
+<li><strong>Payment Expediting</strong>: Accelerated payment processes for emergency purchases</li>
+</ul>
+<p>
+<strong>Supplier Continuity Planning:</strong>
+</p>
+<ul>
+<li><strong>Alternative Suppliers</strong>: Pre-approved backup suppliers for critical items</li>
+<li><strong>Emergency Sourcing</strong>: Procedures for rapid vendor qualification</li>
+<li><strong>Logistics Coordination</strong>: Emergency delivery and shipping arrangements</li>
+<li><strong>Quality Assurance</strong>: Expedited quality verification procedures</li>
+</ul>
+<h3>14.5 Communication and Coordination</h3>
+<p>
+#### 14.5.1 Internal Communication Protocols
+</p>
+<p>
+<strong>Emergency Communication Hierarchy:</strong>
+<code></code>`
+Incident Detection → Operations Manager → CEO → Division Leaders → All Staff
+↓
+IT Support Team → External Support (if needed)
+↓
+Legal/Compliance (if required) → Regulatory Authorities
+<code></code>`
+</p>
+<p>
+<strong>Communication Requirements:</strong>
+</p>
+<ul>
+<li><strong>Immediate Notification</strong>: Key stakeholders notified within 15 minutes</li>
+<li><strong>Status Updates</strong>: Hourly updates during active incident response</li>
+<li><strong>Resolution Notification</strong>: All stakeholders notified upon resolution</li>
+<li><strong>Post-Incident Report</strong>: Comprehensive incident report within 48 hours</li>
+</ul>
+<p>
+#### 14.5.2 External Communication Management
+</p>
+<p>
+<strong>Customer and Vendor Communication:</strong>
+</p>
+<ul>
+<li><strong>Proactive Notification</strong>: Inform affected customers and vendors promptly</li>
+<li><strong>Regular Updates</strong>: Provide status updates and estimated resolution times</li>
+<li><strong>Service Restoration</strong>: Notify all parties when services fully restored</li>
+<li><strong>Follow-up Communication</strong>: Post-incident communication and relationship management</li>
+</ul>
+<p>
+<strong>Regulatory and Legal Notification:</strong>
+</p>
+<ul>
+<li><strong>Regulatory Requirements</strong>: Notify regulators within required timeframes</li>
+<li><strong>Legal Consultation</strong>: Engage legal counsel for significant incidents</li>
+<li><strong>Insurance Notification</strong>: Notify insurance carriers for covered incidents</li>
+<li><strong>Law Enforcement</strong>: Coordinate with authorities for criminal matters</li>
+</ul>
+<p>
+#### 14.5.3 Post-Emergency Review and Improvement
+</p>
+<p>
+<strong>Incident Review Process:</strong>
+</p>
+<ol>
+<li><strong>Immediate Debrief</strong> (Within 24 hours)</li>
+<li>Response effectiveness evaluation</li>
+<li>Timeline and decision-making review</li>
+<li>Resource utilization assessment</li>
+<li>Initial lessons learned identification</li>
+</ul>
+<ol>
+<li><strong>Comprehensive Analysis</strong> (Within 1 week)</li>
+<li>Detailed root cause analysis</li>
+<li>Process effectiveness evaluation</li>
+<li>Cost and impact assessment</li>
+<li>Stakeholder feedback collection</li>
+</ul>
+<ol>
+<li><strong>Improvement Planning</strong> (Within 2 weeks)</li>
+<li>Process improvement recommendations</li>
+<li>Training and preparedness enhancements</li>
+<li>Technology and tool improvements</li>
+<li>Prevention strategy development</li>
+</ol>
+<p>
+<strong>Documentation and Learning:</strong>
+</p>
+<ul>
+<li><strong>Incident Documentation</strong>: Complete incident record and timeline</li>
+<li><strong>Lessons Learned</strong>: Documented insights and improvement opportunities</li>
+<li><strong>Process Updates</strong>: Revisions to emergency procedures and protocols</li>
+<li><strong>Training Updates</strong>: Enhanced training based on incident experience</li>
+</ol>
+---
+<h2>15. Appendices</h2>
+<h3>15.1 System Configuration Reference</h3>
+<p>
+#### 15.1.1 User Role Configuration Matrix
+</p>
+<table>
+<tr>
+<th>Permission</th>
+<th>Division Leader</th>
+<th>Operations Manager</th>
+<th>Accounting</th>
+<th>Majority Owner</th>
+<th>IT Administrator</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Create PO</strong></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Approve ≤$1K</strong></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Approve ≤$25K</strong></th>
+<th>✓</th>
+<th>✓</th>
+<th>✓</th>
+<th>✓</th>
+<th>✗</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Approve >$25K</strong></th>
+<th>✗</th>
+<th>✓</th>
+<th>✓</th>
+<th>✓</th>
+<th>✗</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Manage Vendors</strong></th>
+<th>View Only</th>
+<th>✓</th>
+<th>✓</th>
+<th>✓</th>
+<th>✗</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>User Management</strong></th>
+<th>✗</th>
+<th>Limited</th>
+<th>Limited</th>
+<th>✓</th>
+<th>✓</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>System Config</strong></th>
+<th>✗</th>
+<th>✗</th>
+<th>Limited</th>
+<th>✓</th>
+<th>✓</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>All Reports</strong></th>
+<th>Division Only</th>
+<th>✓</th>
+<th>✓</th>
+<th>✓</th>
+<th>✗</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Audit Logs</strong></th>
+<th>Division Only</th>
+<th>✓</th>
+<th>✓</th>
+<th>✓</th>
+<th>✓</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+#### 15.1.2 GL Account Code Reference
+</p>
+<p>
+<strong>Primary Account Categories:</strong>
+<code></code>`
+50-54: Direct Labor
+50: Regular wages and salaries
+51: Overtime wages
+52: Temporary labor
+53: Benefits and payroll taxes
+54: Workers compensation
+</p>
+<p>
+55-59: Materials and Supplies
+55: Construction materials
+56: Office supplies
+57: Safety equipment
+58: Maintenance supplies
+59: Miscellaneous materials
+</p>
+<p>
+60-64: Equipment and Tools
+60: Hand tools
+61: Power tools
+62: Heavy equipment rental
+63: Vehicle expenses
+64: Equipment maintenance
+</p>
+<p>
+65-69: Capital Equipment
+65: Machinery and equipment purchases
+66: Vehicles and trucks
+67: Computer equipment
+68: Furniture and fixtures
+69: Leasehold improvements
+</p>
+<p>
+70-74: Subcontractor Services
+70: Trade contractors
+71: Professional services
+72: Specialized services
+73: Emergency services
+74: Warranty work
+</p>
+<p>
+75-79: Professional Services
+75: Legal services
+76: Accounting services
+77: Consulting services
+78: Training and education
+79: Marketing and advertising
+</p>
+<p>
+80-84: Utilities and Facilities
+80: Rent and lease payments
+81: Utilities (electric, gas, water)
+82: Telephone and internet
+83: Insurance premiums
+84: Property taxes
+</p>
+<p>
+85-89: Administrative
+85: Office rent
+86: Administrative salaries
+87: Office equipment
+88: Communications
+89: General administrative
+</p>
+<p>
+90-94: Travel and Transportation
+90: Vehicle fuel
+91: Travel expenses
+92: Shipping and freight
+93: Parking and tolls
+94: Vehicle maintenance
+</p>
+<p>
+95-99: Other Expenses
+95: Bank fees
+96: Interest expense
+97: Depreciation
+98: Bad debt expense
+99: Miscellaneous expenses
+<code></code>`
+</p>
+<h3>15.2 Process Flow Diagrams</h3>
+<p>
+#### 15.2.1 Standard Purchase Order Workflow
+</p>
+<p>
+<code></code>`mermaid
+flowchart TD
+A[User Creates PO] --> B{Budget Available?}
+</p>
+<table>
+<tr>
+<th>No</th>
+<p>
+</tr>
+</p>
+<tr>
+<th>Yes</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+C --> E[Operations Mgr Review]
+</p>
+<table>
+<tr>
+<th>Approved</th>
+<p>
+</tr>
+</p>
+<tr>
+<th>Rejected</th>
+<p>
+</tr>
+</p>
+<tr>
+<th>Yes</th>
+<p>
+</tr>
+</p>
+<tr>
+<th>No</th>
+<p>
+</tr>
+</p>
+<tr>
+<th>Yes</th>
+<p>
+</tr>
+</p>
+<tr>
+<th>No</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+G --> K[Accounting Review]
+I --> K
+J --> K
+K --> L[QuickBooks Sync]
+L --> M[PO Active]
+F --> N[PO Cancelled]
+<code></code>`
+</p>
+<p>
+#### 15.2.2 Emergency Purchase Workflow
+</p>
+<p>
+<code></code>`mermaid
+flowchart TD
+A[Emergency Identified] --> B{Amount ≤ $5,000?}
+</p>
+<table>
+<tr>
+<th>Yes</th>
+<p>
+</tr>
+</p>
+<tr>
+<th>No</th>
+<p>
+</tr>
+</p>
+<tr>
+<th>Yes</th>
+<p>
+</tr>
+</p>
+<tr>
+<th>No</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+C --> G[Verbal Authorization]
+E --> G
+F --> G
+G --> H[Vendor Contact]
+H --> I[Purchase Executed]
+I --> J[Manual Documentation]
+J --> K{System Available?}
+</p>
+<table>
+<tr>
+<th>Yes</th>
+<p>
+</tr>
+</p>
+<tr>
+<th>No</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+L --> N[Reconcile & Verify]
+M --> O[Enter When Available]
+O --> N
+<code></code>`
+</p>
+<h3>15.3 Forms and Templates</h3>
+<p>
+#### 15.3.1 Emergency Purchase Order Form
+</p>
+<p>
+<strong>ASR Emergency Purchase Order Form</strong>
+<code></code>`
+Form ID: ASR-FORM-EPO-001
+Effective Date: 2026-01-12
+</p>
+<p>
+EMERGENCY PURCHASE ORDER
+</p>
+<p>
+PO Number: _________________ Date: _________________
+Emergency Classification: □ Critical □ High □ Medium
+</p>
+<p>
+PROJECT INFORMATION:
+Project Code: _______________
+Work Order: _______________
+Project Name: _________________________________
+</p>
+<p>
+VENDOR INFORMATION:
+Vendor Name: _________________________________
+Contact Person: _________________________________
+Phone: _________________ Email: _________________
+</p>
+<p>
+EMERGENCY JUSTIFICATION:
+□ Health/Safety Emergency
+□ Equipment Failure
+□ Regulatory Deadline
+□ Customer Emergency
+□ Other: _________________________________
+</p>
+<p>
+Detailed Justification:
+_________________________________________________
+_________________________________________________
+_________________________________________________
+</p>
+<p>
+ITEMS/SERVICES:
+</p>
+<table>
+<tr>
+<th>Quantity</th>
+<th>Unit Price</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+________________________________________
+</p>
+<table>
+<tr>
+<th></th>
+<th></th>
+<p>
+</tr>
+</p>
+<tr>
+<th></th>
+<th></th>
+<p>
+</tr>
+</p>
+<tr>
+<th></th>
+<th></th>
+<p>
+</tr>
+</p>
+<tr>
+<th></th>
+<th></th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+SUBTOTAL: _______________
+TAX: _______________
+TOTAL: _______________
+</p>
+<p>
+APPROVALS:
+Division Leader: _________________ Date: _________
+Operations Manager: _____________ Date: _________
+CEO (if >$25K): _________________ Date: _________
+</p>
+<p>
+SYSTEM ENTRY:
+Entered By: _______________
+Date Entered: _______________
+PO Number Assigned: _______________
+<code></code>`
+</p>
+<p>
+#### 15.3.2 Vendor Setup Form
+</p>
+<p>
+<strong>New Vendor Information Form</strong>
+<code></code>`
+Form ID: ASR-FORM-VS-001
+Effective Date: 2026-01-12
+</p>
+<p>
+NEW VENDOR SETUP REQUEST
+</p>
+<p>
+COMPANY INFORMATION:
+Legal Name: _________________________________
+DBA Name: _________________________________
+Federal Tax ID: _________________________________
+Business Type: □ Corporation □ LLC □ Partnership □ Sole Proprietorship
+</p>
+<p>
+CONTACT INFORMATION:
+Primary Contact: _________________________________
+Title: _________________________________
+Phone: _________________ Ext: _________________
+Email: _________________________________
+Fax: _________________________________
+</p>
+<p>
+BILLING ADDRESS:
+Street: _________________________________
+City: _________________ State: _____ ZIP: _________
+</p>
+<p>
+SHIPPING ADDRESS:
+□ Same as Billing
+Street: _________________________________
+City: _________________ State: _____ ZIP: _________
+</p>
+<p>
+BUSINESS INFORMATION:
+Years in Business: _________________
+Number of Employees: _________________
+Annual Revenue: _________________
+</p>
+<p>
+SERVICES/PRODUCTS:
+Primary Services: _________________________________
+Secondary Services: _________________________________
+Specialty Areas: _________________________________
+</p>
+<p>
+FINANCIAL INFORMATION:
+Preferred Payment Terms: _________________________________
+Banking Information: _________________________________
+Credit References: _________________________________
+</p>
+<p>
+INSURANCE INFORMATION (if applicable):
+General Liability: _____ Amount: _________________
+Workers Compensation: _____ Amount: _________________
+Professional Liability: _____ Amount: _________________
+Certificate on File: _____ Expiration: _________________
+</p>
+<p>
+REQUIRED ATTACHMENTS:
+□ W-9 Form
+□ Certificate of Insurance
+□ Business License
+□ References (3 minimum)
+</p>
+<p>
+APPROVAL:
+Requested By: _________________ Date: _________
+Division: _________________________________
+Operations Manager: _____________ Date: _________
+<code></code>`
+</p>
+<h3>15.4 Troubleshooting Guides</h3>
+<p>
+#### 15.4.1 Common System Issues
+</p>
+<p>
+<strong>Issue: Cannot Log In</strong>
+<code></code>`
+Symptoms:
+</p>
+<ul>
+<li>Invalid username/password error</li>
+<li>Account locked message</li>
+<li>System not recognizing credentials</li>
+</ol>
+<p>
+Troubleshooting Steps:
+</p>
+<ol>
+<li>Verify username is ASR email address</li>
+<li>Check if Caps Lock is enabled</li>
+<li>Try password reset function</li>
+<li>Clear browser cache and cookies</li>
+<li>Try different browser</li>
+<li>Contact IT support if issue persists</li>
+</ol>
+<p>
+Common Causes:
+</p>
+<ul>
+<li>Expired password</li>
+<li>Account lockout after failed attempts</li>
+<li>Browser cache issues</li>
+<li>System maintenance</li>
+</ol>
+<p>
+Resolution:
+</p>
+<ul>
+<li>Password reset via email</li>
+<li>Administrator unlock account</li>
+<li>Browser cache clear</li>
+<li>Wait for maintenance completion</li>
+</ol>
+<p>
+<code></code>`
+</p>
+<p>
+<strong>Issue: PO Won't Submit</strong>
+<code></code>`
+Symptoms:
+</p>
+<ul>
+<li>Submit button not responding</li>
+<li>Error messages on submission</li>
+<li>Form validation errors</li>
+</ol>
+<p>
+Troubleshooting Steps:
+</p>
+<ol>
+<li>Check all required fields completed</li>
+<li>Verify budget availability</li>
+<li>Confirm vendor is approved</li>
+<li>Check GL account codes</li>
+<li>Review approval limits</li>
+<li>Try refreshing page</li>
+</ol>
+<p>
+Common Causes:
+</p>
+<ul>
+<li>Missing required information</li>
+<li>Budget insufficient</li>
+<li>Non-approved vendor</li>
+<li>Invalid GL codes</li>
+<li>Browser session timeout</li>
+</ol>
+<p>
+Resolution:
+</p>
+<ul>
+<li>Complete all required fields</li>
+<li>Request budget increase</li>
+<li>Add vendor to approved list</li>
+<li>Correct GL account codes</li>
+<li>Refresh session/login again</li>
+</ol>
+<p>
+<code></code>`
+</p>
+<p>
+#### 15.4.2 Mobile App Issues
+</p>
+<p>
+<strong>Issue: App Won't Install</strong>
+<code></code>`
+iOS Troubleshooting:
+</p>
+<ol>
+<li>Use Safari browser only</li>
+<li>Ensure iOS 13+ installed</li>
+<li>Check available storage (50MB)</li>
+<li>Try in private browsing mode</li>
+<li>Restart device and retry</li>
+</ol>
+<p>
+Android Troubleshooting:
+</p>
+<ol>
+<li>Use Chrome browser only</li>
+<li>Ensure Android 8.0+ installed</li>
+<li>Check available storage (75MB)</li>
+<li>Clear Chrome cache</li>
+<li>Update Chrome to latest version</li>
+</ol>
+<p>
+Common Solutions:
+</p>
+<ul>
+<li>Use supported browser</li>
+<li>Free up storage space</li>
+<li>Update operating system</li>
+<li>Clear browser cache</li>
+<li>Restart device</li>
+</ol>
+<p>
+<code></code>`
+</p>
+<p>
+<strong>Issue: Push Notifications Not Working</strong>
+<code></code>`
+Troubleshooting Steps:
+</p>
+<ol>
+<li>Check notification permissions in device settings</li>
+<li>Verify app is added to home screen</li>
+<li>Check "Do Not Disturb" settings</li>
+<li>Ensure app has background refresh enabled</li>
+<li>Test with manual refresh</li>
+</ol>
+<p>
+iOS Specific:
+</p>
+<ul>
+<li>Settings → Notifications → [App] → Allow Notifications</li>
+<li>Check Focus/Do Not Disturb settings</li>
+</ol>
+<p>
+Android Specific:
+</p>
+<ul>
+<li>Settings → Apps → [App] → Notifications</li>
+<li>Check battery optimization settings</li>
+</ol>
+<p>
+Resolution:
+</p>
+<ul>
+<li>Enable notifications in device settings</li>
+<li>Add app to home screen properly</li>
+<li>Disable Do Not Disturb</li>
+<li>Allow background app refresh</li>
+</ol>
+<p>
+<code></code>`
+</p>
+<h3>15.5 Contact Information and Support</h3>
+<p>
+#### 15.5.1 Technical Support Contacts
+</p>
+<p>
+<strong>Primary Support:</strong>
+</p>
+<ul>
+<li><strong>Help Desk</strong>: akidwell@asr-inc.us</li>
+<li><strong>Phone</strong>: 1-XXX-XXX-XXXX</li>
+<li><strong>Hours</strong>: Monday-Friday 8:00 AM - 6:00 PM PST</li>
+<li><strong>Emergency</strong>: 1-XXX-XXX-XXXX (24/7)</li>
+<li><strong>System Administrator</strong>: Austin Kidwell (akidwell@asr-inc.us)</li>
+</ol>
+<p>
+<strong>Specialized Support:</strong>
+</p>
+<ul>
+<li><strong>System Administrator</strong>: admin@yourdomain.com</li>
+<li><strong>Database Issues</strong>: db-admin@yourdomain.com</li>
+<li><strong>QuickBooks Integration</strong>: qb-support@yourdomain.com</li>
+<li><strong>Security Issues</strong>: security@yourdomain.com</li>
+</ol>
+<p>
+#### 15.5.2 Business Process Support
+</p>
+<p>
+<strong>Process Owners:</strong>
+</p>
+<ul>
+<li><strong>Purchase Order Process</strong>: Operations Manager</li>
+<li><strong>Approval Workflow</strong>: Operations Manager</li>
+<li><strong>Vendor Management</strong>: Operations Manager</li>
+<li><strong>Financial Integration</strong>: Accounting Manager</li>
+<li><strong>Reporting</strong>: Business Intelligence Manager</li>
+</ol>
+<p>
+<strong>Training and Documentation:</strong>
+</p>
+<ul>
+<li><strong>User Training</strong>: training@yourdomain.com</li>
+<li><strong>Documentation Updates</strong>: docs@yourdomain.com</li>
+<li><strong>Video Tutorials</strong>: Available in system help section</li>
+<li><strong>FAQ Updates</strong>: Submit via help system</li>
+</ol>
+<p>
+#### 15.5.3 Emergency Contacts
+</p>
+<p>
+<strong>24/7 Emergency Contacts:</strong>
+</p>
+<ul>
+<li><strong>CEO</strong>: [Emergency Contact Information]</li>
+<li><strong>Operations Manager</strong>: [Emergency Contact Information]</li>
+<li><strong>IT Emergency Line</strong>: 1-XXX-XXX-XXXX</li>
+<li><strong>Security Emergency</strong>: security-emergency@yourdomain.com</li>
+</ol>
+<p>
+<strong>Vendor Emergency Contacts:</strong>
+</p>
+<ul>
+<li><strong>System Hosting</strong>: [Render.com Support]</li>
+<li><strong>Database Support</strong>: [PostgreSQL Support]</li>
+<li><strong>Email Services</strong>: [Email Provider Support]</li>
+<li><strong>Internet/Network</strong>: [ISP Support]</li>
+</ol>
+---
+<h2>Document Approval and Sign-off</h2>
+<p>
+<strong>Final Approval Required Before Implementation</strong>
+</p>
+<table>
+<tr>
+<th>Role</th>
+<th>Name</th>
+<th>Signature</th>
+<th>Date</th>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Document Author</strong></td>
+<td>Austin Kidwell</td>
+<td>_________________</td>
+<td>_______</td>
+<p>
+</tr>
+</p>
+<tr>
+<td><strong>Technical Reviewer</strong></td>
+<td>IT Operations Manager</td>
+<td>_________________</td>
+<td>_______</td>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Process Owner</strong></th>
+<th>Operations Manager</th>
+<th>_________________</th>
+<th>_______</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Quality Assurance</strong></th>
+<th>Compliance Officer</th>
+<th>_________________</th>
+<th>_______</th>
+<p>
+</tr>
+</p>
+<tr>
+<th><strong>Final Approver</strong></th>
+<th>Chief Executive Officer</th>
+<th>_________________</th>
+<th>_______</th>
+<p>
+</tr>
+</p>
+</table>
+<p>
+<strong>Distribution List:</strong>
+</p>
+<ul>
+<li>All ASR Division Leaders</li>
+<li>Operations Management Team</li>
+<li>Accounting Department</li>
+<li>IT Support Team</li>
+<li>Training Coordinators</li>
+<li>Document Control Administrator</li>
+</ol>
+<p>
+<strong>Acknowledgment:</strong>
+By using the ASR Purchase Order System, all users acknowledge they have read, understood, and agree to follow this Standard Operating Procedure. Failure to follow these procedures may result in disciplinary action and could compromise the effectiveness of our internal controls.
+</p>
+<p>
+<strong>Document Control:</strong>
+This document is controlled and maintained by the ASR Operations team. Any suggestions for improvements should be submitted through the document change request process outlined in Section 13.
+</p>
+---
+<p>
+<strong>END OF STANDARD OPERATING PROCEDURE</strong>
+</p>
+<p>
+<em>This document contains proprietary and confidential information of ASR Inc. Distribution is restricted to authorized personnel only.</em>
+</p>
+</body>
+</html>

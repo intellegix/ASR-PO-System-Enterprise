@@ -185,7 +185,8 @@ const generateApprovalBottleneckReport = async (
       timestamp: true,
       users: {
         select: {
-          name: true,
+          first_name: true,
+          last_name: true,
           email: true,
           role: true,
         },
@@ -220,7 +221,7 @@ const generateApprovalBottleneckReport = async (
   // Get currently pending POs
   const pendingPOs = await prisma.po_headers.findMany({
     where: {
-      status: { in: ['Draft', 'Submitted', 'PartiallyApproved'] },
+      status: { in: ['Draft', 'Submitted'] },
       deleted_at: null,
     },
     select: {
@@ -252,7 +253,8 @@ const generateApprovalBottleneckReport = async (
     },
     select: {
       id: true,
-      name: true,
+      first_name: true,
+      last_name: true,
       email: true,
       role: true,
       division_id: true,
@@ -312,10 +314,13 @@ const generateApprovalBottleneckReport = async (
     }
 
     if (currentPendingCount > 0) {
-      const oldestPO = pendingPOs.reduce((oldest, po) =>
-        po.created_at < oldest.created_at ? po : oldest
-      );
-      oldestPendingDays = Math.floor((new Date().getTime() - oldestPO.created_at.getTime()) / (1000 * 60 * 60 * 24));
+      const validPendingPOs = pendingPOs.filter(po => po.created_at !== null);
+      if (validPendingPOs.length > 0) {
+        const oldestPO = validPendingPOs.reduce((oldest, po) =>
+          po.created_at! < oldest.created_at! ? po : oldest
+        );
+        oldestPendingDays = Math.floor((new Date().getTime() - oldestPO.created_at!.getTime()) / (1000 * 60 * 60 * 24));
+      }
     }
 
     // Performance scoring (0-100)
@@ -332,7 +337,7 @@ const generateApprovalBottleneckReport = async (
       : 100;
 
     const overallScore = Math.round((throughputScore + timelinessScore + consistencyScore + responsivenesScore) / 4);
-    const performanceLevel = overallScore >= 85 ? 'excellent' :
+    const performanceLevel: 'excellent' | 'good' | 'fair' | 'poor' = overallScore >= 85 ? 'excellent' :
                             overallScore >= 70 ? 'good' :
                             overallScore >= 55 ? 'fair' : 'poor';
 
@@ -382,7 +387,7 @@ const generateApprovalBottleneckReport = async (
     return {
       approver: {
         id: user.id,
-        name: user.name || 'Unknown User',
+        name: `${user.first_name} ${user.last_name}` || 'Unknown User',
         email: user.email,
         role: user.role,
         divisionId: user.division_id || undefined,
@@ -459,22 +464,22 @@ const generateApprovalBottleneckReport = async (
     const currentlyPending = divisionPendingPOs.length;
     const now = new Date();
     const pendingOver24Hours = divisionPendingPOs.filter(po =>
-      (now.getTime() - po.created_at.getTime()) / (1000 * 60 * 60) > 24
+      po.created_at && (now.getTime() - po.created_at.getTime()) / (1000 * 60 * 60) > 24
     ).length;
     const pendingOver72Hours = divisionPendingPOs.filter(po =>
-      (now.getTime() - po.created_at.getTime()) / (1000 * 60 * 60) > 72
+      po.created_at && (now.getTime() - po.created_at.getTime()) / (1000 * 60 * 60) > 72
     ).length;
     const highValuePending = divisionPendingPOs.filter(po =>
       (po.total_amount?.toNumber() || 0) > 10000
     ).length;
 
     const avgPendingDays = divisionPendingPOs.length > 0
-      ? divisionPendingPOs.reduce((sum, po) =>
-          sum + ((now.getTime() - po.created_at.getTime()) / (1000 * 60 * 60 * 24)), 0
-        ) / divisionPendingPOs.length
+      ? divisionPendingPOs.filter(po => po.created_at).reduce((sum, po) =>
+          sum + ((now.getTime() - po.created_at!.getTime()) / (1000 * 60 * 60 * 24)), 0
+        ) / divisionPendingPOs.filter(po => po.created_at).length
       : 0;
 
-    const bottleneckLevel = pendingOver72Hours > 5 ? 'severe' :
+    const bottleneckLevel: 'none' | 'minor' | 'moderate' | 'severe' = pendingOver72Hours > 5 ? 'severe' :
                            pendingOver24Hours > 10 ? 'moderate' :
                            currentlyPending > 5 ? 'minor' : 'none';
 
@@ -509,10 +514,10 @@ const generateApprovalBottleneckReport = async (
     .sort((a, b) => b.bottlenecks.currentlyPending - a.bottlenecks.currentlyPending);
 
   // Detailed pending PO analysis
-  const pendingPOAnalysis: PendingPOAnalysis[] = pendingPOs.map(po => {
+  const pendingPOAnalysis: PendingPOAnalysis[] = pendingPOs.filter(po => po.created_at !== null).map(po => {
     const now = new Date();
-    const daysPending = Math.floor((now.getTime() - po.created_at.getTime()) / (1000 * 60 * 60 * 24));
-    const hoursPending = (now.getTime() - po.created_at.getTime()) / (1000 * 60 * 60);
+    const daysPending = Math.floor((now.getTime() - po.created_at!.getTime()) / (1000 * 60 * 60 * 24));
+    const hoursPending = (now.getTime() - po.created_at!.getTime()) / (1000 * 60 * 60);
 
     const isOverdue = po.required_by_date ? now > po.required_by_date : false;
     const amount = po.total_amount?.toNumber() || 0;
@@ -550,7 +555,7 @@ const generateApprovalBottleneckReport = async (
         projectName: po.projects?.project_name,
       },
       timeline: {
-        submittedAt: po.created_at,
+        submittedAt: po.created_at!,
         daysPending,
         hoursPending,
         requiredByDate: po.required_by_date || undefined,
@@ -558,9 +563,9 @@ const generateApprovalBottleneckReport = async (
         urgencyScore: Math.min(100, urgencyScore),
       },
       approval: {
-        currentApprover: lastAction?.users?.name,
+        currentApprover: lastAction?.users ? `${lastAction.users.first_name} ${lastAction.users.last_name}` : undefined,
         approvalLevel: amount > 50000 ? 'Owner Required' : 'Division Leader',
-        lastActionBy: lastAction?.users?.name,
+        lastActionBy: lastAction?.users ? `${lastAction.users.first_name} ${lastAction.users.last_name}` : undefined,
         lastActionAt: lastAction?.timestamp || undefined,
         isStuck,
         bottleneckReason,
@@ -667,7 +672,7 @@ const generateApprovalBottleneckReport = async (
 };
 
 // GET handler for Approval Bottleneck report
-const getHandler = async (request: NextRequest) => {
+const getHandler = async (request: NextRequest): Promise<NextResponse> => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -762,7 +767,7 @@ const getHandler = async (request: NextRequest) => {
 
       const csvContent = `${csvHeader}\n${csvRows}`;
 
-      return new Response(csvContent, {
+      return new NextResponse(csvContent, {
         headers: {
           'Content-Type': 'text/csv',
           'Content-Disposition': 'attachment; filename=approval-bottleneck-report.csv',

@@ -1,7 +1,21 @@
 'use client';
 
 import React, { ErrorInfo, ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
+// Replaced shadcn/ui Button with simple button for TypeScript compatibility
+const Button = ({ children, onClick, className = "", variant = "default", size = "default" }: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+  variant?: string;
+  size?: string;
+}) => (
+  <button
+    onClick={onClick}
+    className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4 ${className}`}
+  >
+    {children}
+  </button>
+);
 import log from '@/lib/logging/logger';
 
 interface Props {

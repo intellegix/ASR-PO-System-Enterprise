@@ -1,0 +1,346 @@
+# ASR Purchase Order System - Monitoring and Alerting Configuration
+# Phase 4D - Deployment Setup
+# Production monitoring setup with health checks and alerting
+
+# =====================================================
+# UPTIME MONITORING CONFIGURATION
+# =====================================================
+
+uptime_monitoring:
+  service: "UptimeRobot"  # Free tier: 50 monitors, 5-minute checks
+  endpoints:
+    - name: "ASR PO System - Main Application"
+      url: "https://asr-po.yourdomain.com"
+      method: "HEAD"
+      interval: 300  # 5 minutes
+      timeout: 30
+      expected_status: 200
+      alert_contacts: ["email", "slack", "webhook"]
+
+    - name: "ASR PO System - Health Check"
+      url: "https://asr-po.yourdomain.com/api/health"
+      method: "GET"
+      interval: 300
+      timeout: 15
+      expected_status: 200
+      expected_content: '"status":"healthy"'
+      alert_contacts: ["email", "slack"]
+
+    - name: "ASR PO System - Database Health"
+      url: "https://asr-po.yourdomain.com/api/health/database"
+      method: "GET"
+      interval: 600  # 10 minutes
+      timeout: 30
+      expected_status: 200
+      alert_contacts: ["email", "webhook"]
+
+    - name: "ASR PO System - Redis Cache"
+      url: "https://asr-po.yourdomain.com/api/health/cache"
+      method: "GET"
+      interval: 600
+      timeout: 15
+      expected_status: 200
+      alert_contacts: ["email"]
+
+    - name: "ASR PO System - QuickBooks Integration"
+      url: "https://asr-po.yourdomain.com/api/health/quickbooks"
+      method: "GET"
+      interval: 1800  # 30 minutes
+      timeout: 30
+      expected_status: 200
+      alert_contacts: ["email", "slack"]
+
+  maintenance_windows:
+    - name: "Weekly Maintenance"
+      start: "Sunday 02:00 PST"
+      duration: 120  # 2 hours
+      recurrence: "weekly"
+
+    - name: "Monthly Database Maintenance"
+      start: "First Sunday 01:00 PST"
+      duration: 180  # 3 hours
+      recurrence: "monthly"
+
+# =====================================================
+# PERFORMANCE MONITORING
+# =====================================================
+
+performance_monitoring:
+  # Phase 4C Performance Targets
+  targets:
+    dashboard_response_time: 2000    # 2 seconds
+    api_response_time: 500          # 500ms
+    report_generation_time: 10000   # 10 seconds
+    error_rate: 1.0                 # 1%
+    uptime: 99.9                    # 99.9%
+
+  metrics:
+    - name: "Response Time Monitoring"
+      endpoint: "https://asr-po.yourdomain.com/api/monitoring/performance"
+      interval: 300
+      thresholds:
+        warning: 1500   # 1.5s
+        critical: 3000  # 3s
+      alert_contacts: ["slack", "email"]
+
+    - name: "Error Rate Monitoring"
+      endpoint: "https://asr-po.yourdomain.com/api/monitoring/errors"
+      interval: 600
+      thresholds:
+        warning: 0.5   # 0.5%
+        critical: 2.0  # 2%
+      alert_contacts: ["slack", "email", "webhook"]
+
+    - name: "Database Performance"
+      endpoint: "https://asr-po.yourdomain.com/api/monitoring/database-performance"
+      interval: 900   # 15 minutes
+      thresholds:
+        slow_queries: 5
+        connection_utilization: 80  # percentage
+      alert_contacts: ["email", "webhook"]
+
+# =====================================================
+# APPLICATION HEALTH CHECKS
+# =====================================================
+
+health_checks:
+  internal_endpoints:
+    - path: "/api/health"
+      description: "Basic application health"
+      checks:
+        - "Application status"
+        - "Environment configuration"
+        - "Build version verification"
+
+    - path: "/api/health/database"
+      description: "Database connectivity and performance"
+      checks:
+        - "PostgreSQL connection"
+        - "Query performance"
+        - "Connection pool status"
+        - "Database indexes health"
+
+    - path: "/api/health/cache"
+      description: "Redis cache system health"
+      checks:
+        - "Redis connectivity"
+        - "Cache hit rate"
+        - "Memory usage"
+        - "Fallback cache status"
+
+    - path: "/api/health/integrations"
+      description: "External integration health"
+      checks:
+        - "QuickBooks API connectivity"
+        - "SMTP email service"
+        - "File storage access"
+
+    - path: "/api/health/performance"
+      description: "System performance metrics"
+      checks:
+        - "Response time averages"
+        - "Error rates"
+        - "Active connections"
+        - "Memory usage"
+
+  external_dependencies:
+    - name: "QuickBooks API"
+      url: "https://sandbox-quickbooks.api.intuit.com/v3/companyinfo"
+      critical: true
+      timeout: 10
+      interval: 1800  # 30 minutes
+
+    - name: "SMTP Service"
+      type: "smtp"
+      host: "smtp.yourmailprovider.com"
+      port: 587
+      critical: false
+      interval: 3600  # 1 hour
+
+# =====================================================
+# ALERTING CONFIGURATION
+# =====================================================
+
+alerts:
+  channels:
+    email:
+      enabled: true
+      smtp_host: "smtp.yourmailprovider.com"
+      smtp_port: 587
+      smtp_user: "alerts@yourdomain.com"
+      smtp_password: "${ALERT_SMTP_PASSWORD}"
+      recipients:
+        - "admin@yourdomain.com"
+        - "dev-team@yourdomain.com"
+
+    slack:
+      enabled: true
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channel: "#asr-po-alerts"
+      mention_users: ["@channel"]  # For critical alerts
+
+    webhook:
+      enabled: true
+      url: "${MONITORING_WEBHOOK_URL}"
+      method: "POST"
+      headers:
+        Authorization: "Bearer ${WEBHOOK_AUTH_TOKEN}"
+        Content-Type: "application/json"
+
+  rules:
+    critical_alerts:
+      - name: "Application Down"
+        condition: "uptime < 99%"
+        channels: ["slack", "email", "webhook"]
+        escalation_time: 300  # 5 minutes
+
+      - name: "Database Connection Failed"
+        condition: "database_health = false"
+        channels: ["slack", "email", "webhook"]
+        escalation_time: 180  # 3 minutes
+
+      - name: "High Error Rate"
+        condition: "error_rate > 2%"
+        channels: ["slack", "email"]
+        escalation_time: 600  # 10 minutes
+
+    warning_alerts:
+      - name: "Slow Response Time"
+        condition: "response_time > 1500ms"
+        channels: ["slack"]
+        escalation_time: 900  # 15 minutes
+
+      - name: "Cache Performance Degraded"
+        condition: "cache_hit_rate < 70%"
+        channels: ["email"]
+        escalation_time: 1800  # 30 minutes
+
+      - name: "High Memory Usage"
+        condition: "memory_usage > 80%"
+        channels: ["email"]
+        escalation_time: 1200  # 20 minutes
+
+  escalation:
+    levels:
+      1:
+        delay: 0
+        channels: ["slack"]
+      2:
+        delay: 300  # 5 minutes
+        channels: ["slack", "email"]
+      3:
+        delay: 900  # 15 minutes
+        channels: ["slack", "email", "webhook"]
+
+# =====================================================
+# LOGGING CONFIGURATION
+# =====================================================
+
+logging:
+  level: "info"  # debug, info, warn, error
+  format: "json"
+
+  retention:
+    application_logs: 30  # days
+    access_logs: 90      # days
+    error_logs: 180      # days
+    audit_logs: 2555     # 7 years
+
+  aggregation:
+    service: "CloudWatch" # or "ELK Stack", "Papertrail"
+    endpoints:
+      application: "asr-po-app-logs"
+      access: "asr-po-access-logs"
+      errors: "asr-po-error-logs"
+      performance: "asr-po-performance-logs"
+
+# =====================================================
+# BACKUP MONITORING
+# =====================================================
+
+backup_monitoring:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: 30  # days
+
+  alerts:
+    backup_failed:
+      channels: ["email", "webhook"]
+      severity: "critical"
+      escalation_time: 0
+
+    backup_delayed:
+      condition: "backup_time > expected_time + 4 hours"
+      channels: ["email"]
+      severity: "warning"
+
+    backup_size_anomaly:
+      condition: "backup_size < average_size * 0.5 OR backup_size > average_size * 2"
+      channels: ["email"]
+      severity: "warning"
+
+# =====================================================
+# BUSINESS METRICS MONITORING
+# =====================================================
+
+business_metrics:
+  dashboards:
+    - name: "System Performance Dashboard"
+      url: "https://asr-po.yourdomain.com/admin/performance"
+      refresh_interval: 30  # seconds
+
+    - name: "Business KPI Dashboard"
+      url: "https://asr-po.yourdomain.com/dashboard"
+      refresh_interval: 300  # 5 minutes
+
+  metrics_to_track:
+    - "Daily active users"
+    - "PO creation rate"
+    - "Approval processing time"
+    - "Report generation frequency"
+    - "Export download volume"
+    - "QuickBooks sync success rate"
+
+# =====================================================
+# SECURITY MONITORING
+# =====================================================
+
+security_monitoring:
+  failed_login_attempts:
+    threshold: 5
+    time_window: 900  # 15 minutes
+    action: "alert_and_block"
+
+  suspicious_activity:
+    - "Multiple failed QuickBooks OAuth attempts"
+    - "Unusual report download patterns"
+    - "Administrative action outside business hours"
+    - "Bulk data export attempts"
+
+  compliance_monitoring:
+    - "Audit log completeness"
+    - "Data retention compliance"
+    - "Access control effectiveness"
+    - "Backup encryption verification"
+
+# =====================================================
+# MAINTENANCE SCHEDULES
+# =====================================================
+
+maintenance:
+  database:
+    vacuum_analyze: "0 1 * * 0"    # Weekly Sunday 1 AM
+    index_rebuild: "0 2 1 * *"     # Monthly 1st day 2 AM
+    stats_update: "0 0 * * *"      # Daily midnight
+
+  cache:
+    redis_restart: "0 3 * * 0"     # Weekly Sunday 3 AM
+    cache_warmup: "0 4 * * 0"      # Weekly Sunday 4 AM
+
+  application:
+    log_rotation: "0 23 * * *"     # Daily 11 PM
+    temp_cleanup: "0 */6 * * *"    # Every 6 hours
+    performance_report: "0 6 * * 1" # Weekly Monday 6 AM
+
+# This configuration provides comprehensive monitoring for the ASR Purchase Order System
+# ensuring high availability, performance compliance with Phase 4C targets, and rapid
+# incident response for production deployment.

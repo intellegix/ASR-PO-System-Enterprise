@@ -212,7 +212,7 @@ const generateBudgetActualReport = async (
 
     // Calculate committed spend (approved/issued POs not yet received)
     const poCommitted = projectPOs
-      .filter(po => ['Approved', 'Issued'].includes(po.status))
+      .filter(po => po.status && ['Approved', 'Issued'].includes(po.status))
       .reduce((sum, po) => sum + (po.total_amount?.toNumber() || 0), 0);
 
     const totalProjectedSpend = currentActual + poCommitted;
@@ -277,7 +277,7 @@ const generateBudgetActualReport = async (
       riskReasons.push('Projected overrun exceeds 20%');
     }
 
-    const overallRisk = (budgetRisk === 'high' || timelineRisk === 'high') ? 'high' :
+    const overallRisk: 'low' | 'medium' | 'high' = (budgetRisk === 'high' || timelineRisk === 'high') ? 'high' :
                        (budgetRisk === 'medium' || timelineRisk === 'medium') ? 'medium' : 'low';
 
     // Monthly trend will be calculated separately for performance
@@ -544,7 +544,7 @@ const generateBudgetActualReport = async (
 };
 
 // GET handler for Budget vs Actual report
-const getHandler = async (request: NextRequest) => {
+const getHandler = async (request: NextRequest): Promise<NextResponse> => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -641,7 +641,7 @@ const getHandler = async (request: NextRequest) => {
 
       const csvContent = `${csvHeader}\n${csvRows}`;
 
-      return new Response(csvContent, {
+      return new NextResponse(csvContent, {
         headers: {
           'Content-Type': 'text/csv',
           'Content-Disposition': 'attachment; filename=budget-vs-actual-report.csv',
