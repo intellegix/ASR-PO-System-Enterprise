@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
-import { generatePONumber, generateSupplierConfirmCode } from '@/lib/po-number';
+import { generatePONumber, generateSupplierConfirmCode, LEADER_ID_MAP } from '@/lib/po-number';
 import { createPOSchema, poQuerySchema } from '@/lib/validation/schemas';
 import { withValidation, withRateLimit } from '@/lib/validation/middleware';
 import log, { auditLog } from '@/lib/logging/logger';
@@ -158,12 +158,12 @@ const postHandler = withValidation(
       where: { division_id: divisionId, is_active: true },
     });
 
-    // Get purchaser ID (01-06 based on division leader code)
-    const purchaserId = divisionLeader?.division_code?.replace('O', '0') || '01';
+    // Get purchaser ID (01-04 based on division leader code)
+    const purchaserId = LEADER_ID_MAP[divisionLeader?.division_code || ''] || '01';
 
     // Count existing POs for this work order to get purchase sequence
     const existingPOCount = await prisma.po_headers.count({
-      where: { work_order_id: workOrderId },
+      where: { work_order_id: workOrder.id },
     });
     const purchaseSequence = existingPOCount + 1;
 
@@ -224,7 +224,7 @@ const postHandler = withValidation(
         project_id: projectId,
         work_order_id: workOrder.id,
         vendor_id: vendorId,
-        cost_center_code: `${division.cost_center_prefix}-${String(workOrderSequence).padStart(4, '0')}-${String(purchaseSequence).padStart(2, '0')}`,
+        cost_center_code: `${division.cost_center_prefix}${String(workOrderSequence).padStart(4, '0')}${String(purchaseSequence).padStart(2, '0')}`,
         status: status === 'PendingApproval' ? 'Submitted' : status as any,
         required_by_date: requiredByDate ? new Date(requiredByDate) : null,
         terms_code: termsCode || vendor.payment_terms_default || 'Net30',
