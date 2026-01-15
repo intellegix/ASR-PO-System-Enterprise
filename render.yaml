@@ -1,0 +1,216 @@
+# ASR Purchase Order System - Render Deployment Configuration
+# Phase 4D - Production Platform Deployment
+# Render Blueprint for automated service provisioning
+
+services:
+  # Main Application Service
+  - type: web
+    name: asr-po-system
+    runtime: docker
+    repo: https://github.com/intellegix/ASR-PO-System-Enterprise.git
+    branch: master
+    dockerfilePath: deployment/Dockerfile.production
+    dockerContext: ./web
+    region: oregon # Change to preferred region: oregon, ohio, singapore, ireland
+    plan: starter # starter ($7/month) | standard ($25/month) | pro ($85/month)
+
+    # Environment Configuration
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXTAUTH_URL
+        value: https://asr-po-system.onrender.com
+      - key: PORT
+        value: 3000
+
+      # Database Connection (managed by Render PostgreSQL service)
+      - key: DATABASE_URL
+        fromDatabase:
+          name: asr-po-database
+          property: connectionString
+
+      # Redis Connection (managed by Render Redis service)
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: asr-po-redis
+          property: connectionString
+
+      # Authentication & Security
+      - key: NEXTAUTH_SECRET
+        generateValue: true
+
+      # Email Configuration (requires manual setup)
+      - key: SMTP_HOST
+        sync: false # Set manually in Render dashboard
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_SECURE
+        value: false
+      - key: SMTP_USER
+        sync: false # Set manually in Render dashboard
+      - key: SMTP_PASS
+        sync: false # Set manually in Render dashboard
+      - key: SMTP_FROM
+        sync: false # Set manually in Render dashboard
+
+      # Monitoring & Logging
+      - key: LOG_LEVEL
+        value: info
+      - key: ENABLE_AUDIT_LOGGING
+        value: true
+
+      # Performance Configuration
+      - key: CACHE_TTL
+        value: 300
+      - key: MAX_CONCURRENT_USERS
+        value: 100
+
+      # Backup Configuration
+      - key: BACKUP_ENABLED
+        value: true
+      - key: BACKUP_S3_BUCKET
+        sync: false # Set manually if S3 backup desired
+      - key: BACKUP_S3_REGION
+        sync: false # Set manually if S3 backup desired
+
+    # Health Check Configuration
+    healthCheckPath: /api/health
+
+    # Build Configuration
+    buildCommand: |
+      cd web &&
+      npm ci --production=false &&
+      npx prisma generate &&
+      npm run build
+
+    startCommand: |
+      cd web &&
+      npm run migrate:deploy:production &&
+      npm start
+
+    # Scaling Configuration
+    autoDeploy: true
+    preDeployCommand: |
+      cd web &&
+      npm run type-check
+
+  # PostgreSQL Database Service
+  - type: postgresql
+    name: asr-po-database
+    databaseName: asr_po_production
+    user: asr_admin
+    region: oregon # Must match web service region
+    plan: starter # starter ($7/month) | standard ($20/month) | pro ($90/month)
+
+    # Database Configuration
+    version: "15" # PostgreSQL 15
+
+    # Security Configuration
+    ipAllowList: [] # Empty = allow all IPs (web service access only)
+
+  # Redis Cache Service
+  - type: redis
+    name: asr-po-redis
+    region: oregon # Must match web service region
+    plan: starter # starter ($7/month) | standard ($20/month) | pro ($90/month)
+
+    # Redis Configuration
+    version: "7"
+    maxmemoryPolicy: allkeys-lru # Evict least recently used keys when memory full
+    appendOnly: true # Enable persistence
+
+# Estimated Monthly Cost: $21/month (starter plan for all services)
+# - Web Service: $7/month
+# - PostgreSQL: $7/month
+# - Redis: $7/month
+
+# Production Scaling Options:
+# Standard Plan: $65/month total
+# - Web Service: $25/month (better performance, more CPU/RAM)
+# - PostgreSQL: $20/month (higher connections, better performance)
+# - Redis: $20/month (more memory, better performance)
+
+# ============================================================================
+# DEPLOYMENT INSTRUCTIONS
+# ============================================================================
+
+# 1. Create Render Account: https://render.com/register
+# 2. Connect GitHub Repository
+# 3. Deploy using this Blueprint:
+#    - Go to Render Dashboard
+#    - Click "New" → "Blueprint"
+#    - Select GitHub repository
+#    - Render will create all services automatically
+# 4. Configure Environment Variables:
+#    - SMTP credentials for email notifications
+#    - S3 credentials for backup (optional)
+# 5. Verify Deployment:
+#    - Check health endpoint: https://asr-po-system.onrender.com/api/health
+#    - Test authentication and basic functionality
+#    - Verify database connectivity and Redis caching
+
+# ============================================================================
+# POST-DEPLOYMENT CONFIGURATION
+# ============================================================================
+
+# Required Manual Configuration:
+# 1. Email (SMTP) Configuration:
+#    - Set SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_FROM in Render dashboard
+#    - Recommended: SendGrid, Mailgun, or AWS SES
+#
+# 2. SSL Certificate:
+#    - Render provides automatic SSL certificates
+#    - Custom domain configuration available in dashboard
+#
+# 3. Monitoring Setup:
+#    - Configure UptimeRobot using deployment/monitoring-alerting-config.yml
+#    - Set up Slack webhook for alerts
+#
+# 4. Backup Configuration:
+#    - Database backups are automatic with Render PostgreSQL
+#    - Optional: Configure S3 for application file backups
+
+# ============================================================================
+# HEALTH ENDPOINTS FOR MONITORING
+# ============================================================================
+
+# 1. /api/health - Application health and dependencies
+# 2. /api/health/database - Database connectivity check
+# 3. /api/health/redis - Redis cache connectivity
+# 4. /api/health/email - Email service configuration
+# 5. /api/health/detailed - Comprehensive system status
+
+# ============================================================================
+# SCALING CONSIDERATIONS
+# ============================================================================
+
+# Starter Plan Limits:
+# - 512MB RAM, 0.1 CPU, 1GB SSD (web service)
+# - 1GB RAM, 100 connections (PostgreSQL)
+# - 25MB memory (Redis)
+# - Suitable for 10-50 concurrent users
+
+# Standard Plan Performance:
+# - 2GB RAM, 1 CPU, 20GB SSD (web service)
+# - 4GB RAM, 500 connections (PostgreSQL)
+# - 250MB memory (Redis)
+# - Suitable for 100-500 concurrent users
+
+# ============================================================================
+# SECURITY CONFIGURATION
+# ============================================================================
+
+# Automatic Security Features:
+# - HTTPS/TLS encryption (Let's Encrypt certificates)
+# - DDoS protection
+# - Private networking between services
+# - Encrypted environment variables
+# - Regular security updates
+
+# Additional Security (configured in application):
+# - CSRF protection
+# - Rate limiting
+# - Input validation
+# - Audit logging
+# - Session security
