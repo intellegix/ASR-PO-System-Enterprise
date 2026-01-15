@@ -10,7 +10,7 @@ services:
     repo: https://github.com/intellegix/ASR-PO-System-Enterprise.git
     branch: master
     dockerfilePath: deployment/Dockerfile.production
-    dockerContext: ./web
+    dockerContext: ./
     region: oregon # Change to preferred region: oregon, ohio, singapore, ireland
     plan: starter # starter ($7/month) | standard ($25/month) | pro ($85/month)
 

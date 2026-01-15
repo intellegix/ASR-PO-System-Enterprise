@@ -21,24 +21,23 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY pnpm-lock.yaml ./
-
-# Install pnpm
-RUN npm install -g pnpm@8
+# Copy package files from web directory
+COPY web/package*.json ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN npm ci --production=false
 
-# Copy source code
-COPY . .
+# Copy source code from web directory
+COPY web/ .
+
+# Generate Prisma client
+RUN npx prisma generate
 
 # Build the application
-RUN pnpm run build
+RUN npm run build
 
 # Prune development dependencies
-RUN pnpm prune --prod
+RUN npm ci --production --ignore-scripts
 
 # Production stage
 FROM node:18-alpine AS production
@@ -62,7 +61,7 @@ RUN adduser -S nextjs -u 1001
 WORKDIR /app
 
 # Copy built application from builder stage
-COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.ts ./
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
