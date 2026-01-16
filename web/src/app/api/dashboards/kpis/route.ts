@@ -6,6 +6,9 @@ import { hasPermission } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 import { cachedDashboardData, CACHE_TTL } from '@/lib/cache/dashboard-cache';
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 
 // Quick KPIs endpoint for real-time dashboard updates
 interface KPIFilter {

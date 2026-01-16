@@ -5,6 +5,9 @@ import { hasPermission } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 import prisma from '@/lib/db';
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 
 // GET handler for vendors
 const getHandler = async (request: NextRequest) => {

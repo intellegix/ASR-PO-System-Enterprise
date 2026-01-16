@@ -8,6 +8,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { createOAuthClient, QB_SCOPES, validateQBConfig } from '@/lib/quickbooks/config';
 import prisma from '@/lib/db';
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 
 export async function POST(request: NextRequest) {
   try {

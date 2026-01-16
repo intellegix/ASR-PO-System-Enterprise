@@ -7,6 +7,9 @@ import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 import { cachedDashboardData, CachedCrossDivisionKPIs } from '@/lib/cache/dashboard-cache';
 
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 // Cross-division dashboard for MAJORITY_OWNER and ACCOUNTING
 const getCrossDivisionKPIs = async (userRole: string) => {
   const now = new Date();

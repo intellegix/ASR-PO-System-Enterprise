@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
 import { hasPermission } from '@/lib/auth/permissions';
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);

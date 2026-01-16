@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 
 export async function GET() {
   try {

@@ -6,6 +6,9 @@ import { hasPermission, canApprovePO } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 import { cachedDashboardData } from '@/lib/cache/dashboard-cache';
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 
 // Enhanced pending approvals data with approval context
 const getPendingApprovals = async (userRole: string, userDivisionId: string | null) => {

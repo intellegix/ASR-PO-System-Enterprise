@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
+
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 import {
   searchInvoices,
   getInvoiceStats,

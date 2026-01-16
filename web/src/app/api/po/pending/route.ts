@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 
 // Approval threshold - POs over this amount require owner approval
 const OWNER_APPROVAL_THRESHOLD = 25000;

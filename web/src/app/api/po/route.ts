@@ -6,6 +6,9 @@ import { generatePONumber, generateSupplierConfirmCode, LEADER_ID_MAP } from '@/
 import { createPOSchema, poQuerySchema } from '@/lib/validation/schemas';
 import { withValidation, withRateLimit } from '@/lib/validation/middleware';
 import log, { auditLog } from '@/lib/logging/logger';
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 
 // GET handler with validation
 const getHandler = withValidation(

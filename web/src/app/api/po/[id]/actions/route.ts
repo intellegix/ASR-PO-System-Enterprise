@@ -10,6 +10,9 @@ import {
   sendPOToVendor,
 } from '@/lib/email/service';
 import { syncSinglePO } from '@/lib/quickbooks/service';
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 
 // Approval threshold - POs over this amount require owner approval
 const OWNER_APPROVAL_THRESHOLD = 25000;

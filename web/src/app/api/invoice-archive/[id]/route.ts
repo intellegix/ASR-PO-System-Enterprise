@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { getInvoiceById, getInvoiceFiles } from '@/lib/invoice-archive';
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 
 export async function GET(
   request: NextRequest,

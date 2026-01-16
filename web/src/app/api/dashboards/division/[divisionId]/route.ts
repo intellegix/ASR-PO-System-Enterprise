@@ -6,6 +6,9 @@ import { hasPermission, canViewFullPODetails } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 import { cachedDashboardData, CachedDivisionKPIs } from '@/lib/cache/dashboard-cache';
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 
 // Division dashboard KPI calculations
 const getDivisionKPIs = async (divisionId: string, userRole: string, userDivisionId: string | null) => {

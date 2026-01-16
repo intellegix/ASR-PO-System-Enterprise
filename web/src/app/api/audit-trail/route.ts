@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
 import { hasPermission } from '@/lib/auth/permissions';
 import log from '@/lib/logging/logger';
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 
 interface AuditTrailEntry {
   id: string;

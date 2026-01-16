@@ -6,6 +6,9 @@ import { generatePOPdf } from '@/lib/pdf/po-pdf';
 import { generatePDFSafely, generateFallbackPDF } from '@/lib/pdf/error-handler';
 import { transformPOForPDF } from '@/lib/types/pdf';
 import { logPDFOperation } from '@/lib/pdf/config';
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 
 export async function GET(
   request: NextRequest,
