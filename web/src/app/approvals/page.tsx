@@ -1,5 +1,8 @@
 'use client';
 
+// Force dynamic rendering since this page requires authentication and makes API calls
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
