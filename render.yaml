@@ -6,11 +6,9 @@ services:
   # Main Application Service
   - type: web
     name: asr-po-system
-    runtime: docker
+    runtime: node
     repo: https://github.com/intellegix/ASR-PO-System-Enterprise.git
     branch: master
-    dockerfilePath: deployment/Dockerfile.production
-    dockerContext: ./
     region: oregon # Change to preferred region: oregon, ohio, singapore, ireland
     plan: starter # starter ($7/month) | standard ($25/month) | pro ($85/month)
 
@@ -86,7 +84,7 @@ services:
 
     startCommand: |
       cd web &&
-      npm run migrate:deploy:production &&
+      npx prisma migrate deploy &&
       npm start
 
     # Scaling Configuration
