@@ -8,6 +8,9 @@ import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 import { ReportExportService } from '@/lib/reports/export-service';
 
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 // GL Analysis Report
 interface GLAnalysisData {
   glAccount: {

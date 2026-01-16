@@ -6,6 +6,9 @@ import { hasPermission } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 // PO Summary by Division Report
 interface POSummaryData {
   division: {

@@ -6,6 +6,9 @@ import { hasPermission } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 // Project Details Report
 interface ProjectDetailsData {
   project: {
