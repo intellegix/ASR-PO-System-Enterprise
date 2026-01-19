@@ -1,0 +1,50 @@
+version: 1.0
+runtime: nodejs16
+build:
+  commands:
+    build:
+      - echo "Installing dependencies..."
+      - cd web
+      - npm ci --only=production
+      - echo "Building Next.js application..."
+      - npm run build
+  env:
+    - name: NODE_ENV
+      value: production
+run:
+  runtime-version: 16
+  command: cd web && npm start
+  network:
+    port: 3000
+    env: PORT
+  env:
+    - name: NODE_ENV
+      value: production
+    - name: PORT
+      value: 3000
+    - name: AWS_REGION
+      value: us-east-2
+    - name: S3_BUCKET_NAME
+      value: asr-po-system-exports-prod
+    - name: NEXTAUTH_URL
+      value: https://asr-po-system-prod.us-east-2.awsapprunner.com
+    - name: CORS_ORIGIN
+      value: https://asr-po-system-prod.us-east-2.awsapprunner.com
+    - name: ENABLE_SECURITY_HEADERS
+      value: "true"
+    - name: ENABLE_RATE_LIMITING
+      value: "true"
+    - name: ENABLE_QUICKBOOKS_SYNC
+      value: "true"
+    - name: ENABLE_EMAIL_NOTIFICATIONS
+      value: "true"
+    - name: ENABLE_AUDIT_TRAIL
+      value: "true"
+    - name: ENABLE_REDIS_CACHE
+      value: "true"
+    - name: LOG_LEVEL
+      value: info
+    - name: DATABASE_URL
+      value: postgresql://postgres:ASRPostgres2024!SecureDB@asr-po-system-prod.cp4yuo0wsvxk.us-east-2.rds.amazonaws.com:5432/postgres
+    - name: NEXTAUTH_SECRET
+      value: 44c865780a4f283c5f399b7aec7445b22c822863565cfc7447adda9fe024a906
