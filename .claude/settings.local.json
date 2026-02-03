@@ -43,7 +43,8 @@
       "Bash(tsconfig:*)",
       "Bash(.env \")",
       "Bash(powershell -ExecutionPolicy Bypass -File setup-hybrid-deployment.ps1)",
-      "Bash(gh:*)"
+      "Bash(gh:*)",
+      "Bash(curl:*)"
     ]
   }
 }

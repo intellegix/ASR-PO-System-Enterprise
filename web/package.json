@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "render:build": "cp next.config.render.ts next.config.ts && next build",
+    "render:build": "node build-render.js && next build && node restore-api.js",
     "start": "next start -p $PORT",
     "lint": "eslint",
     "db:generate": "prisma generate",

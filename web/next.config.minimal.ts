@@ -4,29 +4,29 @@ const nextConfig: NextConfig = {
   // Static export for frontend-only deployment
   output: 'export',
   trailingSlash: true,
+  distDir: 'out',
 
   // Disable server-side features for static export
   images: {
     unoptimized: true,
   },
 
-  // Environment-based API URL configuration
+  // Environment configuration
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://your-ngrok-url.ngrok.io',
     NEXT_PUBLIC_ENVIRONMENT: 'render-frontend',
-    SKIP_API_ROUTES: 'true',
   },
 
-  // Disable features incompatible with static export
+  // Disable problematic features
   poweredByHeader: false,
 
-  // TypeScript configuration
+  // TypeScript and ESLint bypass for build
   typescript: {
     ignoreBuildErrors: true,
   },
 
-  // Skip trailing slash redirects for static export
-  skipTrailingSlashRedirect: true,
+  // Basic optimization
+  compress: true,
 };
 
 export default nextConfig;
