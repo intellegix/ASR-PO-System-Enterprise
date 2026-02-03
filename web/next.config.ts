@@ -32,9 +32,18 @@ const nextConfig: NextConfig = {
   // CORS and enhanced security headers for production
   async headers() {
     const isProduction = process.env.NODE_ENV === 'production';
+
+    // Support for hybrid deployment (Render frontend + local backend)
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'https://po.asr-inc.com',
+      process.env.CORS_ORIGIN,
+      process.env.RENDER_FRONTEND_URL, // Add Render frontend URL
+    ].filter(Boolean);
+
     const allowedOrigin = isProduction
       ? (process.env.CORS_ORIGIN || 'https://po.asr-inc.com')
-      : 'http://localhost:3000';
+      : allowedOrigins.join(', ');
 
     return [
       {
