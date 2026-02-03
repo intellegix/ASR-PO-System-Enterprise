@@ -44,7 +44,8 @@
       "Bash(.env \")",
       "Bash(powershell -ExecutionPolicy Bypass -File setup-hybrid-deployment.ps1)",
       "Bash(gh:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(jq:*)"
     ]
   }
 }

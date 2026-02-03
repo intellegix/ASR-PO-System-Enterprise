@@ -122,7 +122,7 @@ export const authOptions: NextAuthOptions = {
         } catch (error) {
           log.error('Authentication error', {
             error: error instanceof Error ? error.message : String(error),
-            email: credentials.email,
+            identifier: credentials.identifier,
             stack: error instanceof Error ? error.stack : undefined,
           });
           return null;
