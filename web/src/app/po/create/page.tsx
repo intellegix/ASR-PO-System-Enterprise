@@ -306,7 +306,7 @@ export default function CreatePOPage() {
 
       if (res.ok) {
         const po = await res.json();
-        router.push(`/po/${po.id}`);
+        router.push(`/po/view?id=${po.id}`);
       } else {
         const error = await res.json();
         alert(error.error || 'Failed to create PO');

@@ -27,12 +27,6 @@ const nextConfig: NextConfig = {
 
   // Basic optimization
   compress: true,
-
-  // Skip dynamic routes during static export
-  experimental: {
-    // Allow dynamic routes to be skipped during static export
-    missingSuspenseWithCSRBailout: false,
-  },
 };
 
 export default nextConfig;

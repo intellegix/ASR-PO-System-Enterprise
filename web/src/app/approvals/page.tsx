@@ -271,7 +271,7 @@ export default function ApprovalsPage() {
                     <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                       <div>
                         <Link
-                          href={`/po/${po.id}`}
+                          href={`/po/view?id=${po.id}`}
                           className="font-mono font-bold text-lg text-slate-900 hover:text-blue-600"
                         >
                           {po.po_number}
@@ -311,7 +311,7 @@ export default function ApprovalsPage() {
                     {/* Action Buttons */}
                     <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-100">
                       <Link
-                        href={`/po/${po.id}`}
+                        href={`/po/view?id=${po.id}`}
                         className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 text-slate-600 border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50 transition"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

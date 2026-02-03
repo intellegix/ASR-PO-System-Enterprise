@@ -1,16 +1,36 @@
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+'use client';
+
+import { useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Dashboard from '@/components/dashboard/Dashboard';
 
-// Force dynamic rendering since this page requires authentication
-export const dynamic = 'force-dynamic';
+export default function HomePage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
-export default async function HomePage() {
-  const session = await getServerSession(authOptions);
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!session) {
-    redirect('/login');
+    return null; // Will redirect via useEffect
   }
 
   return <Dashboard />;

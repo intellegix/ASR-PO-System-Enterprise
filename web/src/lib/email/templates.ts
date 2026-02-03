@@ -140,7 +140,7 @@ export interface POEmailData {
 
 // 1. PO Submitted for Approval
 export function approvalNeededEmail(data: POEmailData, approverName: string) {
-  const poUrl = `${APP_URL}/po/${data.po_id}`;
+  const poUrl = `${APP_URL}/po/view?id=${data.po_id}`;
   const approvalsUrl = `${APP_URL}/approvals`;
 
   const content = `
@@ -172,7 +172,7 @@ export function approvalNeededEmail(data: POEmailData, approverName: string) {
 
 // 2. PO Approved
 export function poApprovedEmail(data: POEmailData) {
-  const poUrl = `${APP_URL}/po/${data.po_id}`;
+  const poUrl = `${APP_URL}/po/view?id=${data.po_id}`;
 
   const content = `
     <div style="text-align: center; margin-bottom: 24px;">
@@ -206,7 +206,7 @@ export function poApprovedEmail(data: POEmailData) {
 
 // 3. PO Rejected
 export function poRejectedEmail(data: POEmailData) {
-  const poUrl = `${APP_URL}/po/${data.po_id}`;
+  const poUrl = `${APP_URL}/po/view?id=${data.po_id}`;
 
   const content = `
     <div style="text-align: center; margin-bottom: 24px;">
@@ -247,7 +247,7 @@ export function poRejectedEmail(data: POEmailData) {
 
 // 4. PO Issued to Vendor (internal notification)
 export function poIssuedInternalEmail(data: POEmailData, issuedByName: string) {
-  const poUrl = `${APP_URL}/po/${data.po_id}`;
+  const poUrl = `${APP_URL}/po/view?id=${data.po_id}`;
 
   const content = `
     <div style="text-align: center; margin-bottom: 24px;">

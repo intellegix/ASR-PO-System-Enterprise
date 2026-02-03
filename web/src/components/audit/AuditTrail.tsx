@@ -415,7 +415,7 @@ export default function AuditTrail({ poId, limit = 50, className = '' }: AuditTr
 
                             <div className="flex items-center space-x-2">
                               <a
-                                href={`/po/${entry.po.id}`}
+                                href={`/po/view?id=${entry.po.id}`}
                                 className="text-orange-600 hover:text-orange-700"
                                 onClick={(e) => e.stopPropagation()}
                               >

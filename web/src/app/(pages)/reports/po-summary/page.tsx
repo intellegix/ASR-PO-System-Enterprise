@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -95,7 +95,7 @@ interface POSummaryData {
   generatedBy: any;
 }
 
-export default function POSummaryReport() {
+function POSummaryReport() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -480,5 +480,24 @@ export default function POSummaryReport() {
         )}
       </div>
     </div>
+  );
+}
+
+// Wrap with Suspense for useSearchParams() compatibility with static export
+export default function POSummaryReportWrapper() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <POSummaryReport />
+    </Suspense>
   );
 }

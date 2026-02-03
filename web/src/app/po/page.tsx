@@ -228,7 +228,7 @@ export default function POListPage() {
                     {pos.map((po) => (
                       <tr
                         key={po.id}
-                        onClick={() => router.push(`/po/${po.id}`)}
+                        onClick={() => router.push(`/po/view?id=${po.id}`)}
                         className="hover:bg-slate-50 cursor-pointer transition"
                       >
                         <td className="px-4 py-3 text-sm font-mono font-medium text-slate-900">
@@ -265,7 +265,7 @@ export default function POListPage() {
                 {pos.map((po) => (
                   <div
                     key={po.id}
-                    onClick={() => router.push(`/po/${po.id}`)}
+                    onClick={() => router.push(`/po/view?id=${po.id}`)}
                     className="p-4 hover:bg-slate-50 cursor-pointer transition"
                   >
                     <div className="flex justify-between items-start mb-2">

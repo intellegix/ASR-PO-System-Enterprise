@@ -121,7 +121,7 @@ const poReceivedTemplate = (data: POEmailData) => {
     </div>
 
     <div style="margin-top: 32px;">
-      <a href="${APP_URL}/po/${data.po_id}"
+      <a href="${APP_URL}/po/view?id=${data.po_id}"
          style="display: inline-block; background-color: #ea580c; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500;">
         View Purchase Order
       </a>
@@ -184,7 +184,7 @@ const poPaidTemplate = (data: POEmailData) => {
     </div>
 
     <div style="margin-top: 32px;">
-      <a href="${APP_URL}/po/${data.po_id}"
+      <a href="${APP_URL}/po/view?id=${data.po_id}"
          style="display: inline-block; background-color: #ea580c; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 500;">
         View Purchase Order
       </a>

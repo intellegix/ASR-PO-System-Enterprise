@@ -213,7 +213,7 @@ export default function PendingApprovals({ limit = 10, urgencyFilter, className 
         {data.items.slice(0, limit).map((item) => (
           <Link
             key={item.id}
-            href={`/po/${item.id}`}
+            href={`/po/view?id=${item.id}`}
             className="block px-6 py-4 hover:bg-slate-50 transition"
           >
             <div className="flex items-start justify-between gap-4">
