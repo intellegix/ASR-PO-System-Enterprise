@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "render:build": "cp next.config.render.ts next.config.ts && next build",
     "start": "next start -p $PORT",
     "lint": "eslint",
     "db:generate": "prisma generate",
