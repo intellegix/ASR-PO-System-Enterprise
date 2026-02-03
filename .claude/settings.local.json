@@ -45,7 +45,8 @@
       "Bash(powershell -ExecutionPolicy Bypass -File setup-hybrid-deployment.ps1)",
       "Bash(gh:*)",
       "Bash(curl:*)",
-      "Bash(jq:*)"
+      "Bash(jq:*)",
+      "Bash(ngrok http:*)"
     ]
   }
 }

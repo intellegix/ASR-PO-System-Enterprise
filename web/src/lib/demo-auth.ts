@@ -14,9 +14,9 @@ export interface DemoUser {
 // Demo users database (simulated)
 const DEMO_USERS: Record<string, DemoUser> = {
   'intellegix@allsurfaceroofing.com': {
-    id: 'admin-001',
+    id: 'admin-005',
     email: 'Intellegix@allsurfaceroofing.com',
-    name: 'Intellegix Admin',
+    name: 'Austin Kidwell - Director of Systems Integrations',
     role: 'MAJORITY_OWNER',
     divisionId: null,
     divisionName: null,
