@@ -12,10 +12,22 @@ sqliteDb.exec('PRAGMA foreign_keys = ON;');
 sqliteDb.exec('PRAGMA journal_mode = WAL;');
 sqliteDb.exec('PRAGMA synchronous = NORMAL;');
 
+// Database user type
+interface DbUser {
+  id: string;
+  email: string;
+  password_hash: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  division_id: string | null;
+  is_active: number;
+}
+
 // Simple user authentication function for SQLite
 export async function authenticateUser(identifier: string, password: string) {
   const bcrypt = require('bcrypt');
-  
+
   try {
     // Handle username-only login (append domain)
     let emailToSearch = identifier;
@@ -26,12 +38,12 @@ export async function authenticateUser(identifier: string, password: string) {
     // Query user from SQLite
     const stmt = sqliteDb.prepare(`
       SELECT id, email, password_hash, first_name, last_name, role, division_id, is_active
-      FROM users 
+      FROM users
       WHERE email = ? AND is_active = 1
     `);
-    
-    const user = stmt.get(emailToSearch);
-    
+
+    const user = stmt.get(emailToSearch) as DbUser | undefined;
+
     if (!user || !user.password_hash) {
       return null;
     }

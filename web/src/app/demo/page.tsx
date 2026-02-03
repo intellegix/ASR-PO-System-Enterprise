@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getDemoSession, clearDemoSession, DemoUser } from '@/lib/auth/demo-auth';
+import { getDemoSession, clearDemoSession, DemoUser } from '@/lib/demo-auth';
 
 export default function DemoPage() {
   const router = useRouter();
