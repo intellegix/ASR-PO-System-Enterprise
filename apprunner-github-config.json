@@ -1,0 +1,66 @@
+{
+  "ServiceName": "asr-po-system-prod",
+  "SourceConfiguration": {
+    "CodeRepository": {
+      "RepositoryUrl": "https://github.com/your-username/asr-po-system",
+      "SourceCodeVersion": {
+        "Type": "BRANCH",
+        "Value": "main"
+      },
+      "CodeConfiguration": {
+        "ConfigurationSource": "CONFIGURATION_FILE",
+        "CodeConfigurationValues": {
+          "Runtime": "NODEJS_16",
+          "BuildCommand": "npm install && npm run build",
+          "StartCommand": "npm start",
+          "RuntimeEnvironmentVariables": {
+            "NODE_ENV": "production",
+            "PORT": "3000",
+            "AWS_REGION": "us-east-2",
+            "S3_BUCKET_NAME": "asr-po-system-exports-prod",
+            "NEXTAUTH_URL": "https://asr-po-system-prod.us-east-2.awsapprunner.com",
+            "CORS_ORIGIN": "https://asr-po-system-prod.us-east-2.awsapprunner.com",
+            "ENABLE_SECURITY_HEADERS": "true",
+            "ENABLE_RATE_LIMITING": "true",
+            "ENABLE_QUICKBOOKS_SYNC": "true",
+            "ENABLE_EMAIL_NOTIFICATIONS": "true",
+            "ENABLE_AUDIT_TRAIL": "true",
+            "ENABLE_REDIS_CACHE": "true",
+            "LOG_LEVEL": "info",
+            "DATABASE_URL": "postgresql://postgres:ASRPostgres2024!SecureDB@asr-po-system-prod.cp4yuo0wsvxk.us-east-2.rds.amazonaws.com:5432/postgres",
+            "NEXTAUTH_SECRET": "44c865780a4f283c5f399b7aec7445b22c822863565cfc7447adda9fe024a906"
+          }
+        }
+      }
+    },
+    "AutoDeploymentsEnabled": false
+  },
+  "InstanceConfiguration": {
+    "Cpu": "1 vCPU",
+    "Memory": "2 GB"
+  },
+  "HealthCheckConfiguration": {
+    "Protocol": "HTTP",
+    "Path": "/api/health",
+    "Interval": 10,
+    "Timeout": 5,
+    "HealthyThreshold": 1,
+    "UnhealthyThreshold": 5
+  },
+  "NetworkConfiguration": {
+    "EgressConfiguration": {
+      "EgressType": "VPC",
+      "VpcConnectorArn": "arn:aws:apprunner:us-east-2:206362095382:vpcconnector/asr-po-system-vpc-connector/1/0da5800b70ef4e93969dabd3298b5868"
+    }
+  },
+  "Tags": [
+    {
+      "Key": "Project",
+      "Value": "ASR-PO-System"
+    },
+    {
+      "Key": "Environment",
+      "Value": "production"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+FROM node:16-alpine
+
+WORKDIR /app
+
+# Copy minimal server and package.json
+COPY package.json ./
+COPY minimal-server.js ./
+
+# Install only production dependencies if any
+RUN npm install --only=production || true
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+USER nextjs
+
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+CMD ["node", "minimal-server.js"]

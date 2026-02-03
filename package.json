@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "cd web && npm ci && npx prisma generate && npm run build",
-    "start": "cd web && npm start"
+    "start": "cd web && npm start",
+    "start:minimal": "node minimal-server.js",
+    "start:fallback": "node minimal-server.js"
   },
   "keywords": [],
   "author": "",
