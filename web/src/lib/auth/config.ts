@@ -45,18 +45,30 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: 'Email', type: 'email', placeholder: 'email@example.com' },
+        identifier: { label: 'Username or Email', type: 'text', placeholder: 'username or email@example.com' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.identifier || !credentials?.password) {
           return null;
         }
 
         try {
+          let emailToSearch = credentials.identifier;
+
+          // If identifier doesn't contain @, assume it's a username and append domain
+          if (!credentials.identifier.includes('@')) {
+            emailToSearch = `${credentials.identifier}@allsurfaceroofing.com`;
+          }
+
           // Find user by email
-          const user = await prisma.users.findUnique({
-            where: { email: credentials.email },
+          const user = await prisma.users.findFirst({
+            where: {
+              OR: [
+                { email: emailToSearch },
+                { email: credentials.identifier } // Also try the original identifier as email
+              ]
+            },
             include: {
               divisions: true,
             },
@@ -70,7 +82,7 @@ export const authOptions: NextAuthOptions = {
           if (!user.password_hash) {
             log.auth('Authentication failed: User has no password hash set', {
               userId: user.id,
-              email: credentials.email,
+              identifier: credentials.identifier,
             });
             return null;
           }
@@ -79,7 +91,7 @@ export const authOptions: NextAuthOptions = {
           if (!isPasswordValid) {
             log.auth('Authentication failed: Invalid password', {
               userId: user.id,
-              email: credentials.email,
+              identifier: credentials.identifier,
             });
             return null;
           }

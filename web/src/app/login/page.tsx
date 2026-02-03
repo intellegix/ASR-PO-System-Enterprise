@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState(''); // Can be username or email
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,13 +21,13 @@ function LoginForm() {
 
     try {
       const result = await signIn('credentials', {
-        email,
+        identifier,
         password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
+        setError('Invalid username/email or password');
       } else {
         router.push(callbackUrl);
         router.refresh();
@@ -75,17 +75,17 @@ function LoginForm() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
-                Email Address
+              <label htmlFor="identifier" className="block text-sm font-medium text-slate-700 mb-1">
+                Username or Email
               </label>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="identifier"
+                type="text"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
                 className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition text-slate-800 placeholder-slate-400"
-                placeholder="you@allsurfaceroofing.com"
+                placeholder="owner1 or owner1@allsurfaceroofing.com"
               />
             </div>
 
@@ -136,12 +136,12 @@ function LoginForm() {
 
           {/* Demo credentials */}
           <div className="mt-6 pt-6 border-t border-slate-200">
-            <p className="text-sm text-slate-500 text-center mb-3">Demo Accounts (password: demo123)</p>
+            <p className="text-sm text-slate-500 text-center mb-3">Demo Accounts (password: demo123) - Click or type username only</p>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('owner1@allsurfaceroofing.com');
+                  setIdentifier('owner1@allsurfaceroofing.com');
                   setPassword('demo123');
                 }}
                 className="p-2 bg-orange-50 hover:bg-orange-100 rounded text-slate-700 transition border border-orange-200"
@@ -151,7 +151,7 @@ function LoginForm() {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('owner2@allsurfaceroofing.com');
+                  setIdentifier('owner2@allsurfaceroofing.com');
                   setPassword('demo123');
                 }}
                 className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
@@ -161,7 +161,7 @@ function LoginForm() {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('owner3@allsurfaceroofing.com');
+                  setIdentifier('owner3@allsurfaceroofing.com');
                   setPassword('demo123');
                 }}
                 className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
@@ -171,7 +171,7 @@ function LoginForm() {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('owner4@allsurfaceroofing.com');
+                  setIdentifier('owner4@allsurfaceroofing.com');
                   setPassword('demo123');
                 }}
                 className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
@@ -181,7 +181,7 @@ function LoginForm() {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('owner5@allsurfaceroofing.com');
+                  setIdentifier('owner5@allsurfaceroofing.com');
                   setPassword('demo123');
                 }}
                 className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
@@ -191,7 +191,7 @@ function LoginForm() {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('owner6@allsurfaceroofing.com');
+                  setIdentifier('owner6@allsurfaceroofing.com');
                   setPassword('demo123');
                 }}
                 className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
@@ -201,7 +201,7 @@ function LoginForm() {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('opsmgr@allsurfaceroofing.com');
+                  setIdentifier('opsmgr@allsurfaceroofing.com');
                   setPassword('demo123');
                 }}
                 className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
@@ -211,7 +211,7 @@ function LoginForm() {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('accounting@allsurfaceroofing.com');
+                  setIdentifier('accounting@allsurfaceroofing.com');
                   setPassword('demo123');
                 }}
                 className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
