@@ -22,7 +22,7 @@ export default function DemoLoginPage() {
       if (user) {
         setDemoSession(user);
         console.log('✅ Login successful, redirecting...');
-        router.push('/');
+        router.push('/demo');
       } else {
         setError('Invalid username/email or password');
       }

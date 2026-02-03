@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { authenticateDemo, setDemoSession } from '@/lib/demo-auth';
 
 function LoginForm() {
   const router = useRouter();
@@ -20,20 +21,38 @@ function LoginForm() {
     setError('');
 
     try {
-      const result = await signIn('credentials', {
-        identifier,
-        password,
-        redirect: false,
-      });
+      // Check if we're in static export mode (NextAuth API routes unavailable)
+      const isStaticExport = process.env.NEXT_PUBLIC_ENVIRONMENT === 'render-frontend';
 
-      if (result?.error) {
-        setError('Invalid username/email or password');
+      if (isStaticExport) {
+        // Use demo authentication for static deployment
+        const user = await authenticateDemo(identifier, password);
+
+        if (user) {
+          setDemoSession(user);
+          console.log('✅ Static login successful, redirecting...');
+          router.push('/demo');
+        } else {
+          setError('Invalid username/email or password');
+        }
       } else {
-        router.push(callbackUrl);
-        router.refresh();
+        // Use NextAuth for full server deployment
+        const result = await signIn('credentials', {
+          identifier,
+          password,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          setError('Invalid username/email or password');
+        } else {
+          router.push(callbackUrl);
+          router.refresh();
+        }
       }
-    } catch {
+    } catch (err) {
       setError('An error occurred. Please try again.');
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
@@ -61,6 +80,9 @@ function LoginForm() {
           </div>
           <h1 className="text-2xl font-bold text-white">ASR PO System</h1>
           <p className="text-slate-400 mt-1">All Surface Roofing & Waterproofing</p>
+          {process.env.NEXT_PUBLIC_ENVIRONMENT === 'render-frontend' && (
+            <p className="text-orange-400 text-sm mt-2">🔗 Static Mode - Demo Auth Active</p>
+          )}
         </div>
 
         {/* Login Form */}
