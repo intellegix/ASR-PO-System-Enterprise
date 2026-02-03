@@ -10,7 +10,7 @@
 ## 📊 **Deployment Summary**
 
 ### ✅ GitHub Repository
-- **Repository**: `intellegix/ASR-PO-System-Enterprise`
+- **Repository**: `Intellegix/ASR-PO-System-Enterprise`
 - **Visibility**: Public
 - **Auto-Deploy**: Enabled from master branch
 - **Latest Commit**: `ebfd692` - Added render:build script
