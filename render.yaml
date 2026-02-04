@@ -1,8 +1,15 @@
-# ASR Purchase Order System - Render Deployment Configuration
-# Phase 4D - Production Platform Deployment
-# Render Blueprint for automated service provisioning
+# ASR Purchase Order System - Render PostgreSQL Deployment
+# Full-stack deployment with managed PostgreSQL database
 
 services:
+  # PostgreSQL Database Service
+  - type: pserv
+    name: asr-po-database
+    region: oregon
+    plan: starter # starter ($7/month) | standard ($20/month) | pro ($90/month)
+    databaseName: po_system
+    databaseUser: po_admin
+
   # Main Application Service
   - type: web
     name: asr-po-system
@@ -21,21 +28,21 @@ services:
       - key: PORT
         value: 3000
 
-      # Database Connection (managed by Render PostgreSQL service)
+      # Database Configuration (PostgreSQL)
       - key: DATABASE_URL
-        fromDatabase:
-          name: asr-po-database
-          property: connectionString
-
-      # Redis Connection (managed by Render Redis service)
-      - key: REDIS_URL
         fromService:
-          type: redis
-          name: asr-po-redis
+          type: pserv
+          name: asr-po-database
           property: connectionString
 
       # Authentication & Security
       - key: NEXTAUTH_SECRET
+        generateValue: true
+
+      # JWT secrets for API authentication
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
         generateValue: true
 
       # Email Configuration (requires manual setup)
@@ -64,14 +71,6 @@ services:
       - key: MAX_CONCURRENT_USERS
         value: 100
 
-      # Backup Configuration
-      - key: BACKUP_ENABLED
-        value: true
-      - key: BACKUP_S3_BUCKET
-        sync: false # Set manually if S3 backup desired
-      - key: BACKUP_S3_REGION
-        sync: false # Set manually if S3 backup desired
-
     # Health Check Configuration
     healthCheckPath: /api/health
 
@@ -93,41 +92,20 @@ services:
       cd web &&
       npm run type-check
 
-  # PostgreSQL Database Service
-  - type: postgresql
-    name: asr-po-database
-    databaseName: asr_po_production
-    user: asr_admin
-    region: oregon # Must match web service region
-    plan: starter # starter ($7/month) | standard ($20/month) | pro ($90/month)
+    # Dependencies - web service depends on database
+    envVarsFromService:
+      - fromService:
+          type: pserv
+          name: asr-po-database
+          envVarKey: DATABASE_URL
 
-    # Database Configuration
-    version: "15" # PostgreSQL 15
-
-    # Security Configuration
-    ipAllowList: [] # Empty = allow all IPs (web service access only)
-
-  # Redis Cache Service
-  - type: redis
-    name: asr-po-redis
-    region: oregon # Must match web service region
-    plan: starter # starter ($7/month) | standard ($20/month) | pro ($90/month)
-
-    # Redis Configuration
-    version: "7"
-    maxmemoryPolicy: allkeys-lru # Evict least recently used keys when memory full
-    appendOnly: true # Enable persistence
-
-# Estimated Monthly Cost: $21/month (starter plan for all services)
+# Estimated Monthly Cost: $14/month (starter plans)
 # - Web Service: $7/month
-# - PostgreSQL: $7/month
-# - Redis: $7/month
+# - PostgreSQL Service: $7/month
 
 # Production Scaling Options:
-# Standard Plan: $65/month total
-# - Web Service: $25/month (better performance, more CPU/RAM)
-# - PostgreSQL: $20/month (higher connections, better performance)
-# - Redis: $20/month (more memory, better performance)
+# Standard Plan: $25/month
+# - Web Service: $25/month (better performance, more CPU/RAM, 20GB SSD)
 
 # ============================================================================
 # DEPLOYMENT INSTRUCTIONS
@@ -139,20 +117,18 @@ services:
 #    - Go to Render Dashboard
 #    - Click "New" → "Blueprint"
 #    - Select GitHub repository
-#    - Render will create all services automatically
+#    - Render will create the service automatically
 # 4. Configure Environment Variables:
-#    - SMTP credentials for email notifications
-#    - S3 credentials for backup (optional)
+#    - SMTP credentials for email notifications (optional)
 # 5. Verify Deployment:
 #    - Check health endpoint: https://asr-po-system.onrender.com/api/health
 #    - Test authentication and basic functionality
-#    - Verify database connectivity and Redis caching
 
 # ============================================================================
 # POST-DEPLOYMENT CONFIGURATION
 # ============================================================================
 
-# Required Manual Configuration:
+# Optional Manual Configuration:
 # 1. Email (SMTP) Configuration:
 #    - Set SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_FROM in Render dashboard
 #    - Recommended: SendGrid, Mailgun, or AWS SES
@@ -162,38 +138,58 @@ services:
 #    - Custom domain configuration available in dashboard
 #
 # 3. Monitoring Setup:
-#    - Configure UptimeRobot using deployment/monitoring-alerting-config.yml
-#    - Set up Slack webhook for alerts
-#
-# 4. Backup Configuration:
-#    - Database backups are automatic with Render PostgreSQL
-#    - Optional: Configure S3 for application file backups
+#    - Configure monitoring tools using deployment/monitoring-alerting-config.yml
+#    - Set up alerts for application health
 
 # ============================================================================
-# HEALTH ENDPOINTS FOR MONITORING
+# POSTGRESQL FEATURES
 # ============================================================================
 
-# 1. /api/health - Application health and dependencies
-# 2. /api/health/database - Database connectivity check
-# 3. /api/health/redis - Redis cache connectivity
-# 4. /api/health/email - Email service configuration
-# 5. /api/health/detailed - Comprehensive system status
+# Advantages:
+# - Multi-user concurrent access
+# - Built-in replication and backup
+# - Advanced analytics capabilities
+# - Managed service with automatic updates
+
+# Features:
+# - Concurrent read/write operations
+# - Advanced indexing and query optimization
+# - JSON/JSONB support for flexible data
+# - Full ACID compliance
+
+# Suitable for:
+# - Small to enterprise businesses (unlimited concurrent users)
+# - Complex business logic and reporting
+# - High-volume write operations
+# - Scalable production applications
+
+# ============================================================================
+# BACKUP STRATEGY
+# ============================================================================
+
+# PostgreSQL Database Backup:
+# - Render automatically backs up PostgreSQL databases
+# - Point-in-time recovery available
+# - Additional backup options:
+#   1. Periodic pg_dump exports via API
+#   2. Automated backup to external storage (S3, etc.)
+#   3. Database snapshots before major updates
 
 # ============================================================================
 # SCALING CONSIDERATIONS
 # ============================================================================
 
-# Starter Plan Limits:
-# - 512MB RAM, 0.1 CPU, 1GB SSD (web service)
-# - 1GB RAM, 100 connections (PostgreSQL)
-# - 25MB memory (Redis)
-# - Suitable for 10-50 concurrent users
+# When to consider upgrading PostgreSQL plan:
+# - More than 1000 concurrent users (Standard plan)
+# - Complex analytics workloads
+# - Multi-region deployment requirements
+# - High-availability requirements
 
-# Standard Plan Performance:
-# - 2GB RAM, 1 CPU, 20GB SSD (web service)
-# - 4GB RAM, 500 connections (PostgreSQL)
-# - 250MB memory (Redis)
-# - Suitable for 100-500 concurrent users
+# Upgrade path to higher PostgreSQL plans:
+# 1. Monitor database performance metrics
+# 2. Upgrade to Standard plan ($20/month) for better performance
+# 3. Upgrade to Pro plan ($90/month) for enterprise features
+# 4. Consider read replicas for high-traffic applications
 
 # ============================================================================
 # SECURITY CONFIGURATION
@@ -202,11 +198,10 @@ services:
 # Automatic Security Features:
 # - HTTPS/TLS encryption (Let's Encrypt certificates)
 # - DDoS protection
-# - Private networking between services
 # - Encrypted environment variables
 # - Regular security updates
 
-# Additional Security (configured in application):
+# Application Security (configured in application):
 # - CSRF protection
 # - Rate limiting
 # - Input validation
