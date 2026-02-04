@@ -17,7 +17,7 @@ const DEMO_USERS: Record<string, DemoUser> = {
     id: 'admin-005',
     email: 'Intellegix@allsurfaceroofing.com',
     name: 'Austin Kidwell - Director of Systems Integrations',
-    role: 'MAJORITY_OWNER',
+    role: 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS',
     divisionId: null,
     divisionName: null,
     divisionCode: null,

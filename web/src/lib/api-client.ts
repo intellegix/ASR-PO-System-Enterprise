@@ -11,8 +11,8 @@ const getApiBaseUrl = (): string => {
   }
 
   // Client-side (browser environment)
-  // For hybrid architecture: static frontend calls local backend
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+  // For hybrid architecture: static frontend calls local backend on port 8765
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8765';
 };
 
 // API client configuration

@@ -1,7 +1,7 @@
 /**
  * Role-Based Access Control (RBAC) for ASR PO System
  *
- * ROLE: MAJORITY_OWNER
+ * ROLE: DIRECTOR_OF_SYSTEMS_INTEGRATIONS
  *   - Can: View all divisions
  *   - Can: Approve any PO above threshold
  *   - Can: Modify division assignments
@@ -23,7 +23,7 @@
  *   - Read-only access, can export data
  */
 
-export type UserRole = 'MAJORITY_OWNER' | 'DIVISION_LEADER' | 'OPERATIONS_MANAGER' | 'ACCOUNTING';
+export type UserRole = 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS' | 'DIVISION_LEADER' | 'OPERATIONS_MANAGER' | 'ACCOUNTING';
 
 export type Permission =
   | 'po:create'
@@ -58,7 +58,7 @@ export type Permission =
 
 // Permission sets for each role
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  MAJORITY_OWNER: [
+  DIRECTOR_OF_SYSTEMS_INTEGRATIONS: [
     'po:create',
     'po:create:any_division',
     'po:read',
@@ -153,7 +153,7 @@ export function hasPermission(userRole: UserRole, permission: Permission): boole
  * Check if user can create POs in a specific division
  *
  * REVISED RULES:
- * - MAJORITY_OWNER: Can create POs for any division
+ * - DIRECTOR_OF_SYSTEMS_INTEGRATIONS: Can create POs for any division
  * - DIVISION_LEADER: Can create POs for ANY division (changed!)
  * - OPERATIONS_MANAGER: Can create POs for their division only (Repairs)
  * - ACCOUNTING: Cannot create POs
@@ -164,7 +164,7 @@ export function canCreatePOInDivision(
   targetDivisionId: string
 ): boolean {
   // Majority Owner can create for any division
-  if (userRole === 'MAJORITY_OWNER') return true;
+  if (userRole === 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS') return true;
 
   // Division Leader can create for ANY division
   if (userRole === 'DIVISION_LEADER') return true;
@@ -184,7 +184,7 @@ export function canCreatePOInDivision(
  * Check if user can approve a PO
  *
  * RULES:
- * - MAJORITY_OWNER: Can approve any PO
+ * - DIRECTOR_OF_SYSTEMS_INTEGRATIONS: Can approve any PO
  * - DIVISION_LEADER: Can ONLY approve POs in their division
  * - OPERATIONS_MANAGER: Cannot approve (requires owner approval)
  * - ACCOUNTING: Cannot approve
@@ -220,7 +220,7 @@ export function canApprovePO(
   }
 
   // Majority Owner can approve anything
-  if (userRole === 'MAJORITY_OWNER') {
+  if (userRole === 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS') {
     return { canApprove: true };
   }
 
@@ -231,7 +231,7 @@ export function canApprovePO(
  * Check if user can edit a PO
  *
  * RULES:
- * - MAJORITY_OWNER: Can edit any PO (Draft/Rejected status only)
+ * - DIRECTOR_OF_SYSTEMS_INTEGRATIONS: Can edit any PO (Draft/Rejected status only)
  * - DIVISION_LEADER: Can ONLY edit POs in their division
  * - OPERATIONS_MANAGER: Can only edit their own division's POs
  * - ACCOUNTING: Cannot edit
@@ -247,7 +247,7 @@ export function canEditPO(
     return false;
   }
 
-  if (userRole === 'MAJORITY_OWNER') return true;
+  if (userRole === 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS') return true;
   if (userRole === 'ACCOUNTING') return false;
 
   // Division Leader and OM can ONLY edit their division's POs
@@ -258,7 +258,7 @@ export function canEditPO(
  * Check if user can cancel a PO
  *
  * RULES:
- * - MAJORITY_OWNER: Can cancel any PO
+ * - DIRECTOR_OF_SYSTEMS_INTEGRATIONS: Can cancel any PO
  * - DIVISION_LEADER: Can ONLY cancel POs in their division
  * - OPERATIONS_MANAGER: Cannot cancel
  * - ACCOUNTING: Cannot cancel
@@ -268,7 +268,7 @@ export function canCancelPO(
   userDivisionId: string | null,
   poDivisionId: string
 ): boolean {
-  if (userRole === 'MAJORITY_OWNER') return true;
+  if (userRole === 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS') return true;
 
   if (userRole === 'DIVISION_LEADER') {
     return userDivisionId === poDivisionId;
@@ -281,13 +281,13 @@ export function canCancelPO(
  * Check if user can issue a PO to vendor
  *
  * RULES:
- * - MAJORITY_OWNER: Can issue any approved PO
+ * - DIRECTOR_OF_SYSTEMS_INTEGRATIONS: Can issue any approved PO
  * - DIVISION_LEADER: Can issue approved POs to vendors
  * - OPERATIONS_MANAGER: Cannot issue
  * - ACCOUNTING: Cannot issue
  */
 export function canIssuePO(userRole: UserRole): boolean {
-  return userRole === 'MAJORITY_OWNER' || userRole === 'DIVISION_LEADER';
+  return userRole === 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS' || userRole === 'DIVISION_LEADER';
 }
 
 /**
@@ -312,7 +312,7 @@ export function isReadOnlyForPO(
   userDivisionId: string | null,
   poDivisionId: string
 ): boolean {
-  if (userRole === 'MAJORITY_OWNER') return false;
+  if (userRole === 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS') return false;
   if (userRole === 'ACCOUNTING') return true;
 
   // Division Leader and OM are read-only for other divisions
@@ -323,7 +323,7 @@ export function isReadOnlyForPO(
  * Check if user can modify division assignments
  */
 export function canModifyDivisionAssignments(userRole: UserRole): boolean {
-  return userRole === 'MAJORITY_OWNER';
+  return userRole === 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS';
 }
 
 /**
@@ -331,7 +331,7 @@ export function canModifyDivisionAssignments(userRole: UserRole): boolean {
  */
 export function getRoleDisplayName(role: UserRole): string {
   const names: Record<UserRole, string> = {
-    MAJORITY_OWNER: 'Owner',
+    DIRECTOR_OF_SYSTEMS_INTEGRATIONS: 'Owner',
     DIVISION_LEADER: 'Division Leader',
     OPERATIONS_MANAGER: 'Operations Manager',
     ACCOUNTING: 'Accounting',
