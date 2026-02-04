@@ -1,7 +1,7 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 import AuditTrail from '@/components/audit/AuditTrail';
 
 // Icons
@@ -40,15 +40,14 @@ const UserCheckIcon = ({ className = "w-5 h-5" }: IconProps) => (
 );
 
 export default function AuditPage() {
-  const { data: session } = useSession();
+  const { user, isAuthenticated } = useAuth();
 
-  const user = session?.user;
   const userRole = user?.role || 'OPERATIONS_MANAGER';
 
   // Check if user has access to audit trail
-  const canViewAudit = ['MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'].includes(userRole);
+  const canViewAudit = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'DIVISION_LEADER', 'ACCOUNTING'].includes(userRole);
 
-  if (!session) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
@@ -96,7 +96,7 @@ interface POSummaryData {
 }
 
 function POSummaryReport() {
-  const { data: session } = useSession();
+  const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -178,7 +178,7 @@ function POSummaryReport() {
     return `${value.toFixed(1)}%`;
   };
 
-  if (!session) {
+  if (!isAuthenticated) {
     return <div className="min-h-screen bg-slate-50 flex items-center justify-center">
       <div className="text-slate-600">Please sign in to view reports.</div>
     </div>;

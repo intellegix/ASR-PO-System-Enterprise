@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -90,7 +90,7 @@ const CheckIcon = ({ className = "w-5 h-5" }: IconProps) => (
 );
 
 export default function CreatePOPage() {
-  const { data: session } = useSession();
+  const { user, isAuthenticated } = useAuth();
   const router = useRouter();
 
   // Data states
@@ -185,13 +185,13 @@ export default function CreatePOPage() {
 
   // Set default division from user session
   useEffect(() => {
-    if (session?.user?.divisionId && divisions.length > 0) {
-      const userDivision = divisions.find(d => d.id === session.user.divisionId);
+    if (user?.divisionId && divisions.length > 0) {
+      const userDivision = divisions.find(d => d.id === user.divisionId);
       if (userDivision) {
         setSelectedDivision(userDivision);
       }
     }
-  }, [session, divisions]);
+  }, [user, divisions]);
 
   // Create new work order
   const handleCreateWorkOrder = async () => {

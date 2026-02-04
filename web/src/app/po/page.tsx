@@ -4,7 +4,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -30,7 +30,7 @@ interface PO {
 }
 
 export default function POListPage() {
-  const { data: session, status: authStatus } = useSession();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   const [pos, setPOs] = useState<PO[]>([]);
@@ -39,10 +39,10 @@ export default function POListPage() {
   const [divisionFilter, setDivisionFilter] = useState('');
 
   useEffect(() => {
-    if (authStatus === 'authenticated') {
+    if (isAuthenticated) {
       fetchPOs();
     }
-  }, [authStatus, statusFilter, divisionFilter]);
+  }, [isAuthenticated, statusFilter, divisionFilter]);
 
   const fetchPOs = async () => {
     setLoading(true);
@@ -63,7 +63,7 @@ export default function POListPage() {
     }
   };
 
-  if (authStatus === 'loading') {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -71,7 +71,7 @@ export default function POListPage() {
     );
   }
 
-  if (authStatus === 'unauthenticated') {
+  if (!isAuthenticated) {
     router.push('/login');
     return null;
   }

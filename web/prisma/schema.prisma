@@ -4,11 +4,12 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model division_leaders {
-  id             String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id        String       @db.Uuid
   name           String       @db.VarChar(100)
   email          String       @db.VarChar(255)
@@ -30,7 +31,7 @@ model division_leaders {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model divisions {
-  id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   division_name        String                 @db.VarChar(100)
   division_code        String                 @unique @db.VarChar(2)
   qb_class_name        String?                @db.VarChar(100)
@@ -49,7 +50,7 @@ model divisions {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model gl_account_mappings {
-  id                  String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   gl_code_short       String       @unique @db.VarChar(2)
   gl_account_number   String       @db.VarChar(4)
   gl_account_name     String       @db.VarChar(100)
@@ -63,7 +64,7 @@ model gl_account_mappings {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model po_approvals {
-  id                String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   po_id             String?         @db.Uuid
   work_order_id     String?         @db.Uuid
   action            approval_action
@@ -88,7 +89,7 @@ model po_approvals {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model po_headers {
-  id                                           String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                                           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   po_number                                    String            @unique @db.VarChar(15)
   po_number_sequence                           Int?
   division_leader_id                           String?           @db.Uuid
@@ -143,7 +144,7 @@ model po_headers {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model po_line_items {
-  id                String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   po_id             String            @db.Uuid
   line_number       Int
   item_description  String            @db.VarChar(500)
@@ -169,7 +170,7 @@ model po_line_items {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model projects {
-  id                  String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   project_code        String          @unique @db.VarChar(15)
   project_name        String          @db.VarChar(200)
   customer_id         String?         @db.Uuid
@@ -196,7 +197,7 @@ model projects {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model users {
-  id                                                String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                                                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email                                             String             @unique @db.VarChar(255)
   password_hash                                     String?            @db.VarChar(255)
   first_name                                        String             @db.VarChar(100)
@@ -222,7 +223,7 @@ model users {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model vendors {
-  id                    String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                    String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   vendor_name           String       @db.VarChar(200)
   vendor_code           String       @unique @db.VarChar(2)
   vendor_type           vendor_type? @default(Material)
@@ -254,7 +255,7 @@ model vendors {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model work_order_sequences {
-  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   division_id   String    @db.Uuid
   year          Int
   last_sequence Int?      @default(0)
@@ -266,7 +267,7 @@ model work_order_sequences {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model work_orders {
-  id                 String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   work_order_number  String             @db.VarChar(10)
   division_id        String             @db.Uuid
   project_id         String             @db.Uuid
@@ -373,7 +374,7 @@ enum qb_sync_status {
 
 /// QuickBooks OAuth token storage for API integration
 model qb_auth_tokens {
-  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   realm_id          String    @db.VarChar(50)
   access_token      String    @db.Text
   refresh_token     String    @db.Text

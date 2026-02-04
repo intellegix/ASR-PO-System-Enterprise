@@ -4,8 +4,8 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Icons
 interface IconProps {
@@ -133,7 +133,7 @@ interface ApprovalBottleneckData {
 }
 
 export default function ApprovalBottleneckPage() {
-  const { data: session } = useSession();
+  const { user, isAuthenticated } = useAuth();
   const [data, setData] = useState<ApprovalBottleneckData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -150,7 +150,6 @@ export default function ApprovalBottleneckPage() {
   const [autoRefresh, setAutoRefresh] = useState(true); // Auto-refresh for real-time data
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
-  const user = session?.user;
   const userRole = user?.role || 'OPERATIONS_MANAGER';
 
   const fetchData = async () => {
@@ -300,7 +299,7 @@ export default function ApprovalBottleneckPage() {
     return { text: 'Poor', color: 'text-red-600' };
   };
 
-  if (!session) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">

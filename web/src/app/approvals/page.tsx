@@ -4,8 +4,8 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
 interface PendingPO {
@@ -39,7 +39,7 @@ interface PendingPO {
 const OWNER_APPROVAL_THRESHOLD = 25000;
 
 export default function ApprovalsPage() {
-  const { data: session, status: authStatus } = useSession();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   const [pendingPOs, setPendingPOs] = useState<PendingPO[]>([]);
@@ -49,10 +49,10 @@ export default function ApprovalsPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (authStatus === 'authenticated') {
+    if (isAuthenticated) {
       fetchPendingPOs();
     }
-  }, [authStatus]);
+  }, [isAuthenticated]);
 
   const fetchPendingPOs = async () => {
     setLoading(true);
@@ -112,7 +112,7 @@ export default function ApprovalsPage() {
     }
   };
 
-  if (authStatus === 'loading') {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -120,7 +120,7 @@ export default function ApprovalsPage() {
     );
   }
 
-  if (authStatus === 'unauthenticated') {
+  if (!isAuthenticated) {
     router.push('/login');
     return null;
   }
@@ -158,7 +158,7 @@ export default function ApprovalsPage() {
     }
   };
 
-  const userRole = session?.user?.role || '';
+  const userRole = user?.role || '';
 
   return (
     <div className="min-h-screen bg-slate-50">

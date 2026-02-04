@@ -1,10 +1,11 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getRoleDisplayName } from '@/lib/auth/permissions';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { getRoleDisplayName, type UserRole } from '@/lib/auth/permissions';
 import KPIMetrics from './widgets/KPIMetrics';
 import PendingApprovals from './widgets/PendingApprovals';
 import DivisionPerformance from './widgets/DivisionPerformance';
@@ -80,18 +81,16 @@ const XIcon = ({ className = "w-6 h-6" }: IconProps) => (
   </svg>
 );
 
-type UserRole = 'MAJORITY_OWNER' | 'DIVISION_LEADER' | 'OPERATIONS_MANAGER' | 'ACCOUNTING';
-
 export default function Dashboard() {
-  const { data: session } = useSession();
+  const { user, logout } = useAuth();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const user = session?.user;
   const role = (user?.role || 'DIVISION_LEADER') as UserRole;
 
   // Get user's division for filtering
   const userDivisionId = user?.divisionId;
-  const canViewAllDivisions = ['MAJORITY_OWNER', 'ACCOUNTING'].includes(role);
+  const canViewAllDivisions = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'ACCOUNTING'].includes(role);
 
   // Get pending approval count for sidebar badge
   const { data: pendingData } = useQuery({
@@ -210,7 +209,10 @@ export default function Dashboard() {
               </div>
             </div>
             <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
+              onClick={() => {
+                logout();
+                router.push('/login');
+              }}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition"
             >
               <LogoutIcon />

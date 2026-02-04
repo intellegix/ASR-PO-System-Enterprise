@@ -4,8 +4,8 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Icons
 interface IconProps {
@@ -130,7 +130,7 @@ interface BudgetAnalysisData {
 }
 
 export default function BudgetVsActualPage() {
-  const { data: session } = useSession();
+  const { user, isAuthenticated } = useAuth();
   const [data, setData] = useState<BudgetAnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -145,7 +145,6 @@ export default function BudgetVsActualPage() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
-  const user = session?.user;
   const userRole = user?.role || 'OPERATIONS_MANAGER';
 
   const fetchData = async () => {
@@ -275,7 +274,7 @@ export default function BudgetVsActualPage() {
     }
   };
 
-  if (!session) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">

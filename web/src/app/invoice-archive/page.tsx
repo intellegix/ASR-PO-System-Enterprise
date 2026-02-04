@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -48,7 +48,7 @@ interface InvoiceStats {
 }
 
 export default function InvoiceArchivePage() {
-  const { data: session, status } = useSession();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   const [invoices, setInvoices] = useState<ArchiveInvoice[]>([]);
@@ -83,7 +83,7 @@ export default function InvoiceArchivePage() {
 
   // Fetch filter options
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (isAuthenticated) {
       Promise.all([
         fetch('/api/invoice-archive?action=stats').then(r => r.json()),
         fetch('/api/invoice-archive?action=vendors').then(r => r.json()),
@@ -96,11 +96,11 @@ export default function InvoiceArchivePage() {
         console.error('Error fetching filter options:', err);
       });
     }
-  }, [status]);
+  }, [isAuthenticated]);
 
   // Fetch invoices
   const fetchInvoices = useCallback(async (resetOffset = false) => {
-    if (status !== 'authenticated') return;
+    if (!isAuthenticated) return;
 
     setLoading(true);
     setError(null);
@@ -134,11 +134,11 @@ export default function InvoiceArchivePage() {
     } finally {
       setLoading(false);
     }
-  }, [status, search, vendorId, projectId, paymentStatus, dateFrom, dateTo, offset]);
+  }, [isAuthenticated, search, vendorId, projectId, paymentStatus, dateFrom, dateTo, offset]);
 
   useEffect(() => {
     fetchInvoices(true);
-  }, [search, vendorId, projectId, paymentStatus, dateFrom, dateTo, status]);
+  }, [search, vendorId, projectId, paymentStatus, dateFrom, dateTo, isAuthenticated]);
 
   // Fetch invoice detail
   const fetchInvoiceDetail = async (invoice: ArchiveInvoice) => {
@@ -154,7 +154,7 @@ export default function InvoiceArchivePage() {
     }
   };
 
-  if (status === 'loading') {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -162,7 +162,7 @@ export default function InvoiceArchivePage() {
     );
   }
 
-  if (status === 'unauthenticated') {
+  if (!isAuthenticated) {
     router.push('/login');
     return null;
   }

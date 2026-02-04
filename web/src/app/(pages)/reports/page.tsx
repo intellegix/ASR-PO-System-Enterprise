@@ -3,7 +3,7 @@
 // Force dynamic rendering since this page requires authentication
 export const dynamic = 'force-dynamic';
 
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -170,11 +170,10 @@ const REPORT_TYPES: ReportCard[] = [
 type UserRole = 'MAJORITY_OWNER' | 'DIVISION_LEADER' | 'OPERATIONS_MANAGER' | 'ACCOUNTING';
 
 export default function ReportsPage() {
-  const { data: session } = useSession();
+  const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const user = session?.user;
   const userRole = (user?.role || 'OPERATIONS_MANAGER') as UserRole;
 
   // Filter reports based on user permissions
