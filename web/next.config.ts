@@ -1,10 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Configuration for hybrid architecture (v2.0):
+  // Configuration for hybrid architecture (v2.1):
   // - Full-stack mode for local development and backend
-  // - Can be switched to static export for frontend-only deployment
-  // Updated: Feb 4, 2026 - Static frontend with custom auth
+  // - Frontend deployed as static site, connects to localhost backend
+  // Updated: Feb 4, 2026 - Hybrid architecture active, backend on port 8765
 
   // Uncomment for static export deployment:
   // output: 'export',

@@ -52,7 +52,12 @@
       "Bash(sqlite3:*)",
       "Bash(DATABASE_URL=postgresql://postgres:password@localhost:5432/po_system npm run build:*)",
       "WebFetch(domain:asr-po-system-frontend.onrender.com)",
-      "Bash(set NEXT_STATIC_EXPORT=true)"
+      "Bash(set NEXT_STATIC_EXPORT=true)",
+      "WebFetch(domain:dashboard.render.com)",
+      "Bash(wmic process where \"name=''node.exe''\" get ProcessId,CommandLine)",
+      "Bash(PORT=3005 npm run dev:*)",
+      "Bash(PORT=3006 npm run dev:*)",
+      "Bash(PORT=8765 npm run dev:*)"
     ]
   }
 }
