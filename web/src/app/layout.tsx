@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ASR PO System",
-  description: "All Surface Roofing Purchase Order Management System",
+  title: "ASR PO System - Hybrid v2.1",
+  description: "All Surface Roofing Purchase Order Management System - Hybrid Architecture",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
