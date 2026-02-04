@@ -1,25 +1,18 @@
 /**
- * API Client Configuration for Hybrid Deployment
- * Handles routing between local backend and deployed frontend
+ * API Client Configuration for Full-Stack Deployment
+ * Handles routing between local development and production deployment
  */
 
-// Dynamic API base URL configuration
+// Dynamic API base URL configuration for hybrid architecture
 const getApiBaseUrl = (): string => {
-  // Server-side rendering (Node.js environment)
+  // Server-side rendering (Node.js environment) - not used in static export
   if (typeof window === 'undefined') {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    return process.env.BACKEND_URL || 'http://localhost:3000';
   }
 
   // Client-side (browser environment)
-  const isRenderDeployment = process.env.NEXT_PUBLIC_ENVIRONMENT === 'render-frontend';
-
-  if (isRenderDeployment) {
-    // When frontend is deployed on Render, use the ngrok URL for local backend
-    return process.env.NEXT_PUBLIC_API_URL || 'https://your-ngrok-url.ngrok.io';
-  }
-
-  // Local development - use same origin
-  return window.location.origin;
+  // For hybrid architecture: static frontend calls local backend
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 };
 
 // API client configuration
@@ -51,10 +44,8 @@ export async function apiRequest<T = any>(
     },
   };
 
-  // Add credentials for cross-origin requests when using ngrok
-  if (baseURL.includes('ngrok.io') || baseURL.includes('ngrok.app')) {
-    config.credentials = 'include';
-  }
+  // Add credentials for authenticated requests
+  config.credentials = 'include';
 
   try {
     const response = await fetch(url, config);

@@ -1,19 +1,19 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { authenticateDemo, setDemoSession } from '@/lib/demo-auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login, backendAvailable, isLoading: authLoading } = useAuth();
   const [identifier, setIdentifier] = useState(''); // Can be username or email
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,34 +21,15 @@ function LoginForm() {
     setError('');
 
     try {
-      // Check if we're in static export mode (NextAuth API routes unavailable)
-      const isStaticExport = process.env.NEXT_PUBLIC_ENVIRONMENT === 'render-frontend';
+      // Use the unified auth context which handles both demo and backend auth
+      const result = await login(identifier, password, backendAvailable);
 
-      if (isStaticExport) {
-        // Use demo authentication for static deployment
-        const user = await authenticateDemo(identifier, password);
-
-        if (user) {
-          setDemoSession(user);
-          console.log('✅ Static login successful, redirecting...');
-          router.push('/demo');
-        } else {
-          setError('Invalid username/email or password');
-        }
+      if (result.success) {
+        console.log('✅ Login successful, redirecting to dashboard...');
+        router.push(callbackUrl);
+        router.refresh();
       } else {
-        // Use NextAuth for full server deployment
-        const result = await signIn('credentials', {
-          identifier,
-          password,
-          redirect: false,
-        });
-
-        if (result?.error) {
-          setError('Invalid username/email or password');
-        } else {
-          router.push(callbackUrl);
-          router.refresh();
-        }
+        setError(result.error || 'Invalid username/email or password');
       }
     } catch (err) {
       setError('An error occurred. Please try again.');
@@ -80,9 +61,12 @@ function LoginForm() {
           </div>
           <h1 className="text-2xl font-bold text-white">ASR PO System</h1>
           <p className="text-slate-400 mt-1">All Surface Roofing & Waterproofing</p>
-          {process.env.NEXT_PUBLIC_ENVIRONMENT === 'render-frontend' && (
-            <p className="text-orange-400 text-sm mt-2">🔗 Static Mode - Demo Auth Active</p>
-          )}
+          <div className="mt-2 flex items-center justify-center space-x-2 text-sm">
+            <div className={`w-2 h-2 rounded-full ${backendAvailable ? 'bg-green-500' : 'bg-yellow-500'}`} />
+            <span className={backendAvailable ? 'text-green-400' : 'text-yellow-400'}>
+              {backendAvailable ? 'Backend Connected' : 'Demo Mode Available'}
+            </span>
+          </div>
         </div>
 
         {/* Login Form */}
@@ -128,10 +112,10 @@ function LoginForm() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || authLoading}
               className="w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
-              {loading ? (
+              {loading || authLoading ? (
                 <>
                   <svg className="animate-spin -ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24">
                     <circle
@@ -153,6 +137,18 @@ function LoginForm() {
               ) : (
                 'Sign In'
               )}
+            </button>
+
+            {/* Admin Quick Login */}
+            <button
+              type="button"
+              onClick={() => {
+                setIdentifier('intellegix');
+                setPassword('Devops$@2026');
+              }}
+              className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition"
+            >
+              🔧 Admin Login (Austin Kidwell)
             </button>
           </form>
 

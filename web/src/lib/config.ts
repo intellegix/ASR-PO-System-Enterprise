@@ -18,6 +18,10 @@ class ConfigValidationError extends Error {
 
 function validateNextAuthSecret(secret: string | undefined): string {
   if (!secret) {
+    // For static export builds, NEXTAUTH_SECRET is not required
+    if (process.env.NODE_ENV === 'production' && process.env.NEXT_STATIC_EXPORT === 'true') {
+      return 'static-export-placeholder'; // Return placeholder for static export
+    }
     throw new ConfigValidationError(
       'NEXTAUTH_SECRET is required. Generate one with: openssl rand -hex 32'
     );
@@ -54,7 +58,11 @@ function validateNextAuthSecret(secret: string | undefined): string {
 }
 
 function validateDatabaseUrl(url: string | undefined): string {
+  // For static export builds, DATABASE_URL is not required
   if (!url) {
+    if (process.env.NODE_ENV === 'production' && process.env.NEXT_STATIC_EXPORT === 'true') {
+      return ''; // Return empty string for static export
+    }
     throw new ConfigValidationError('DATABASE_URL is required');
   }
 

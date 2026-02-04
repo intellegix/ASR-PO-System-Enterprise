@@ -1,9 +1,13 @@
-import NextAuth from 'next-auth';
-import { authOptions } from '@/lib/auth/config';
+// Placeholder route for TypeScript compilation during static export
+// This route is not used in the hybrid architecture where the frontend is static
+// and authentication is handled by the local backend
 
-// Force dynamic rendering for authentication route
-export const dynamic = 'force-dynamic';
+import { NextResponse } from 'next/server';
 
-const handler = NextAuth(authOptions);
+export async function GET() {
+  return NextResponse.json({ error: 'NextAuth not available in static export' }, { status: 404 });
+}
 
-export { handler as GET, handler as POST };
+export async function POST() {
+  return NextResponse.json({ error: 'NextAuth not available in static export' }, { status: 404 });
+}

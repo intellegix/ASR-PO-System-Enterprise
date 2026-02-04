@@ -1,9 +1,9 @@
 'use client';
 
-import { SessionProvider } from 'next-auth/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { ServiceWorkerRegistration, useIsPWA, useOfflineStatus, useInstallPrompt } from '@/components/PWA/ServiceWorkerRegistration';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { QueryProvider } from '@/components/providers/QueryProvider';
 
 function PWAProvider({ children }: { children: ReactNode }) {
   // Initialize PWA hooks
@@ -20,23 +20,11 @@ function PWAProvider({ children }: { children: ReactNode }) {
 }
 
 export function Providers({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 60 * 1000, // 1 minute
-            refetchOnWindowFocus: false,
-          },
-        },
-      })
-  );
-
   return (
-    <SessionProvider>
-      <QueryClientProvider client={queryClient}>
+    <QueryProvider>
+      <AuthProvider>
         <PWAProvider>{children}</PWAProvider>
-      </QueryClientProvider>
-    </SessionProvider>
+      </AuthProvider>
+    </QueryProvider>
   );
 }

@@ -46,7 +46,13 @@
       "Bash(gh:*)",
       "Bash(curl:*)",
       "Bash(jq:*)",
-      "Bash(ngrok http:*)"
+      "Bash(ngrok http:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(sqlite3:*)",
+      "Bash(DATABASE_URL=postgresql://postgres:password@localhost:5432/po_system npm run build:*)",
+      "WebFetch(domain:asr-po-system-frontend.onrender.com)",
+      "Bash(set NEXT_STATIC_EXPORT=true)"
     ]
   }
 }
