@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "cp next.config.render.ts next.config.ts && next build",
+    "build": "next build",
     "start": "next start -p $PORT",
     "render:build": "npm run build",
     "render:start": "npm run start"

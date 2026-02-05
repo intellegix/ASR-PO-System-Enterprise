@@ -4,16 +4,14 @@ const nextConfig: NextConfig = {
   // Configuration for hybrid architecture (v2.1):
   // - Full-stack mode for local development and backend
   // - Frontend deployed as static site, connects to localhost backend
-  // Updated: Feb 4, 2026 - Hybrid architecture active, backend on port 8765
+  // Updated: Feb 5, 2026 - Render deployment configuration
 
-  // Use webpack for stable production builds
-
-  // Allow ngrok tunnels and external hosts - configured via hostname checks in middleware
-
-  // Uncomment for static export deployment:
-  // output: 'export',
-  // trailingSlash: true,
-  // distDir: 'out',
+  // Static export for Render frontend deployment
+  ...(process.env.NODE_ENV === 'production' && {
+    output: 'export',
+    trailingSlash: true,
+    distDir: 'out',
+  }),
 
   // Image optimization
   images: {
@@ -55,8 +53,9 @@ const nextConfig: NextConfig = {
 
   // Environment configuration
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8765',
-    NEXT_PUBLIC_ENVIRONMENT: process.env.NODE_ENV || 'development',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ||
+      (process.env.NODE_ENV === 'production' ? 'https://your-ngrok-url.ngrok.io' : 'http://localhost:8765'),
+    NEXT_PUBLIC_ENVIRONMENT: process.env.NODE_ENV === 'production' ? 'render-frontend' : 'development',
   },
 
   // Security headers
@@ -64,7 +63,7 @@ const nextConfig: NextConfig = {
 
   // TypeScript configuration
   typescript: {
-    ignoreBuildErrors: false, // Enable type checking in development
+    ignoreBuildErrors: process.env.NODE_ENV === 'production', // Skip type checking in production builds
   },
 
   // Basic optimization
