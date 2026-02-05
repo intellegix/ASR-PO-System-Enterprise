@@ -6,12 +6,7 @@ const nextConfig: NextConfig = {
   // - Frontend deployed as static site, connects to localhost backend
   // Updated: Feb 5, 2026 - Render deployment configuration
 
-  // Static export for Render frontend deployment
-  ...(process.env.NODE_ENV === 'production' && {
-    output: 'export',
-    trailingSlash: true,
-    distDir: 'out',
-  }),
+  // Full-stack deployment for Render
 
   // Image optimization
   images: {
