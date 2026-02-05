@@ -8,24 +8,11 @@
 import { config } from 'dotenv';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
 
 // Load .env.production file
 config({ path: path.join(process.cwd(), '.env.production') });
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 5,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-  ssl: process.env.NODE_ENV === 'production' ? {
-    rejectUnauthorized: false
-  } : false,
-});
-
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function createProductionIndexes(): Promise<void> {
   console.log('🏗️  Creating production database indexes for optimal performance...\n');
@@ -99,7 +86,7 @@ async function createProductionIndexes(): Promise<void> {
     throw error;
   } finally {
     await prisma.$disconnect();
-    await pool.end();
+    await prisma.$disconnect();
   }
 }
 

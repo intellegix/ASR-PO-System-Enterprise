@@ -347,6 +347,7 @@ enum user_role {
   DIVISION_LEADER
   OPERATIONS_MANAGER
   ACCOUNTING
+  MAJORITY_OWNER
 }
 
 enum vendor_type {

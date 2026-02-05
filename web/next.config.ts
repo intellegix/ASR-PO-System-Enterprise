@@ -6,10 +6,7 @@ const nextConfig: NextConfig = {
   // - Frontend deployed as static site, connects to localhost backend
   // Updated: Feb 4, 2026 - Hybrid architecture active, backend on port 8765
 
-  // Allow ngrok tunnels and external hosts
-  experimental: {
-    allowedHosts: ['localhost', '.ngrok.dev', '.ngrok-free.dev', '.ngrok.io'],
-  },
+  // Allow ngrok tunnels and external hosts - configured via hostname checks in middleware
 
   // Uncomment for static export deployment:
   // output: 'export',

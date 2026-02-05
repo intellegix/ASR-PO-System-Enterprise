@@ -9,7 +9,6 @@ import { config } from 'dotenv';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
 
 // Load .env.production file
 config({ path: path.join(process.cwd(), '.env.production') });
@@ -55,17 +54,7 @@ async function testDatabaseConnection(): Promise<void> {
 
     // Test Prisma connection
     console.log('\n🔧 Testing Prisma connection...');
-    const adapter = new PrismaPg(new Pool({
-      connectionString: databaseUrl,
-      max: 5,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
-      ssl: process.env.NODE_ENV === 'production' ? {
-        rejectUnauthorized: false
-      } : false,
-    }));
-
-    const prisma = new PrismaClient({ adapter });
+    const prisma = new PrismaClient();
 
     // Test basic query
     await prisma.$executeRaw`SELECT 1 as test`;
@@ -142,7 +131,7 @@ async function testDatabaseConnection(): Promise<void> {
     console.log('\n⚡ Testing connection performance...');
     const startTime = Date.now();
 
-    const testPrisma = new PrismaClient({ adapter: new PrismaPg(new Pool({ connectionString: databaseUrl })) });
+    const testPrisma = new PrismaClient();
     await testPrisma.$executeRaw`SELECT 1`;
     await testPrisma.$disconnect();
 
