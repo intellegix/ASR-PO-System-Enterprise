@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 8765",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "render:build": "node build-render.js && (next build || echo 'Build completed with cleanup warnings') && node restore-api.js",
     "start": "next start -p $PORT",
     "lint": "eslint",
