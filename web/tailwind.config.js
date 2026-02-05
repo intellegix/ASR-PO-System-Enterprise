@@ -64,20 +64,10 @@ module.exports = {
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
   ],
-  // Production optimizations
-  ...(process.env.NODE_ENV === 'production' && {
-    purge: {
-      content: [
-        "./src/**/*.{js,ts,jsx,tsx}",
-      ],
-      options: {
-        safelist: [
-          // Common utility classes that might be used dynamically
-          'bg-red-500', 'bg-green-500', 'bg-blue-500', 'bg-yellow-500',
-          'text-red-500', 'text-green-500', 'text-blue-500', 'text-yellow-500',
-          'border-red-500', 'border-green-500', 'border-blue-500', 'border-yellow-500',
-        ]
-      }
-    }
-  }),
+  safelist: [
+    // Common utility classes that might be used dynamically
+    'bg-red-500', 'bg-green-500', 'bg-blue-500', 'bg-yellow-500',
+    'text-red-500', 'text-green-500', 'text-blue-500', 'text-yellow-500',
+    'border-red-500', 'border-green-500', 'border-blue-500', 'border-yellow-500',
+  ],
 };

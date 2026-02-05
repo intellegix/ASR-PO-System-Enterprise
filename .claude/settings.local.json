@@ -70,7 +70,11 @@
       "Bash(PORT=8765 npx next dev:*)",
       "Bash(ngrok tunnel kill:*)",
       "Bash(ngrok config:*)",
-      "Bash(TURBO=0 npm run build:*)"
+      "Bash(TURBO=0 npm run build:*)",
+      "Bash(vercel login:*)",
+      "Bash(vercel link:*)",
+      "Bash(vercel env:*)",
+      "Bash(vercel:*)"
     ]
   }
 }
