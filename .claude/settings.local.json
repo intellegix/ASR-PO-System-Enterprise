@@ -60,7 +60,16 @@
       "Bash(PORT=8765 npm run dev:*)",
       "Bash(DATABASE_URL=\"postgresql://asr_po_system_database_user:LMe1cjnYI5ze5J9dYbhqMLsMEadlNE3Z@dpg-d5gise7gi27c73brdpk0-a.oregon-postgres.render.com/asr_po_system_database?sslmode=require\" npx prisma migrate:*)",
       "Bash(cmd /c \"taskkill /PID 67444 /F\")",
-      "Bash(powershell \"Stop-Process -Id 67444 -Force\")"
+      "Bash(powershell \"Stop-Process -Id 67444 -Force\")",
+      "Bash(powershell \"Stop-Process -Id 69324 -Force\")",
+      "Bash(timeout:*)",
+      "Bash(PORT=3001 npm run dev:*)",
+      "Bash(PORT=3002 npm run dev:*)",
+      "Bash(powershell:*)",
+      "Bash(set HOSTNAME=0.0.0.0)",
+      "Bash(PORT=8765 npx next dev:*)",
+      "Bash(ngrok tunnel kill:*)",
+      "Bash(ngrok config:*)"
     ]
   }
 }
