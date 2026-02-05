@@ -69,7 +69,8 @@
       "Bash(set HOSTNAME=0.0.0.0)",
       "Bash(PORT=8765 npx next dev:*)",
       "Bash(ngrok tunnel kill:*)",
-      "Bash(ngrok config:*)"
+      "Bash(ngrok config:*)",
+      "Bash(TURBO=0 npm run build:*)"
     ]
   }
 }

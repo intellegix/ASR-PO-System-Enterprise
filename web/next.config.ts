@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
   // - Frontend deployed as static site, connects to localhost backend
   // Updated: Feb 4, 2026 - Hybrid architecture active, backend on port 8765
 
+  // Use webpack for stable production builds
+
   // Allow ngrok tunnels and external hosts - configured via hostname checks in middleware
 
   // Uncomment for static export deployment:
