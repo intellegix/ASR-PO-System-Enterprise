@@ -21,9 +21,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
-            value: process.env.NODE_ENV === 'production'
-              ? 'https://asr-po-system-frontend.onrender.com'
-              : '*'
+            value: '*'
           },
           {
             key: 'Access-Control-Allow-Methods',
@@ -48,9 +46,8 @@ const nextConfig: NextConfig = {
 
   // Environment configuration
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ||
-      (process.env.NODE_ENV === 'production' ? 'https://your-ngrok-url.ngrok.io' : 'http://localhost:8765'),
-    NEXT_PUBLIC_ENVIRONMENT: process.env.NODE_ENV === 'production' ? 'render-frontend' : 'development',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || '',
+    NEXT_PUBLIC_ENVIRONMENT: process.env.NODE_ENV || 'development',
   },
 
   // Security headers

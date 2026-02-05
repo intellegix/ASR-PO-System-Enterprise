@@ -3,16 +3,25 @@
  * Handles routing between local development and production deployment
  */
 
-// Dynamic API base URL configuration for hybrid architecture
+// Dynamic API base URL configuration
 const getApiBaseUrl = (): string => {
-  // Server-side rendering (Node.js environment) - not used in static export
+  // Server-side rendering
   if (typeof window === 'undefined') {
-    return process.env.BACKEND_URL || 'http://localhost:3000';
+    return process.env.BACKEND_URL || '';
   }
 
-  // Client-side (browser environment)
-  // For hybrid architecture: static frontend calls local backend on port 8765
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8765';
+  // Client-side: use NEXT_PUBLIC_API_URL if set, otherwise empty string for same-origin
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl && envUrl !== '' && !envUrl.includes('your-ngrok-url')) {
+    return envUrl;
+  }
+
+  // Production (Vercel): use relative URLs (same domain serves API)
+  // Development: use localhost:8765
+  if (process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_ENVIRONMENT === 'render-frontend') {
+    return '';
+  }
+  return 'http://localhost:8765';
 };
 
 // API client configuration
