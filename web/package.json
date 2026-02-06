@@ -13,6 +13,7 @@
     "db:pull": "prisma db pull",
     "db:studio": "prisma studio",
     "db:seed": "npx tsx prisma/seed.ts",
+    "postinstall": "prisma generate",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -23,7 +24,6 @@
     "test:performance": "jest tests/performance",
     "test:ci": "jest --coverage --watchAll=false --passWithNoTests",
     "type-check": "tsc --noEmit",
-    "postbuild": "npx prisma generate",
     "deploy:test": "npm run type-check && npm run test:ci && npm run build"
   },
   "dependencies": {
