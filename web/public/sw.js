@@ -1,7 +1,7 @@
 // ASR PO System Service Worker
 // Provides offline functionality and caching for PWA
 
-const CACHE_NAME = 'asr-po-v2';
+const CACHE_NAME = 'asr-po-v4';
 const STATIC_CACHE_URLS = [
   '/',
   '/login',
@@ -143,8 +143,9 @@ async function staleWhileRevalidateStrategy(request) {
   // Start fetch in background
   const fetchPromise = fetch(request).then((response) => {
     if (response.ok) {
-      const cache = caches.open(CACHE_NAME);
-      cache.then((c) => c.put(request, response.clone()));
+      // Clone synchronously before the body can be consumed
+      const responseToCache = response.clone();
+      caches.open(CACHE_NAME).then((c) => c.put(request, responseToCache));
     }
     return response;
   });

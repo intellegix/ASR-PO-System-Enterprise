@@ -274,7 +274,7 @@ export default function CreatePOPage() {
   const total = subtotal + taxAmount;
 
   // Submit PO
-  const handleSubmit = async (status: 'Draft' | 'PendingApproval') => {
+  const handleSubmit = async (status: 'Draft' | 'Submitted') => {
     if (!selectedProject || !selectedVendor || !selectedDivision || lineItems.length === 0) {
       return;
     }
@@ -834,7 +834,7 @@ export default function CreatePOPage() {
       {step === 5 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 space-y-2">
           <button
-            onClick={() => handleSubmit('PendingApproval')}
+            onClick={() => handleSubmit('Submitted')}
             disabled={submitting}
             className="w-full py-3 px-4 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
           >

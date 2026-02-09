@@ -331,7 +331,7 @@ export function canModifyDivisionAssignments(userRole: UserRole): boolean {
  */
 export function getRoleDisplayName(role: UserRole): string {
   const names: Record<UserRole, string> = {
-    DIRECTOR_OF_SYSTEMS_INTEGRATIONS: 'Owner',
+    DIRECTOR_OF_SYSTEMS_INTEGRATIONS: 'Director of Systems Integrations',
     DIVISION_LEADER: 'Division Leader',
     OPERATIONS_MANAGER: 'Operations Manager',
     ACCOUNTING: 'Accounting',

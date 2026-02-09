@@ -96,9 +96,8 @@ export default function POListPage() {
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
       Draft: 'bg-slate-100 text-slate-700',
-      PendingApproval: 'bg-amber-100 text-amber-700',
+      Submitted: 'bg-amber-100 text-amber-700',
       Approved: 'bg-green-100 text-green-700',
-      Rejected: 'bg-red-100 text-red-700',
       Issued: 'bg-blue-100 text-blue-700',
       Received: 'bg-purple-100 text-purple-700',
       Invoiced: 'bg-indigo-100 text-indigo-700',
@@ -110,7 +109,7 @@ export default function POListPage() {
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      PendingApproval: 'Pending',
+      Submitted: 'Pending Approval',
     };
     return labels[status] || status;
   };
@@ -158,11 +157,11 @@ export default function POListPage() {
               >
                 <option value="">All Statuses</option>
                 <option value="Draft">Draft</option>
-                <option value="PendingApproval">Pending Approval</option>
+                <option value="Submitted">Pending Approval</option>
                 <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
                 <option value="Issued">Issued</option>
                 <option value="Received">Received</option>
+                <option value="Invoiced">Invoiced</option>
                 <option value="Paid">Paid</option>
                 <option value="Cancelled">Cancelled</option>
               </select>

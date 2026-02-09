@@ -1,39 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
-
-interface JWTPayload {
-  userId: string;
-  email: string;
-  role: string;
-}
-
-// Helper to extract and verify JWT token
-async function verifyToken(request: NextRequest): Promise<JWTPayload | null> {
-  try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return null;
-    }
-
-    const token = authHeader.substring(7);
-    const payload = jwt.verify(token, JWT_SECRET) as JWTPayload;
-    return payload;
-  } catch (error) {
-    console.error('Token verification failed:', error);
-    return null;
-  }
-}
-
 // GET - Fetch dashboard statistics
 export async function GET(request: NextRequest) {
   try {
-    const tokenPayload = await verifyToken(request);
-    if (!tokenPayload) {
+    const session = await getServerSession(authOptions);
+    if (!session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -73,7 +49,7 @@ export async function GET(request: NextRequest) {
         where: {
           ...dateFilter,
           deleted_at: null,
-          status: { in: ['Submitted', 'PendingApproval'] },
+          status: { in: ['Submitted', 'Draft'] },
         },
       }),
       prisma.vendors.count({
@@ -188,7 +164,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', detail: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

@@ -228,7 +228,7 @@ const postHandler = withValidation(
         work_order_id: workOrder.id,
         vendor_id: vendorId,
         cost_center_code: `${division.cost_center_prefix}${String(workOrderSequence).padStart(4, '0')}${String(purchaseSequence).padStart(2, '0')}`,
-        status: status === 'PendingApproval' ? 'Submitted' : status as any,
+        status: status as any,
         required_by_date: requiredByDate ? new Date(requiredByDate) : null,
         terms_code: termsCode || vendor.payment_terms_default || 'Net30',
         tax_rate: TAX_RATE,
@@ -258,7 +258,7 @@ const postHandler = withValidation(
         action: 'Created',
         actor_user_id: session.user.id,
         status_before: null,
-        status_after: status === 'PendingApproval' ? 'Submitted' : status as any,
+        status_after: status as any,
         notes: `PO ${poNumber} created`,
       },
     });

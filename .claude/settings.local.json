@@ -74,7 +74,20 @@
       "Bash(vercel login:*)",
       "Bash(vercel link:*)",
       "Bash(vercel env:*)",
-      "Bash(vercel:*)"
+      "Bash(vercel:*)",
+      "Bash(ngrok:*)",
+      "Bash(ping:*)",
+      "Bash(start:*)",
+      "Bash(set \"DATABASE_URL=postgresql://neondb_owner:npg_xI5Y8ugFRtpA@ep-spring-tree-akrg8nxg-pooler.c-3.us-west-2.aws.neon.tech/neondb?sslmode=require\")",
+      "Bash(copy:*)",
+      "Bash(cmd /c \"set DATABASE_URL=postgresql://neondb_owner:npg_xI5Y8ugFRtpA@ep-spring-tree-akrg8nxg-pooler.c-3.us-west-2.aws.neon.tech/neondb?sslmode=require && npx prisma db push --skip-generate\")",
+      "Bash(del:*)",
+      "Bash(1 <<'SQL'\nSELECT vendor_code, vendor_name, vendor_type FROM vendors ORDER BY vendor_code;\nSQL)",
+      "Bash(CSRF=\"d4ac4952086780655f2641e46974a7935f1ca3ce0664698d43cd65a40f0b3843\")",
+      "Bash(CSRF=\"9a898462f8af0eb637e6201fd1dd5614eda793ffa31e64b188846968c912025a\")",
+      "Bash(CSRF=\"45d53558e4f08e62f6f56a5bde913517e9a0123b79cf48531cbaca89e3ec5e14\")",
+      "Bash(CSRF=\"958b93f345b25aee69fcb1b7eea20359ea8dfdd0f6671334161f8b629ea599d4\")",
+      "Bash(CSRF=\"5147d8adc8622d0161b4024b7b7fd62e9eea1bca343f801beef4637373876139\")"
     ]
   }
 }

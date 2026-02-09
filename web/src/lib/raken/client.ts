@@ -23,17 +23,16 @@ interface RakenTokenResponse {
 }
 
 interface RakenProjectsResponse {
-  data: Array<{
+  collection: Array<{
     uuid: string;
     name: string;
     number: string;
     status: string;
     [key: string]: unknown;
   }>;
-  meta?: {
-    total: number;
-    offset: number;
-    limit: number;
+  page?: {
+    next: string | null;
+    nextOffset: number;
   };
 }
 
@@ -151,11 +150,15 @@ export async function fetchActiveProjects(): Promise<RakenProject[]> {
       offset: String(offset),
     });
 
-    const projects = response.data || [];
+    const projects = response.collection || [];
+    if (projects.length === 0) {
+      hasMore = false;
+      break;
+    }
 
     for (const p of projects) {
-      // Only include CY-prefixed contracts
-      if (p.number && p.number.startsWith('CY')) {
+      // Only include contracts with CY in the job number (case-insensitive)
+      if (p.number && p.number.toLowerCase().includes('cy')) {
         allProjects.push({
           uuid: p.uuid,
           name: p.name,
@@ -165,11 +168,11 @@ export async function fetchActiveProjects(): Promise<RakenProject[]> {
       }
     }
 
-    // Check if there are more pages
-    if (projects.length < limit) {
-      hasMore = false;
+    // Check if there are more pages using Raken's page.next
+    if (response.page?.next) {
+      offset = response.page.nextOffset ?? offset + limit;
     } else {
-      offset += limit;
+      hasMore = false;
     }
   }
 

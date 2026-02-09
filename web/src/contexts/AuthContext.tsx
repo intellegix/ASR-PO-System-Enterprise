@@ -1,17 +1,11 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { signIn, signOut, getSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { User, AuthMode, AuthResult } from '@/lib/types';
-import { authenticateDemo, getDemoSession, setDemoSession, clearDemoSession, DemoUser } from '@/lib/demo-auth';
-import {
-  authenticateWithBackend,
-  getJWTSession,
-  clearJWTSession,
-  jwtUserToUser,
-  demoUserToUser,
-  JWTSession
-} from '@/lib/jwt-auth';
-import { checkBackendHealth } from '@/lib/api-client';
+import { authenticateDemo, getDemoSession, setDemoSession, clearDemoSession } from '@/lib/demo-auth';
+import { demoUserToUser } from '@/lib/jwt-auth';
 
 interface AuthContextType {
   user: User | null;
@@ -32,57 +26,57 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+function sessionToUser(session: any): User {
+  return {
+    id: session.user.id,
+    email: session.user.email,
+    name: session.user.name,
+    role: session.user.role,
+    divisionId: session.user.divisionId || null,
+    divisionName: session.user.divisionName || null,
+    divisionCode: session.user.divisionCode || null,
+  };
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
+  const { data: nextAuthSession, status: nextAuthStatus } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [authMode, setAuthMode] = useState<AuthMode>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [backendAvailable, setBackendAvailable] = useState(false);
+  const [backendAvailable, setBackendAvailable] = useState(true);
 
-  // Check backend availability
   const checkBackendStatus = async (): Promise<boolean> => {
-    try {
-      const available = await checkBackendHealth();
-      setBackendAvailable(available);
-      return available;
-    } catch {
-      setBackendAvailable(false);
-      return false;
-    }
+    setBackendAvailable(true);
+    return true;
   };
 
-  // Initialize authentication state
+  // Sync NextAuth session to user state
   useEffect(() => {
-    const initializeAuth = async () => {
+    if (nextAuthStatus === 'loading') {
       setIsLoading(true);
+      return;
+    }
 
-      // Check backend availability
-      await checkBackendStatus();
+    if (nextAuthStatus === 'authenticated' && nextAuthSession) {
+      setUser(sessionToUser(nextAuthSession));
+      setAuthMode('backend');
+      setIsLoading(false);
+      return;
+    }
 
-      // Try JWT session first (backend auth)
-      const jwtSession = getJWTSession();
-      if (jwtSession) {
-        setUser(jwtUserToUser(jwtSession));
-        setAuthMode('backend');
-        setIsLoading(false);
-        return;
-      }
-
-      // Fall back to demo session
+    // Not authenticated via NextAuth - check for demo session
+    if (nextAuthStatus === 'unauthenticated') {
       const demoUser = getDemoSession();
       if (demoUser) {
         setUser(demoUserToUser(demoUser));
         setAuthMode('demo');
+      } else {
+        setUser(null);
+        setAuthMode(null);
       }
-
       setIsLoading(false);
-    };
-
-    initializeAuth();
-
-    // Check backend status periodically
-    const statusInterval = setInterval(checkBackendStatus, 30000); // Every 30 seconds
-    return () => clearInterval(statusInterval);
-  }, []);
+    }
+  }, [nextAuthSession, nextAuthStatus]);
 
   const login = async (
     identifier: string,
@@ -92,27 +86,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(true);
 
     try {
-      // If backend is specifically requested or available and not explicitly disabled
-      if (useBackend === true || (useBackend !== false && backendAvailable)) {
-        const jwtSession = await authenticateWithBackend(identifier, password);
-        if (jwtSession) {
-          const authUser = jwtUserToUser(jwtSession);
-          setUser(authUser);
-          setAuthMode('backend');
-          setIsLoading(false);
-          return { success: true, user: authUser };
+      // Try NextAuth credentials sign-in
+      if (useBackend !== false) {
+        const result = await signIn('credentials', {
+          identifier,
+          password,
+          redirect: false,
+        });
+
+        if (result?.ok) {
+          // Fetch the session to populate user state
+          const session = await getSession();
+          if (session) {
+            const authUser = sessionToUser(session);
+            setUser(authUser);
+            setAuthMode('backend');
+            setIsLoading(false);
+            return { success: true, user: authUser };
+          }
         }
 
-        // If backend auth fails and demo fallback is allowed
-        if (useBackend !== true) {
-          console.log('Backend auth failed, falling back to demo...');
-        } else {
+        // If NextAuth auth fails and demo fallback is allowed
+        if (useBackend === true) {
           setIsLoading(false);
-          return { success: false, error: 'Backend authentication failed' };
+          return { success: false, error: 'Authentication failed. Check your credentials.' };
         }
       }
 
-      // Try demo authentication
+      // Try demo authentication as fallback
       const demoUser = await authenticateDemo(identifier, password);
       if (demoUser) {
         setDemoSession(demoUser);
@@ -135,8 +136,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = (): void => {
     setUser(null);
     setAuthMode(null);
-    clearJWTSession();
     clearDemoSession();
+    signOut({ redirect: false });
   };
 
   const switchToBackend = async (identifier: string, password: string): Promise<AuthResult> => {

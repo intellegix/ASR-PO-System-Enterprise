@@ -83,7 +83,7 @@ export const poLineItemSchema = z.object({
 // Base PO schema without refinements
 const basePOSchema = z.object({
   projectId: uuidSchema,
-  workOrderId: uuidSchema.optional(),
+  workOrderId: uuidSchema.nullable().optional(),
   vendorId: uuidSchema,
   divisionId: uuidSchema,
   lineItems: z.array(poLineItemSchema)
@@ -91,9 +91,12 @@ const basePOSchema = z.object({
     .max(50, 'Too many line items (max 50)'),
   notesInternal: sanitizedTextSchema(1000).optional(),
   notesVendor: sanitizedTextSchema(1000).optional(),
-  requiredByDate: z.string().datetime('Invalid date format').optional(),
+  requiredByDate: z.string().refine(
+    (val) => /^\d{4}-\d{2}-\d{2}(T.*)?$/.test(val),
+    'Invalid date format'
+  ).nullable().optional(),
   termsCode: codeSchema(10).optional(),
-  status: z.enum(['Draft', 'PendingApproval', 'Approved', 'Issued', 'Received', 'Invoiced', 'Paid', 'Cancelled'])
+  status: z.enum(['Draft', 'Submitted', 'Approved', 'Rejected', 'Issued', 'Received', 'Invoiced', 'Paid', 'Cancelled'])
     .optional()
     .default('Draft'),
 });
@@ -112,7 +115,7 @@ export const createPOSchema = basePOSchema.refine(
 export const updatePOSchema = basePOSchema.partial();
 
 export const updatePOStatusSchema = z.object({
-  status: z.enum(['PendingApproval', 'Approved', 'Issued', 'Received', 'Invoiced', 'Paid', 'Cancelled']),
+  status: z.enum(['Submitted', 'Approved', 'Rejected', 'Issued', 'Received', 'Invoiced', 'Paid', 'Cancelled']),
   notes: sanitizedTextSchema(500).optional(),
 });
 
@@ -245,7 +248,7 @@ export const paginationSchema = z.object({
 });
 
 export const poQuerySchema = z.object({
-  status: z.enum(['Draft', 'Submitted', 'Approved', 'Issued', 'Received', 'Invoiced', 'Paid', 'Cancelled']).optional(),
+  status: z.enum(['Draft', 'Submitted', 'Approved', 'Rejected', 'Issued', 'Received', 'Invoiced', 'Paid', 'Cancelled']).optional(),
   divisionId: uuidSchema.optional(),
   projectId: uuidSchema.optional(),
   vendorId: uuidSchema.optional(),
