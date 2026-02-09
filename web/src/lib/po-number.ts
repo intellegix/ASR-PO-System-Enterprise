@@ -6,7 +6,7 @@
  *
  * Components:
  * - 01 = Who (Division Leader ID: 01, 02, 03, 04, or OM for Operations Manager)
- * - CP = Division type (CP=CAPEX, RF=Roofing, GC=GenContracting, SM=SubsMgmt, RP=Repairs)
+ * - CP = Division type (CP=CAPEX, RF=Roofing, SW=ServiceWork, CD1=Construction1, CD2=Construction2)
  * - 2345 = Work Order number (4 digits)
  * - -1 = Purchase number within the WO (sequence, starts at 1)
  * - bn23 = Last 4 characters of supplier confirmation number
@@ -15,21 +15,19 @@
 // Division codes mapping
 export const DIVISION_CODES: Record<string, string> = {
   'CAPEX': 'CP',
+  'Service Work': 'SW',
   'Roofing': 'RF',
-  'General Contracting': 'GC',
-  'Subcontractor Management': 'SM',
-  'Repairs': 'RP',
-  'Specialty Trades': 'ST',
+  'Construction Division 1': 'CD1',
+  'Construction Division 2': 'CD2',
 };
 
 // Leader ID mapping (from division_code in database)
 export const LEADER_ID_MAP: Record<string, string> = {
   'O1': '01', // Owner 1 - CAPEX
-  'O2': '02', // Owner 2 - Repairs
+  'O2': '02', // Owner 2 - Service Work
   'O3': '03', // Owner 3 - Roofing
-  'O4': '04', // Owner 4 - General Contracting
-  'O5': '05', // Owner 5 - Subcontractor Management
-  'O6': '06', // Owner 6 - Specialty Trades
+  'O4': '04', // Owner 4 - Construction Division 1
+  'O5': '05', // Owner 5 - Construction Division 2
 };
 
 interface PONumberComponents {
@@ -120,20 +118,18 @@ export function decodePONumber(poNumber: string): string | null {
 
   const divisionNames: Record<string, string> = {
     'CP': 'CAPEX',
+    'SW': 'Service Work',
     'RF': 'Roofing',
-    'GC': 'General Contracting',
-    'SM': 'Subcontractor Management',
-    'RP': 'Repairs',
-    'ST': 'Specialty Trades',
+    'CD1': 'Construction Division 1',
+    'CD2': 'Construction Division 2',
   };
 
   const leaderNames: Record<string, string> = {
     '01': 'Owner 1 (CAPEX)',
-    '02': 'Owner 2 (Repairs)',
+    '02': 'Owner 2 (Service Work)',
     '03': 'Owner 3 (Roofing)',
-    '04': 'Owner 4 (General Contracting)',
-    '05': 'Owner 5 (Subcontractor Management)',
-    '06': 'Owner 6 (Specialty Trades)',
+    '04': 'Owner 4 (Construction Division 1)',
+    '05': 'Owner 5 (Construction Division 2)',
   };
 
   const division = divisionNames[parsed.divisionCode] || 'Unknown Division';

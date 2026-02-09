@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getRoleDisplayName, type UserRole } from '@/lib/auth/permissions';
@@ -81,6 +81,18 @@ const XIcon = ({ className = "w-6 h-6" }: IconProps) => (
   </svg>
 );
 
+const RefreshIcon = ({ className = "w-5 h-5" }: IconProps) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+  </svg>
+);
+
+const BuildingIcon = ({ className = "w-5 h-5" }: IconProps) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+  </svg>
+);
+
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -105,6 +117,41 @@ export default function Dashboard() {
   });
 
   const pendingCount = pendingData?.summary?.total || 0;
+
+  // Raken sync status
+  const queryClient = useQueryClient();
+  const { data: syncStatus } = useQuery({
+    queryKey: ['raken-sync-status'],
+    queryFn: async () => {
+      const res = await fetch('/api/raken/sync');
+      if (!res.ok) return null;
+      return res.json();
+    },
+    staleTime: 60 * 1000,
+  });
+
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/raken/sync', { method: 'POST' });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || err.error || 'Sync failed');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['raken-sync-status'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+
+  const handleSync = useCallback(() => {
+    if (!syncMutation.isPending) {
+      syncMutation.mutate();
+    }
+  }, [syncMutation]);
+
+  const isAdmin = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER'].includes(role);
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -182,6 +229,13 @@ export default function Dashboard() {
               <span>Vendors</span>
             </Link>
             <Link
+              href="/invoices"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition"
+            >
+              <DocumentIcon />
+              <span>Invoices</span>
+            </Link>
+            <Link
               href="/invoice-archive"
               className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition"
             >
@@ -195,6 +249,22 @@ export default function Dashboard() {
               <ChartIcon />
               <span>Reports</span>
             </Link>
+
+            {/* Admin section */}
+            {isAdmin && (
+              <>
+                <div className="mt-6 mb-2 px-4">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Admin</p>
+                </div>
+                <Link
+                  href="/projects"
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                >
+                  <BuildingIcon />
+                  <span>Projects</span>
+                </Link>
+              </>
+            )}
           </nav>
 
           {/* User section */}
@@ -304,6 +374,69 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+
+          {/* Raken Sync Card - Admin only */}
+          {isAdmin && (
+            <div className="mt-6 bg-white rounded-xl shadow-sm">
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+                    <RefreshIcon className="w-5 h-5 text-orange-500" />
+                    Raken Project Sync
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    Sync active contracts from Raken into the PO System
+                  </p>
+                </div>
+                <button
+                  onClick={handleSync}
+                  disabled={syncMutation.isPending}
+                  className="inline-flex items-center gap-2 bg-orange-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  <RefreshIcon className={`w-4 h-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
+                  {syncMutation.isPending ? 'Syncing...' : 'Sync Now'}
+                </button>
+              </div>
+              <div className="p-6">
+                {syncMutation.isSuccess && syncMutation.data && (
+                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+                    Sync complete: {syncMutation.data.created} created, {syncMutation.data.updated} updated
+                    {syncMutation.data.errors?.length > 0 && (
+                      <span className="text-amber-600"> ({syncMutation.data.errors.length} errors)</span>
+                    )}
+                  </div>
+                )}
+                {syncMutation.isError && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+                    Sync failed: {syncMutation.error instanceof Error ? syncMutation.error.message : 'Unknown error'}
+                  </div>
+                )}
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold text-slate-900">{syncStatus?.syncedProjects ?? '—'}</p>
+                    <p className="text-xs text-slate-500">Raken Projects</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-900">{syncStatus?.totalProjects ?? '—'}</p>
+                    <p className="text-xs text-slate-500">Total Projects</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">
+                      {syncStatus?.lastSyncedAt
+                        ? new Date(syncStatus.lastSyncedAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        : 'Never'}
+                    </p>
+                    <p className="text-xs text-slate-500">Last Synced</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

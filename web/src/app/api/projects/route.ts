@@ -41,6 +41,9 @@ const getHandler = async (request: NextRequest) => {
         project_name: true,
         district_name: true,
         property_address: true,
+        clark_rep: true,
+        raken_uuid: true,
+        last_synced_at: true,
       },
     });
 

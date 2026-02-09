@@ -16,7 +16,7 @@
  *   - Cannot: Approve, modify, or cancel POs outside their division
  *
  * ROLE: OPERATIONS_MANAGER
- *   - Can: Create POs for Repairs division
+ *   - Can: Create POs for Service Work division
  *   - Cannot: Approve (requires owner approval)
  *
  * ROLE: ACCOUNTING
@@ -155,7 +155,7 @@ export function hasPermission(userRole: UserRole, permission: Permission): boole
  * REVISED RULES:
  * - DIRECTOR_OF_SYSTEMS_INTEGRATIONS: Can create POs for any division
  * - DIVISION_LEADER: Can create POs for ANY division (changed!)
- * - OPERATIONS_MANAGER: Can create POs for their division only (Repairs)
+ * - OPERATIONS_MANAGER: Can create POs for their division only (Service Work)
  * - ACCOUNTING: Cannot create POs
  */
 export function canCreatePOInDivision(

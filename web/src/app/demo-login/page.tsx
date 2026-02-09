@@ -162,7 +162,7 @@ export default function DemoLoginPage() {
                 }}
                 className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
               >
-                O2: Repairs
+                O2: Service Work
               </button>
               <button
                 type="button"

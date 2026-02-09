@@ -44,6 +44,7 @@ const getHandler = async (request: NextRequest) => {
         contact_email: true,
         contact_phone: true,
         payment_terms_default: true,
+        name_variants: true,
       },
     });
 

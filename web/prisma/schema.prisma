@@ -46,6 +46,8 @@ model divisions {
   users                users[]
   work_order_sequences work_order_sequences[]
   work_orders          work_orders[]
+  vendor_invoices      vendor_invoices[]
+  customer_invoices    customer_invoices[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -100,7 +102,7 @@ model po_headers {
   po_leader_code                               String?           @db.VarChar(2)
   po_gl_code                                   String?           @db.VarChar(2)
   po_work_order_num                            Int?
-  po_vendor_code                               String?           @db.VarChar(2)
+  po_vendor_code                               String?           @db.VarChar(6)
   cost_center_code                             String?           @db.VarChar(15)
   terms_code                                   String?           @default("Net30") @db.VarChar(20)
   tax_rate                                     Decimal?          @default(0.0800) @db.Decimal(5, 4)
@@ -131,6 +133,7 @@ model po_headers {
   vendors                                      vendors           @relation(fields: [vendor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   work_orders                                  work_orders?      @relation(fields: [work_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   po_line_items                                po_line_items[]
+  vendor_invoices                              vendor_invoices[]
 
   @@index([created_at], map: "idx_po_headers_created")
   @@index([division_id], map: "idx_po_headers_division")
@@ -184,11 +187,16 @@ model projects {
   budget_total        Decimal?        @db.Decimal(14, 2)
   budget_actual       Decimal?        @default(0) @db.Decimal(14, 2)
   po_count            Int?            @default(0)
+  raken_uuid          String?         @unique @db.VarChar(100)
+  clark_rep           String?         @db.VarChar(100)
+  last_synced_at      DateTime?       @db.Timestamptz(6)
   created_at          DateTime?       @default(now()) @db.Timestamptz(6)
   updated_at          DateTime?       @default(now()) @db.Timestamptz(6)
   po_headers          po_headers[]
   divisions           divisions?      @relation(fields: [primary_division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   work_orders         work_orders[]
+  vendor_invoices     vendor_invoices[]
+  customer_invoices   customer_invoices[]
 
   @@index([project_code], map: "idx_projects_code")
   @@index([primary_division_id], map: "idx_projects_division")
@@ -215,6 +223,8 @@ model users {
   po_headers_po_headers_requested_by_user_idTousers po_headers[]       @relation("po_headers_requested_by_user_idTousers")
   divisions                                         divisions?         @relation(fields: [division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   work_orders                                       work_orders[]
+  vendor_invoices                                   vendor_invoices[]
+  customer_invoices                                 customer_invoices[]
 
   @@index([division_id], map: "idx_users_division")
   @@index([email], map: "idx_users_email")
@@ -225,7 +235,7 @@ model users {
 model vendors {
   id                    String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   vendor_name           String       @db.VarChar(200)
-  vendor_code           String       @unique @db.VarChar(2)
+  vendor_code           String       @unique @db.VarChar(6)
   vendor_type           vendor_type? @default(Material)
   contact_name          String?      @db.VarChar(100)
   contact_phone         String?      @db.VarChar(20)
@@ -242,11 +252,13 @@ model vendors {
   is_1099_required      Boolean?     @default(false)
   w9_on_file            Boolean?     @default(false)
   preferred_divisions   Json?
+  name_variants         Json?
   notes                 String?
   qb_vendor_id          String?      @db.VarChar(50)
   created_at            DateTime?    @default(now()) @db.Timestamptz(6)
   updated_at            DateTime?    @default(now()) @db.Timestamptz(6)
   po_headers            po_headers[]
+  vendor_invoices       vendor_invoices[]
 
   @@index([is_active], map: "idx_vendors_active")
   @@index([vendor_code], map: "idx_vendors_code")
@@ -328,6 +340,7 @@ enum po_status {
   Draft
   Submitted
   Approved
+  Rejected
   Issued
   Received
   Invoiced
@@ -386,4 +399,96 @@ model qb_auth_tokens {
   @@index([realm_id], map: "idx_qb_auth_tokens_realm")
   @@index([is_active], map: "idx_qb_auth_tokens_active")
   @@index([token_expires_at], map: "idx_qb_auth_tokens_expires")
+}
+
+/// Vendor invoices (Accounts Payable) - linked to POs
+model vendor_invoices {
+  id                 String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoice_number     String                @db.VarChar(50)
+  po_id              String?               @db.Uuid
+  vendor_id          String                @db.Uuid
+  project_id         String?               @db.Uuid
+  division_id        String?               @db.Uuid
+  amount             Decimal               @db.Decimal(12, 2)
+  tax_amount         Decimal?              @db.Decimal(12, 2)
+  total_amount       Decimal               @db.Decimal(12, 2)
+  date_received      DateTime              @default(now()) @db.Timestamptz(6)
+  date_due           DateTime?             @db.Timestamptz(6)
+  status             vendor_invoice_status @default(Pending)
+  notes              String?
+  created_by_user_id String                @db.Uuid
+  created_at         DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime              @updatedAt
+
+  po_headers         po_headers?           @relation(fields: [po_id], references: [id])
+  vendors            vendors               @relation(fields: [vendor_id], references: [id])
+  projects           projects?             @relation(fields: [project_id], references: [id])
+  divisions          divisions?            @relation(fields: [division_id], references: [id])
+  users              users                 @relation(fields: [created_by_user_id], references: [id])
+
+  @@index([vendor_id], map: "idx_vendor_invoices_vendor")
+  @@index([po_id], map: "idx_vendor_invoices_po")
+  @@index([status], map: "idx_vendor_invoices_status")
+}
+
+/// Customer invoices (Accounts Receivable) - linked to Projects
+model customer_invoices {
+  id                 String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoice_number     String                  @db.VarChar(50)
+  project_id         String                  @db.Uuid
+  division_id        String?                 @db.Uuid
+  customer_name      String                  @db.VarChar(200)
+  customer_email     String?                 @db.VarChar(200)
+  customer_address   String?
+  amount             Decimal                 @db.Decimal(12, 2)
+  tax_amount         Decimal?                @db.Decimal(12, 2)
+  total_amount       Decimal                 @db.Decimal(12, 2)
+  date_issued        DateTime                @default(now()) @db.Timestamptz(6)
+  date_due           DateTime?               @db.Timestamptz(6)
+  status             customer_invoice_status @default(Draft)
+  notes              String?
+  terms              String?                 @db.VarChar(50)
+  created_by_user_id String                  @db.Uuid
+  created_at         DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime                @updatedAt
+
+  projects           projects                @relation(fields: [project_id], references: [id])
+  divisions          divisions?              @relation(fields: [division_id], references: [id])
+  users              users                   @relation(fields: [created_by_user_id], references: [id])
+  line_items         customer_invoice_items[]
+
+  @@index([project_id], map: "idx_customer_invoices_project")
+  @@index([status], map: "idx_customer_invoices_status")
+}
+
+/// Line items for customer invoices
+model customer_invoice_items {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoice_id        String            @db.Uuid
+  line_number       Int
+  description       String
+  quantity          Decimal           @db.Decimal(10, 2)
+  unit_price        Decimal           @db.Decimal(10, 2)
+  amount            Decimal           @db.Decimal(12, 2)
+  created_at        DateTime          @default(now()) @db.Timestamptz(6)
+
+  customer_invoices customer_invoices @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+
+  @@unique([invoice_id, line_number])
+  @@index([invoice_id], map: "idx_customer_invoice_items_invoice")
+}
+
+enum vendor_invoice_status {
+  Pending
+  Approved
+  Paid
+  Disputed
+}
+
+enum customer_invoice_status {
+  Draft
+  Sent
+  Paid
+  Overdue
+  Cancelled
 }

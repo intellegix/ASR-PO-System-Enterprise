@@ -37,7 +37,7 @@ const DEMO_USERS: Record<string, DemoUser> = {
     name: 'Division Owner 2',
     role: 'DIVISION_LEADER',
     divisionId: 'div-002',
-    divisionName: 'Repairs Division',
+    divisionName: 'Service Work',
     divisionCode: 'O2',
   },
   'owner3@allsurfaceroofing.com': {
