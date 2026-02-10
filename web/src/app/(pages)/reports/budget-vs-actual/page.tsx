@@ -268,9 +268,9 @@ export default function BudgetVsActualPage() {
 
   const getAlertIcon = (severity: string) => {
     switch (severity) {
-      case 'critical': return <AlertTriangleIcon className="text-red-500" />;
-      case 'warning': return <AlertTriangleIcon className="text-yellow-500" />;
-      default: return <AlertTriangleIcon className="text-blue-500" />;
+      case 'critical': return <AlertTriangleIcon className="w-5 h-5 text-red-500" />;
+      case 'warning': return <AlertTriangleIcon className="w-5 h-5 text-yellow-500" />;
+      default: return <AlertTriangleIcon className="w-5 h-5 text-blue-500" />;
     }
   };
 
@@ -302,7 +302,7 @@ export default function BudgetVsActualPage() {
                 </Link>
                 <div className="h-6 w-px bg-slate-300" />
                 <div className="flex items-center space-x-3">
-                  <CalculatorIcon className="text-orange-600" />
+                  <CalculatorIcon className="w-6 h-6 text-orange-600" />
                   <div>
                     <h1 className="text-2xl font-bold text-slate-900">Budget vs Actual Analysis</h1>
                     <p className="text-slate-600">Project budget variance and forecasting</p>
@@ -331,7 +331,7 @@ export default function BudgetVsActualPage() {
                   disabled={loading}
                   className="flex items-center space-x-2 px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
                 >
-                  <RefreshIcon className={loading ? 'animate-spin' : ''} />
+                  <RefreshIcon className={loading ? 'w-5 h-5 animate-spin' : 'w-5 h-5'} />
                   <span>Refresh</span>
                 </button>
               </div>
@@ -483,7 +483,7 @@ export default function BudgetVsActualPage() {
                     <p className="text-2xl font-bold text-slate-900">{formatCurrency(data.summary.totalBudget)}</p>
                   </div>
                   <div className="p-3 bg-blue-100 rounded-lg">
-                    <CalculatorIcon className="text-blue-600" />
+                    <CalculatorIcon className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
               </div>
@@ -515,8 +515,8 @@ export default function BudgetVsActualPage() {
                   </div>
                   <div className={`p-3 rounded-lg ${data.summary.totalVariance > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
                     {data.summary.totalVariance > 0 ?
-                      <TrendingUpIcon className="text-red-600" /> :
-                      <TrendingDownIcon className="text-green-600" />
+                      <TrendingUpIcon className="w-6 h-6 text-red-600" /> :
+                      <TrendingDownIcon className="w-6 h-6 text-green-600" />
                     }
                   </div>
                 </div>
@@ -532,7 +532,7 @@ export default function BudgetVsActualPage() {
                     </p>
                   </div>
                   <div className="p-3 bg-orange-100 rounded-lg">
-                    <AlertTriangleIcon className="text-orange-600" />
+                    <AlertTriangleIcon className="w-5 h-5 text-orange-600" />
                   </div>
                 </div>
               </div>

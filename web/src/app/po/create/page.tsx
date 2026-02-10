@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import AppLayout from '@/components/layout/AppLayout';
 
 // Types
 interface Project {
@@ -110,6 +111,22 @@ export default function CreatePOPage() {
   const [notesInternal, setNotesInternal] = useState('');
   const [notesVendor, setNotesVendor] = useState('');
   const [requiredByDate, setRequiredByDate] = useState('');
+  const [isDirty, setIsDirty] = useState(false);
+
+  useEffect(() => {
+    document.title = 'Create PO | ASR PO System';
+  }, []);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  const markDirty = useCallback(() => { if (!isDirty) setIsDirty(true); }, [isDirty]);
 
   // New work order form
   const [showNewWOForm, setShowNewWOForm] = useState(false);
@@ -306,6 +323,7 @@ export default function CreatePOPage() {
 
       if (res.ok) {
         const po = await res.json();
+        setIsDirty(false);
         router.push(`/po/view?id=${po.id}`);
       } else {
         const error = await res.json();
@@ -339,9 +357,9 @@ export default function CreatePOPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <AppLayout pageTitle="Create PO">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-white border-b border-slate-200">
+      <header className="sticky top-0 z-30 bg-white border-b border-slate-200 -mx-4 lg:-mx-8 -mt-4 lg:-mt-8">
         <div className="flex items-center justify-between px-4 py-4">
           <button onClick={() => step > 1 ? setStep(step - 1) : router.back()} className="text-slate-600">
             <ArrowLeftIcon />
@@ -351,11 +369,15 @@ export default function CreatePOPage() {
         </div>
         {/* Progress bar */}
         <div className="flex px-4 pb-3 gap-1">
-          {[1, 2, 3, 4, 5].map(s => (
-            <div
-              key={s}
-              className={`h-1 flex-1 rounded ${s <= step ? 'bg-orange-500' : 'bg-slate-200'}`}
-            />
+          {['Project', 'Work Order', 'Vendor', 'Line Items', 'Review'].map((label, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+              <div
+                className={`h-1 w-full rounded ${i + 1 <= step ? 'bg-orange-500' : 'bg-slate-200'}`}
+              />
+              <span className={`text-[10px] leading-tight ${i + 1 <= step ? 'text-orange-600 font-medium' : 'text-slate-400'}`}>
+                {label}
+              </span>
+            </div>
           ))}
         </div>
       </header>
@@ -372,6 +394,7 @@ export default function CreatePOPage() {
             <input
               type="text"
               placeholder="Search projects..."
+              aria-label="Search projects"
               value={projectSearch}
               onChange={(e) => setProjectSearch(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
@@ -383,6 +406,7 @@ export default function CreatePOPage() {
                   key={project.id}
                   onClick={() => {
                     setSelectedProject(project);
+                    markDirty();
                     setStep(2);
                   }}
                   className={`w-full text-left p-4 rounded-xl border transition ${
@@ -445,30 +469,39 @@ export default function CreatePOPage() {
                     {woError}
                   </div>
                 )}
-                <input
-                  type="text"
-                  placeholder="Work Order Title *"
-                  value={newWOTitle}
-                  onChange={(e) => setNewWOTitle(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
-                  disabled={creatingWO}
-                />
-                <input
-                  type="text"
-                  placeholder="Description"
-                  value={newWODescription}
-                  onChange={(e) => setNewWODescription(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
-                  disabled={creatingWO}
-                />
-                <input
-                  type="text"
-                  placeholder="Primary Trade (e.g., Roofing, Plumbing)"
-                  value={newWOTrade}
-                  onChange={(e) => setNewWOTrade(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
-                  disabled={creatingWO}
-                />
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Title <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    placeholder="Work Order Title"
+                    value={newWOTitle}
+                    onChange={(e) => setNewWOTitle(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                    disabled={creatingWO}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
+                  <input
+                    type="text"
+                    placeholder="Description"
+                    value={newWODescription}
+                    onChange={(e) => setNewWODescription(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                    disabled={creatingWO}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Primary Trade</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Roofing, Plumbing"
+                    value={newWOTrade}
+                    onChange={(e) => setNewWOTrade(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                    disabled={creatingWO}
+                  />
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
@@ -544,6 +577,7 @@ export default function CreatePOPage() {
             <input
               type="text"
               placeholder="Search vendors..."
+              aria-label="Search vendors"
               value={vendorSearch}
               onChange={(e) => setVendorSearch(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
@@ -599,13 +633,16 @@ export default function CreatePOPage() {
             {showLineItemForm && (
               <div className="bg-white rounded-xl p-4 border border-slate-200 space-y-3">
                 <h3 className="font-medium text-slate-800">New Line Item</h3>
-                <input
-                  type="text"
-                  placeholder="Item Description *"
-                  value={newItemDescription}
-                  onChange={(e) => setNewItemDescription(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
-                />
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Description <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    placeholder="Item description"
+                    value={newItemDescription}
+                    onChange={(e) => setNewItemDescription(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
                     <label className="block text-xs text-slate-500 mb-1">Quantity</label>
@@ -850,6 +887,6 @@ export default function CreatePOPage() {
           </button>
         </div>
       )}
-    </div>
+    </AppLayout>
   );
 }

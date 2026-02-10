@@ -337,7 +337,7 @@ function POSummaryReport() {
                       {reportData.summary.totalDivisions}
                     </p>
                   </div>
-                  <ChartIcon className="text-blue-600" />
+                  <ChartIcon className="w-5 h-5 text-blue-600" />
                 </div>
               </div>
 
@@ -349,7 +349,7 @@ function POSummaryReport() {
                       {formatCurrency(reportData.summary.grandTotalAmount)}
                     </p>
                   </div>
-                  <ChartIcon className="text-green-600" />
+                  <ChartIcon className="w-5 h-5 text-green-600" />
                 </div>
               </div>
 
@@ -361,7 +361,7 @@ function POSummaryReport() {
                       {reportData.summary.grandTotalPOCount.toLocaleString()}
                     </p>
                   </div>
-                  <ChartIcon className="text-orange-600" />
+                  <ChartIcon className="w-5 h-5 text-orange-600" />
                 </div>
               </div>
 
@@ -373,7 +373,7 @@ function POSummaryReport() {
                       {formatCurrency(reportData.summary.overallAveragePOSize)}
                     </p>
                   </div>
-                  <ChartIcon className="text-purple-600" />
+                  <ChartIcon className="w-5 h-5 text-purple-600" />
                 </div>
               </div>
 
@@ -385,7 +385,7 @@ function POSummaryReport() {
                       {formatPercent(reportData.summary.overallCompletionRate)}
                     </p>
                   </div>
-                  <ChartIcon className="text-emerald-600" />
+                  <ChartIcon className="w-5 h-5 text-emerald-600" />
                 </div>
               </div>
             </div>

@@ -252,7 +252,7 @@ export default function VendorAnalysisPage() {
           <StarIcon
             key={star}
             filled={star <= stars}
-            className={star <= stars ? 'text-yellow-400' : 'text-slate-300'}
+            className={star <= stars ? 'w-4 h-4 text-yellow-400' : 'w-4 h-4 text-slate-300'}
           />
         ))}
         <span className="text-sm text-slate-600 ml-2">({score})</span>
@@ -288,7 +288,7 @@ export default function VendorAnalysisPage() {
                 </Link>
                 <div className="h-6 w-px bg-slate-300" />
                 <div className="flex items-center space-x-3">
-                  <TruckIcon className="text-orange-600" />
+                  <TruckIcon className="w-6 h-6 text-orange-600" />
                   <div>
                     <h1 className="text-2xl font-bold text-slate-900">Vendor Analysis</h1>
                     <p className="text-slate-600">Performance evaluation and risk assessment</p>
@@ -317,7 +317,7 @@ export default function VendorAnalysisPage() {
                   disabled={loading}
                   className="flex items-center space-x-2 px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
                 >
-                  <RefreshIcon className={loading ? 'animate-spin' : ''} />
+                  <RefreshIcon className={loading ? 'w-5 h-5 animate-spin' : 'w-5 h-5'} />
                   <span>Refresh</span>
                 </button>
               </div>
@@ -469,7 +469,7 @@ export default function VendorAnalysisPage() {
                     <p className="text-2xl font-bold text-slate-900">{data.summary.totalVendors}</p>
                   </div>
                   <div className="p-3 bg-blue-100 rounded-lg">
-                    <TruckIcon className="text-blue-600" />
+                    <TruckIcon className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
               </div>
@@ -495,7 +495,7 @@ export default function VendorAnalysisPage() {
                     <p className="text-2xl font-bold text-slate-900">{data.summary.averageQualityScore}</p>
                   </div>
                   <div className="p-3 bg-yellow-100 rounded-lg">
-                    <StarIcon filled className="text-yellow-600" />
+                    <StarIcon filled className="w-4 h-4 text-yellow-600" />
                   </div>
                 </div>
               </div>

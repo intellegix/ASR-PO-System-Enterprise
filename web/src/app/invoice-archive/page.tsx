@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import AppLayout from '@/components/layout/AppLayout';
 
 interface ArchiveInvoice {
   id: string;
@@ -80,6 +81,10 @@ export default function InvoiceArchivePage() {
     file_extension: string | null;
     file_size: number | null;
   }>>([]);
+
+  useEffect(() => {
+    document.title = 'Invoice Archive | ASR PO System';
+  }, []);
 
   // Fetch filter options
   useEffect(() => {
@@ -194,29 +199,10 @@ export default function InvoiceArchivePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard" className="text-slate-500 hover:text-slate-700">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </Link>
-              <div>
-                <h1 className="text-xl font-bold text-slate-900">Invoice Archive</h1>
-                <p className="text-sm text-slate-500">Historical invoice records</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <AppLayout pageTitle="Invoice Archive">
       {/* Stats Cards */}
       {stats && (
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto py-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-lg border border-slate-200 p-4">
               <p className="text-sm text-slate-500">Total Invoices</p>
@@ -239,7 +225,7 @@ export default function InvoiceArchivePage() {
       )}
 
       {/* Filters */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
+      <div className="max-w-7xl mx-auto py-4">
         <div className="bg-white rounded-lg border border-slate-200 p-4">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {/* Search */}
@@ -341,7 +327,7 @@ export default function InvoiceArchivePage() {
       </div>
 
       {/* Invoice List */}
-      <div className="max-w-7xl mx-auto px-4 pb-8">
+      <div className="max-w-7xl mx-auto pb-8">
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
             <p className="text-red-800">{error}</p>
@@ -590,6 +576,6 @@ export default function InvoiceArchivePage() {
           </div>
         </div>
       )}
-    </div>
+    </AppLayout>
   );
 }

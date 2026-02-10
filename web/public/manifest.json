@@ -1,0 +1,43 @@
+{
+  "name": "ASR Purchase Order System",
+  "short_name": "ASR PO",
+  "description": "All Surface Roofing Purchase Order Management System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#f97316",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["business", "productivity", "finance"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Create New PO",
+      "short_name": "New PO",
+      "description": "Create a new purchase order",
+      "url": "/po/create"
+    },
+    {
+      "name": "View POs",
+      "short_name": "POs",
+      "description": "View all purchase orders",
+      "url": "/po"
+    },
+    {
+      "name": "Approvals",
+      "short_name": "Approvals",
+      "description": "Review pending approvals",
+      "url": "/approvals"
+    }
+  ],
+  "protocol_handlers": [],
+  "prefer_related_applications": false
+}

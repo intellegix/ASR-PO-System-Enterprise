@@ -337,7 +337,7 @@ export default function ProjectDetailsPage() {
                 </Link>
                 <div className="h-6 w-px bg-slate-300" />
                 <div className="flex items-center space-x-3">
-                  <FolderOpenIcon className="text-orange-600" />
+                  <FolderOpenIcon className="w-6 h-6 text-orange-600" />
                   <div>
                     <h1 className="text-2xl font-bold text-slate-900">Project Details Analysis</h1>
                     <p className="text-slate-600">Cross-divisional project spending and performance</p>
@@ -366,7 +366,7 @@ export default function ProjectDetailsPage() {
                   disabled={loading}
                   className="flex items-center space-x-2 px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
                 >
-                  <RefreshIcon className={loading ? 'animate-spin' : ''} />
+                  <RefreshIcon className={loading ? 'w-5 h-5 animate-spin' : 'w-5 h-5'} />
                   <span>Refresh</span>
                 </button>
               </div>
@@ -572,8 +572,8 @@ export default function ProjectDetailsPage() {
                     </div>
                     <div className={`p-2 rounded-lg ${data.projectInfo.varianceAmount > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
                       {data.projectInfo.varianceAmount > 0 ?
-                        <TrendingUpIcon className="text-red-600" /> :
-                        <TrendingDownIcon className="text-green-600" />
+                        <TrendingUpIcon className="w-5 h-5 text-red-600" /> :
+                        <TrendingDownIcon className="w-5 h-5 text-green-600" />
                       }
                     </div>
                   </div>
@@ -594,7 +594,7 @@ export default function ProjectDetailsPage() {
                       </div>
                     </div>
                     <div className="p-2 bg-purple-100 rounded-lg">
-                      <CalendarIcon className="text-purple-600" />
+                      <CalendarIcon className="w-5 h-5 text-purple-600" />
                     </div>
                   </div>
                 </div>

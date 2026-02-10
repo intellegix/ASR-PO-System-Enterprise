@@ -221,7 +221,7 @@ export default function GLAnalysisPage() {
                 </Link>
                 <div className="h-6 w-px bg-slate-300" />
                 <div className="flex items-center space-x-3">
-                  <ChartBarIcon className="text-orange-600" />
+                  <ChartBarIcon className="w-6 h-6 text-orange-600" />
                   <div>
                     <h1 className="text-2xl font-bold text-slate-900">GL Account Analysis</h1>
                     <p className="text-slate-600">Financial categorization and budget analysis</p>
@@ -250,7 +250,7 @@ export default function GLAnalysisPage() {
                   disabled={loading}
                   className="flex items-center space-x-2 px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
                 >
-                  <RefreshIcon className={loading ? 'animate-spin' : ''} />
+                  <RefreshIcon className={loading ? 'w-5 h-5 animate-spin' : 'w-5 h-5'} />
                   <span>Refresh</span>
                 </button>
               </div>
@@ -372,7 +372,7 @@ export default function GLAnalysisPage() {
                     <p className="text-2xl font-bold text-slate-900">{formatCurrency(data.totalSpend)}</p>
                   </div>
                   <div className="p-3 bg-blue-100 rounded-lg">
-                    <ChartBarIcon className="text-blue-600" />
+                    <ChartBarIcon className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
               </div>

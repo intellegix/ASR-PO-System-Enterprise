@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ASR PO System - Hybrid v2.1",
-  description: "All Surface Roofing Purchase Order Management System - Hybrid Architecture",
+  title: { default: 'ASR PO System', template: '%s | ASR PO System' },
+  description: "All Surface Roofing Purchase Order Management System",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -41,6 +41,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50`}
       >
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-orange-500 focus:text-white focus:rounded">
+          Skip to content
+        </a>
         <Providers>{children}</Providers>
         <button id="pwa-install-button" aria-label="Install app">
           📱 Install App

@@ -4,9 +4,11 @@
 export const dynamic = 'force-dynamic';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useState } from 'react';
+import { getRoleDisplayName, type UserRole as AuthUserRole } from '@/lib/auth/permissions';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import AppLayout from '@/components/layout/AppLayout';
 
 // Icons
 interface IconProps {
@@ -174,6 +176,10 @@ export default function ReportsPage() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
+  useEffect(() => {
+    document.title = 'Reports | ASR PO System';
+  }, []);
+
   const userRole = (user?.role || 'OPERATIONS_MANAGER') as UserRole;
 
   // Filter reports based on user permissions
@@ -203,15 +209,11 @@ export default function ReportsPage() {
       }
     });
 
-  const handleReportClick = (report: ReportCard) => {
-    router.push(report.path);
-  };
-
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <AppLayout pageTitle="Reports">
+      {/* Header content */}
+      <div className="bg-white border-b border-slate-200 -mx-4 lg:-mx-8 -mt-4 lg:-mt-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
           <div className="py-6">
             <div className="flex items-center justify-between">
               <div>
@@ -223,7 +225,7 @@ export default function ReportsPage() {
               <div className="text-right">
                 <p className="text-sm text-slate-500">Welcome back, {user?.name?.split(' ')[0]}</p>
                 <p className="text-xs text-slate-400">
-                  {user?.divisionName || 'All Divisions'} • {userRole.replace('_', ' ')}
+                  {user?.divisionName || 'All Divisions'} • {getRoleDisplayName(userRole as AuthUserRole)}
                 </p>
               </div>
             </div>
@@ -231,7 +233,7 @@ export default function ReportsPage() {
             {/* Category Filter */}
             <div className="mt-6">
               <nav className="flex space-x-8">
-                {categories.map(category => (
+                {categories.filter(c => c.count > 0 || c.id === 'all').map(category => (
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
@@ -263,10 +265,10 @@ export default function ReportsPage() {
           {filteredReports.map(report => {
             const IconComponent = report.icon;
             return (
-              <div
+              <Link
                 key={report.id}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border border-slate-200 hover:border-orange-200 group"
-                onClick={() => handleReportClick(report)}
+                href={report.path}
+                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border border-slate-200 hover:border-orange-200 group block"
               >
                 {/* Header with gradient background */}
                 <div className={`p-6 bg-gradient-to-br ${report.bgGradient} rounded-t-xl`}>
@@ -274,7 +276,7 @@ export default function ReportsPage() {
                     <div className={`p-3 rounded-lg bg-white shadow-sm ${report.color}`}>
                       <IconComponent />
                     </div>
-                    <ArrowRightIcon className="text-slate-400 group-hover:text-orange-500 transition-colors" />
+                    <ArrowRightIcon className="w-5 h-5 text-slate-400 group-hover:text-orange-500 transition-colors" />
                   </div>
 
                   <div className="mt-4">
@@ -322,7 +324,7 @@ export default function ReportsPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
@@ -381,6 +383,6 @@ export default function ReportsPage() {
           </p>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }

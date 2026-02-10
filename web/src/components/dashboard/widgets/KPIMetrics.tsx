@@ -197,56 +197,66 @@ export default function KPIMetrics({ divisionId, timeframe = 'current_month', cl
         {/* Total POs */}
         <div className="bg-white rounded-xl p-5 shadow-sm">
           <p className="text-sm text-slate-500 mb-1">Total POs</p>
-          <p className="text-2xl font-bold text-slate-900">{kpis.metrics.totalCount}</p>
-          <div className="flex items-center gap-1 mt-1">
-            <TrendIcon
-              isPositive={pendingRate < 20}
-              isNeutral={pendingRate >= 20 && pendingRate <= 30}
-            />
-            <span className={`text-xs font-medium ${
-              pendingRate < 20 ? 'text-green-600' :
-              pendingRate <= 30 ? 'text-slate-500' : 'text-red-600'
-            }`}>
-              {pendingRate.toFixed(0)}% pending
-            </span>
-          </div>
+          <p className="text-2xl font-bold text-slate-900">{kpis.metrics.totalCount || '—'}</p>
+          {kpis.metrics.totalCount > 0 && (
+            <div className="flex items-center gap-1 mt-1">
+              <TrendIcon
+                isPositive={pendingRate < 20}
+                isNeutral={pendingRate >= 20 && pendingRate <= 30}
+              />
+              <span className={`text-xs font-medium ${
+                pendingRate < 20 ? 'text-green-600' :
+                pendingRate <= 30 ? 'text-slate-500' : 'text-red-600'
+              }`}>
+                {pendingRate.toFixed(0)}% pending
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Total Spend */}
         <div className="bg-white rounded-xl p-5 shadow-sm">
           <p className="text-sm text-slate-500 mb-1">{kpis.timeframe.label} Spend</p>
           <p className="text-2xl font-bold text-slate-900">
-            ${kpis.metrics.totalSpend >= 1000000
-              ? `${(kpis.metrics.totalSpend / 1000000).toFixed(1)}M`
-              : `${(kpis.metrics.totalSpend / 1000).toFixed(0)}k`
+            {kpis.metrics.totalCount === 0 ? '—' :
+              `$${kpis.metrics.totalSpend >= 1000000
+                ? `${(kpis.metrics.totalSpend / 1000000).toFixed(1)}M`
+                : `${(kpis.metrics.totalSpend / 1000).toFixed(0)}k`
+              }`
             }
           </p>
-          <p className="text-xs text-slate-500 mt-1">
-            Avg: ${avgPOValue.toLocaleString()}
-          </p>
+          {kpis.metrics.totalCount > 0 && (
+            <p className="text-xs text-slate-500 mt-1">
+              Avg: ${avgPOValue.toLocaleString()}
+            </p>
+          )}
         </div>
 
         {/* Average PO Value */}
         <div className="bg-white rounded-xl p-5 shadow-sm">
           <p className="text-sm text-slate-500 mb-1">Avg PO Value</p>
           <p className="text-2xl font-bold text-slate-900">
-            ${avgPOValue >= 10000
-              ? `${(avgPOValue / 1000).toFixed(0)}k`
-              : avgPOValue.toLocaleString()
+            {kpis.metrics.totalCount === 0 ? '—' :
+              `$${avgPOValue >= 10000
+                ? `${(avgPOValue / 1000).toFixed(0)}k`
+                : avgPOValue.toLocaleString()
+              }`
             }
           </p>
-          <div className="flex items-center gap-1 mt-1">
-            <TrendIcon
-              isPositive={avgPOValue > 5000}
-              isNeutral={avgPOValue >= 1000 && avgPOValue <= 5000}
-            />
-            <span className={`text-xs font-medium ${
-              avgPOValue > 5000 ? 'text-green-600' :
-              avgPOValue >= 1000 ? 'text-slate-500' : 'text-orange-600'
-            }`}>
-              {kpis.metrics.totalCount > 0 ? 'Active' : 'No data'}
-            </span>
-          </div>
+          {kpis.metrics.totalCount > 0 && (
+            <div className="flex items-center gap-1 mt-1">
+              <TrendIcon
+                isPositive={avgPOValue > 5000}
+                isNeutral={avgPOValue >= 1000 && avgPOValue <= 5000}
+              />
+              <span className={`text-xs font-medium ${
+                avgPOValue > 5000 ? 'text-green-600' :
+                avgPOValue >= 1000 ? 'text-slate-500' : 'text-orange-600'
+              }`}>
+                Active
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -276,7 +286,7 @@ export default function KPIMetrics({ divisionId, timeframe = 'current_month', cl
 
       {/* Last updated */}
       <div className="mt-3 text-xs text-slate-400 text-right">
-        Last updated: {new Date(data.lastUpdated).toLocaleTimeString()}
+        Last updated: {new Date(data.lastUpdated).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'medium' })}
       </div>
     </div>
   );

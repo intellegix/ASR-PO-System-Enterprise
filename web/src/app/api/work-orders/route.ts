@@ -16,10 +16,13 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get('projectId');
+    const status = searchParams.get('status');
 
-    const where: Record<string, unknown> = {
-      status: { in: ['Pending', 'InProgress'] },
-    };
+    const where: Record<string, unknown> = {};
+
+    if (status && status !== 'all') {
+      where.status = status;
+    }
 
     if (projectId) {
       where.project_id = projectId;
@@ -37,6 +40,12 @@ export async function GET(request: NextRequest) {
         status: true,
         division_id: true,
         project_id: true,
+        divisions: {
+          select: { division_name: true },
+        },
+        projects: {
+          select: { project_code: true, project_name: true },
+        },
       },
     });
 

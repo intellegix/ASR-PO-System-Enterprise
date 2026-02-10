@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { PhoneLink } from '@/components/ui/PhoneLink';
+import AppLayout from '@/components/layout/AppLayout';
 
 interface LineItem {
   id: string;
@@ -229,7 +230,7 @@ function ViewPurchaseOrder() {
   const isPending = po.status.toLowerCase() === 'pending';
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <AppLayout pageTitle={`PO ${po.po_number}`}>
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="bg-white rounded-lg shadow p-6">
@@ -405,9 +406,9 @@ function ViewPurchaseOrder() {
             href="/po"
             className="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700"
           >
-            ← Back to Purchase Orders
+            Back to Purchase Orders
           </Link>
-          <div className="space-x-4">
+          <div className="space-x-4 no-print">
             <button
               onClick={() => window.print()}
               className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
@@ -417,7 +418,7 @@ function ViewPurchaseOrder() {
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
 

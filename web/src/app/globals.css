@@ -142,6 +142,24 @@ input[type="button"] {
   }
 }
 
+/* Suppress native validation styling until form submission */
+form:not(.submitted) :invalid {
+  box-shadow: none;
+}
+
+/* Focus indicators for accessibility */
+*:focus-visible {
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+}
+
+/* Print stylesheet */
+@media print {
+  nav, .sidebar, button, .no-print { display: none !important; }
+  main { margin: 0 !important; width: 100% !important; }
+  body { background: white !important; }
+}
+
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -327,7 +327,7 @@ export default function ApprovalBottleneckPage() {
                 </Link>
                 <div className="h-6 w-px bg-slate-300" />
                 <div className="flex items-center space-x-3">
-                  <ClockIcon className="text-orange-600" />
+                  <ClockIcon className="w-6 h-6 text-orange-600" />
                   <div>
                     <h1 className="text-2xl font-bold text-slate-900">Approval Bottleneck Analysis</h1>
                     <p className="text-slate-600">Workflow efficiency and approval delays</p>
@@ -356,7 +356,7 @@ export default function ApprovalBottleneckPage() {
                   disabled={loading}
                   className="flex items-center space-x-2 px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
                 >
-                  <RefreshIcon className={loading ? 'animate-spin' : ''} />
+                  <RefreshIcon className={loading ? 'w-5 h-5 animate-spin' : 'w-5 h-5'} />
                   <span>Refresh</span>
                 </button>
               </div>
@@ -537,7 +537,7 @@ export default function ApprovalBottleneckPage() {
                     </p>
                   </div>
                   <div className="p-3 bg-red-100 rounded-lg">
-                    <AlertTriangleIcon className="text-red-600" />
+                    <AlertTriangleIcon className="w-5 h-5 text-red-600" />
                   </div>
                 </div>
               </div>
@@ -551,7 +551,7 @@ export default function ApprovalBottleneckPage() {
                     </p>
                   </div>
                   <div className="p-3 bg-blue-100 rounded-lg">
-                    <ClockIcon className="text-blue-600" />
+                    <ClockIcon className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
               </div>
