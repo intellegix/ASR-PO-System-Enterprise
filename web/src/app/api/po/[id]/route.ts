@@ -5,6 +5,7 @@ import prisma from '@/lib/db';
 // Force dynamic rendering for API route
 export const dynamic = 'force-dynamic';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function GET(
   request: NextRequest,
@@ -17,6 +18,9 @@ export async function GET(
     }
 
     const { id } = await params;
+    if (!UUID_REGEX.test(id)) {
+      return NextResponse.json({ error: 'PO not found' }, { status: 404 });
+    }
     const po = await prisma.po_headers.findUnique({
       where: { id, deleted_at: null },
       include: {
@@ -79,6 +83,9 @@ export async function PUT(
     }
 
     const { id } = await params;
+    if (!UUID_REGEX.test(id)) {
+      return NextResponse.json({ error: 'PO not found' }, { status: 404 });
+    }
     const body = await request.json();
 
     // Get current PO
@@ -140,6 +147,9 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    if (!UUID_REGEX.test(id)) {
+      return NextResponse.json({ error: 'PO not found' }, { status: 404 });
+    }
 
     // Get current PO
     const currentPO = await prisma.po_headers.findUnique({

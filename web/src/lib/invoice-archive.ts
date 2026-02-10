@@ -3,11 +3,11 @@
  * Connects to the SQLite invoice archive database for read-only access
  */
 
-import Database from 'better-sqlite3';
 import path from 'path';
+import fs from 'fs';
 
 // Path to the invoice archive database
-const INVOICE_ARCHIVE_PATH = path.join(
+const INVOICE_ARCHIVE_PATH = process.env.INVOICE_ARCHIVE_PATH || path.join(
   'C:',
   'Users',
   'AustinKidwell',
@@ -21,6 +21,18 @@ const INVOICE_ARCHIVE_PATH = path.join(
   'data',
   'invoice_archive.db'
 );
+
+/**
+ * Check if the archive database is available (local dev only — not on Vercel)
+ */
+function isArchiveAvailable(): boolean {
+  if (process.env.VERCEL) return false;
+  try {
+    return fs.existsSync(INVOICE_ARCHIVE_PATH);
+  } catch {
+    return false;
+  }
+}
 
 // Type definitions for the invoice archive
 export interface ArchiveInvoice {
@@ -92,10 +104,17 @@ export interface InvoiceSearchParams {
 }
 
 /**
- * Get a read-only connection to the invoice archive database
+ * Get a read-only connection to the invoice archive database.
+ * Returns null if the database is unavailable (e.g., on Vercel serverless).
  */
-function getArchiveDb(): Database.Database {
-  return new Database(INVOICE_ARCHIVE_PATH, { readonly: true });
+function getArchiveDb() {
+  if (!isArchiveAvailable()) return null;
+  try {
+    const Database = require('better-sqlite3');
+    return new Database(INVOICE_ARCHIVE_PATH, { readonly: true });
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -103,6 +122,7 @@ function getArchiveDb(): Database.Database {
  */
 export function searchInvoices(params: InvoiceSearchParams): ArchiveInvoice[] {
   const db = getArchiveDb();
+  if (!db) return [];
 
   try {
     let query = `
@@ -172,6 +192,7 @@ export function searchInvoices(params: InvoiceSearchParams): ArchiveInvoice[] {
  */
 export function getInvoiceById(id: string): ArchiveInvoice | null {
   const db = getArchiveDb();
+  if (!db) return null;
 
   try {
     const stmt = db.prepare(`
@@ -195,6 +216,7 @@ export function getInvoiceById(id: string): ArchiveInvoice | null {
  */
 export function getInvoiceFiles(invoiceId: string): ArchiveInvoiceFile[] {
   const db = getArchiveDb();
+  if (!db) return [];
 
   try {
     const stmt = db.prepare(`
@@ -213,6 +235,7 @@ export function getInvoiceFiles(invoiceId: string): ArchiveInvoiceFile[] {
  */
 export function getArchiveVendors(): ArchiveVendor[] {
   const db = getArchiveDb();
+  if (!db) return [];
 
   try {
     const stmt = db.prepare(`
@@ -254,6 +277,7 @@ export function getInvoiceStats(): {
   vendor_count: number;
 } {
   const db = getArchiveDb();
+  if (!db) return { total_invoices: 0, total_amount: 0, paid_count: 0, pending_count: 0, vendor_count: 0 };
 
   try {
     const stats = db.prepare(`
@@ -285,6 +309,7 @@ export function findMatchingInvoices(
   tolerance: number = 0.05
 ): ArchiveInvoice[] {
   const db = getArchiveDb();
+  if (!db) return [];
 
   try {
     const minAmount = amount * (1 - tolerance);

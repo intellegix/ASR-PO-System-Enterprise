@@ -330,27 +330,30 @@ const generateBudgetActualReport = async (
   }).sort((a, b) => b.budget.originalBudget - a.budget.originalBudget);
 
   // Calculate monthly trends using raw SQL for performance
-  const monthlyTrendData = await prisma.$queryRaw<Array<{
-    project_id: string;
-    month: string;
-    year: number;
-    actual_spend: number;
-    cumulative_spend: number;
-  }>>`
-    SELECT
-      project_id,
-      TO_CHAR(created_at, 'Month') as month,
-      EXTRACT(YEAR FROM created_at)::int as year,
-      COALESCE(SUM(total_amount), 0)::float as actual_spend,
-      COALESCE(SUM(SUM(total_amount)) OVER (PARTITION BY project_id ORDER BY EXTRACT(YEAR FROM created_at), EXTRACT(MONTH FROM created_at)), 0)::float as cumulative_spend
-    FROM po_headers
-    WHERE project_id = ANY(${projects.map(p => p.id)})
-      AND deleted_at IS NULL
-      AND created_at >= ${startDate}
-      AND created_at <= ${endDate}
-    GROUP BY project_id, TO_CHAR(created_at, 'Month'), EXTRACT(YEAR FROM created_at), EXTRACT(MONTH FROM created_at)
-    ORDER BY project_id, year, EXTRACT(MONTH FROM created_at)
-  `;
+  const projectIds = projects.map(p => p.id);
+  const monthlyTrendData = projectIds.length > 0
+    ? await prisma.$queryRaw<Array<{
+        project_id: string;
+        month: string;
+        year: number;
+        actual_spend: number;
+        cumulative_spend: number;
+      }>>`
+        SELECT
+          project_id,
+          TO_CHAR(created_at, 'Month') as month,
+          EXTRACT(YEAR FROM created_at)::int as year,
+          COALESCE(SUM(total_amount), 0)::float as actual_spend,
+          COALESCE(SUM(SUM(total_amount)) OVER (PARTITION BY project_id ORDER BY EXTRACT(YEAR FROM created_at), EXTRACT(MONTH FROM created_at)), 0)::float as cumulative_spend
+        FROM po_headers
+        WHERE project_id = ANY(${projectIds})
+          AND deleted_at IS NULL
+          AND created_at >= ${startDate}
+          AND created_at <= ${endDate}
+        GROUP BY project_id, TO_CHAR(created_at, 'Month'), EXTRACT(YEAR FROM created_at), EXTRACT(MONTH FROM created_at)
+        ORDER BY project_id, year, EXTRACT(MONTH FROM created_at)
+      `
+    : [];
 
   // Add monthly trends to each project
   projectAnalysis.forEach(project => {
@@ -579,7 +582,7 @@ const getHandler = async (request: NextRequest): Promise<NextResponse> => {
 
     // Apply division filtering based on user permissions
     let divisionFilter = divisionId;
-    if (!['MAJORITY_OWNER', 'ACCOUNTING'].includes(user.role) && user.division_id) {
+    if (!['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER', 'ACCOUNTING'].includes(user.role) && user.division_id) {
       // Non-cross-division users can only see their own division
       divisionFilter = user.division_id;
     }

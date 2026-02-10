@@ -548,7 +548,7 @@ const getHandler = async (request: NextRequest) => {
 
     // Apply division filtering based on user permissions
     let divisionFilter = divisionId;
-    if (!['MAJORITY_OWNER', 'ACCOUNTING'].includes(user.role) && user.division_id) {
+    if (!['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER', 'ACCOUNTING'].includes(user.role) && user.division_id) {
       // Non-cross-division users can only see their own division
       divisionFilter = user.division_id;
     }

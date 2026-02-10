@@ -163,13 +163,13 @@ const REPORT_TYPES: ReportCard[] = [
       'Bottleneck identification',
       'Process improvement recommendations'
     ],
-    requiredRole: ['MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'],
+    requiredRole: ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'],
     color: 'text-red-600',
     bgGradient: 'from-red-50 to-red-100',
   },
 ];
 
-type UserRole = 'MAJORITY_OWNER' | 'DIVISION_LEADER' | 'OPERATIONS_MANAGER' | 'ACCOUNTING';
+type UserRole = 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS' | 'MAJORITY_OWNER' | 'DIVISION_LEADER' | 'OPERATIONS_MANAGER' | 'ACCOUNTING';
 
 export default function ReportsPage() {
   const { user, isAuthenticated } = useAuth();

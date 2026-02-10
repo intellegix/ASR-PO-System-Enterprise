@@ -252,7 +252,7 @@ const generateApprovalBottleneckReport = async (
   // Get all users who have approval responsibilities
   const approverUsers = await prisma.users.findMany({
     where: {
-      role: { in: ['MAJORITY_OWNER', 'DIVISION_LEADER', 'OPERATIONS_MANAGER'] },
+      role: { in: ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER', 'DIVISION_LEADER', 'OPERATIONS_MANAGER'] },
     },
     select: {
       id: true,
@@ -306,7 +306,7 @@ const generateApprovalBottleneckReport = async (
     let currentPendingCount = 0;
     let oldestPendingDays = 0;
 
-    if (user.role === 'MAJORITY_OWNER') {
+    if (user.role === 'MAJORITY_OWNER' || user.role === 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS') {
       // Can approve any high-value PO
       const highValuePending = pendingPOs.filter(po => (po.total_amount?.toNumber() || 0) > 10000);
       currentPendingCount = highValuePending.length;
@@ -694,7 +694,7 @@ const getHandler = async (request: NextRequest): Promise<NextResponse> => {
 
     // Check permissions - this report requires elevated permissions
     if (!hasPermission(user.role as any, 'report:view') ||
-        !['MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'].includes(user.role)) {
+        !['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'].includes(user.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
