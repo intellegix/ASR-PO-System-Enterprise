@@ -1,8 +1,5 @@
 'use client';
 
-// Force dynamic rendering since this page makes API calls
-export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
@@ -193,7 +190,95 @@ export default function ProjectDetailsPage() {
       }
 
       const result = await response.json();
-      setData(result);
+
+      // Normalize API response to match component interface
+      // API returns { summary, projects: [...] } but component expects single-project detail view
+      const firstProject = (result.projects || [])[0];
+      if (!firstProject) {
+        setData(null);
+        setError('No project data found for the selected filters');
+        setLastRefresh(new Date());
+        return;
+      }
+
+      const proj = firstProject;
+      const now = new Date();
+      const startDate = proj.startDate ? new Date(proj.startDate) : new Date();
+      const endDate = proj.endDate ? new Date(proj.endDate) : new Date();
+      const totalDays = Math.max(1, (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const daysPassed = Math.max(0, (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const percentComplete = Math.min(100, (daysPassed / totalDays) * 100);
+      const budgetTotal = proj.budgetTotal ?? 0;
+      const budgetActual = proj.budgetActual ?? 0;
+      const varianceAmount = budgetActual - budgetTotal;
+      const variancePercentage = budgetTotal > 0 ? (varianceAmount / budgetTotal) * 100 : 0;
+      const cpi = budgetActual > 0 ? (budgetTotal * (percentComplete / 100)) / budgetActual : 1;
+      const spi = percentComplete / Math.max(1, (daysPassed / totalDays) * 100);
+      const eac = cpi > 0 ? budgetTotal / cpi : budgetTotal;
+      const vac = budgetTotal - eac;
+
+      const normalized: ProjectDetailsData = {
+        projectInfo: {
+          projectId: proj.id ?? '',
+          projectName: proj.projectName ?? proj.project_name ?? '',
+          description: proj.description ?? '',
+          projectManager: proj.projectManager ?? '',
+          status: proj.status ?? 'Active',
+          totalBudget: budgetTotal,
+          actualSpend: budgetActual,
+          forecastToComplete: eac - budgetActual,
+          varianceAmount,
+          variancePercentage,
+          timeline: {
+            startDate: proj.startDate ?? now.toISOString(),
+            plannedEndDate: proj.endDate ?? now.toISOString(),
+            revisedEndDate: proj.endDate ?? now.toISOString(),
+            percentComplete,
+          },
+          riskLevel: Math.abs(variancePercentage) > 20 ? 'high' : Math.abs(variancePercentage) > 10 ? 'medium' : 'low',
+          lastUpdated: new Date().toISOString(),
+        },
+        divisionSpending: (proj.divisions || []).map((d: any) => ({
+          divisionId: d.divisionId ?? '',
+          divisionName: d.divisionName ?? '',
+          totalSpend: d.totalSpend ?? 0,
+          budgetAllocated: d.budgetAllocated ?? d.totalSpend ?? 0,
+          varianceAmount: 0,
+          variancePercentage: 0,
+          poCount: d.poCount ?? 0,
+          averagePOValue: d.poCount > 0 ? (d.totalSpend ?? 0) / d.poCount : 0,
+          topVendors: (d.topVendors || []).map((v: any) => ({
+            vendorName: v.vendorName ?? '',
+            amount: v.totalAmount ?? 0,
+            poCount: v.poCount ?? 0,
+          })),
+          workOrders: [],
+        })),
+        spendingPatterns: (proj.monthlyTrend || []).map((t: any) => ({
+          month: `${t.month ?? ''} ${t.year ?? ''}`.trim(),
+          budgetedSpend: 0,
+          actualSpend: t.totalAmount ?? 0,
+          variance: 0,
+          posCreated: t.poCount ?? 0,
+          posCompleted: 0,
+          averageProcessingTime: 0,
+        })),
+        workOrderCorrelations: [],
+        keyMetrics: {
+          costVariance: varianceAmount,
+          scheduleVariance: 0,
+          costPerformanceIndex: cpi,
+          schedulePerformanceIndex: spi,
+          estimateAtCompletion: eac,
+          varianceAtCompletion: vac,
+          budgetEfficiency: budgetTotal > 0 ? (budgetActual / budgetTotal) * 100 : 0,
+          spendVelocity: daysPassed > 0 ? budgetActual / daysPassed : 0,
+        },
+        alerts: [],
+        recommendations: [],
+      };
+
+      setData(normalized);
       setLastRefresh(new Date());
     } catch (err) {
       console.error('Failed to fetch project details data:', err);

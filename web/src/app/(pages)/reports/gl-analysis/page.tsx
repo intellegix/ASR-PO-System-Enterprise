@@ -1,8 +1,5 @@
 'use client';
 
-// Force dynamic rendering since this page makes API calls
-export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
@@ -111,7 +108,94 @@ export default function GLAnalysisPage() {
       }
 
       const result = await response.json();
-      setData(result);
+
+      // Normalize API response to match component interface
+      const totalCOGS = result.summary?.totalCOGSSpend ?? 0;
+      const totalOpEx = result.summary?.totalOpExSpend ?? 0;
+      const totalOther = result.summary?.totalOtherSpend ?? 0;
+      const totalCC = result.summary?.totalCreditCardSpend ?? 0;
+      const totalSpend = totalCOGS + totalOpEx + totalOther + totalCC;
+
+      // Build categories from accountAnalysis grouped by GL category
+      const categoryMap = new Map<string, { amount: number; accounts: any[] }>();
+      (result.accountAnalysis || []).forEach((acct: any) => {
+        const cat = acct.glAccount?.category ?? 'Other';
+        if (!categoryMap.has(cat)) categoryMap.set(cat, { amount: 0, accounts: [] });
+        const entry = categoryMap.get(cat)!;
+        entry.amount += acct.metrics?.totalAmount ?? 0;
+        entry.accounts.push(acct);
+      });
+
+      const categories = Array.from(categoryMap.entries()).map(([category, data]) => ({
+        category,
+        amount: data.amount,
+        percentage: totalSpend > 0 ? (data.amount / totalSpend) * 100 : 0,
+        accountCount: data.accounts.length,
+        topAccounts: data.accounts
+          .sort((a: any, b: any) => (b.metrics?.totalAmount ?? 0) - (a.metrics?.totalAmount ?? 0))
+          .slice(0, 3)
+          .map((a: any) => ({
+            accountNumber: a.glAccount?.number ?? '',
+            accountName: a.glAccount?.name ?? '',
+            amount: a.metrics?.totalAmount ?? 0,
+          })),
+      })).sort((a, b) => b.amount - a.amount);
+
+      // Build division breakdown from accountAnalysis
+      const divMap = new Map<string, { divisionName: string; totalSpend: number; cogs: number; opex: number; accounts: any[] }>();
+      (result.accountAnalysis || []).forEach((acct: any) => {
+        (acct.divisionBreakdown || []).forEach((div: any) => {
+          const name = div.divisionName ?? 'Unknown';
+          if (!divMap.has(name)) divMap.set(name, { divisionName: name, totalSpend: 0, cogs: 0, opex: 0, accounts: [] });
+          const entry = divMap.get(name)!;
+          entry.totalSpend += div.totalAmount ?? 0;
+          if (acct.glAccount?.category === 'COGS') entry.cogs += div.totalAmount ?? 0;
+          if (acct.glAccount?.category === 'OpEx') entry.opex += div.totalAmount ?? 0;
+          entry.accounts.push({ ...acct, divAmount: div.totalAmount ?? 0 });
+        });
+      });
+
+      const divisionBreakdown = Array.from(divMap.values()).map(d => ({
+        divisionName: d.divisionName,
+        totalSpend: d.totalSpend,
+        cogsAmount: d.cogs,
+        opexAmount: d.opex,
+        topGLAccounts: d.accounts
+          .sort((a: any, b: any) => (b.divAmount ?? 0) - (a.divAmount ?? 0))
+          .slice(0, 3)
+          .map((a: any) => ({
+            accountNumber: a.glAccount?.number ?? '',
+            accountName: a.glAccount?.name ?? '',
+            amount: a.divAmount ?? 0,
+          })),
+      })).sort((a, b) => b.totalSpend - a.totalSpend);
+
+      // Compute taxable from account analysis
+      const taxableAmount = (result.accountAnalysis || []).reduce(
+        (sum: number, a: any) => sum + (a.metrics?.taxableAmount ?? 0), 0
+      );
+      const nonTaxableAmount = (result.accountAnalysis || []).reduce(
+        (sum: number, a: any) => sum + (a.metrics?.nonTaxableAmount ?? 0), 0
+      );
+
+      const normalized: GLSummaryData = {
+        totalSpend,
+        cogsAmount: totalCOGS,
+        opexAmount: totalOpEx,
+        taxableAmount,
+        nonTaxableAmount,
+        categories,
+        monthlyTrends: (result.categoryTrends || []).map((t: any) => ({
+          month: t.month ?? '',
+          cogs: t.cogs ?? 0,
+          opex: t.opex ?? 0,
+          total: (t.cogs ?? 0) + (t.opex ?? 0) + (t.other ?? 0),
+        })),
+        divisionBreakdown,
+        riskFactors: [],
+      };
+
+      setData(normalized);
       setLastRefresh(new Date());
     } catch (err) {
       console.error('Failed to fetch GL analysis data:', err);
@@ -383,7 +467,7 @@ export default function GLAnalysisPage() {
                     <p className="text-sm font-medium text-slate-600">COGS Amount</p>
                     <p className="text-2xl font-bold text-slate-900">{formatCurrency(data.cogsAmount)}</p>
                     <p className="text-xs text-slate-500 mt-1">
-                      {formatPercentage((data.cogsAmount / data.totalSpend) * 100)} of total
+                      {formatPercentage(data.totalSpend > 0 ? (data.cogsAmount / data.totalSpend) * 100 : 0)} of total
                     </p>
                   </div>
                   <div className="p-3 bg-green-100 rounded-lg">
@@ -400,7 +484,7 @@ export default function GLAnalysisPage() {
                     <p className="text-sm font-medium text-slate-600">OpEx Amount</p>
                     <p className="text-2xl font-bold text-slate-900">{formatCurrency(data.opexAmount)}</p>
                     <p className="text-xs text-slate-500 mt-1">
-                      {formatPercentage((data.opexAmount / data.totalSpend) * 100)} of total
+                      {formatPercentage(data.totalSpend > 0 ? (data.opexAmount / data.totalSpend) * 100 : 0)} of total
                     </p>
                   </div>
                   <div className="p-3 bg-purple-100 rounded-lg">
@@ -417,7 +501,7 @@ export default function GLAnalysisPage() {
                     <p className="text-sm font-medium text-slate-600">Taxable Amount</p>
                     <p className="text-2xl font-bold text-slate-900">{formatCurrency(data.taxableAmount)}</p>
                     <p className="text-xs text-slate-500 mt-1">
-                      {formatPercentage((data.taxableAmount / data.totalSpend) * 100)} of total
+                      {formatPercentage(data.totalSpend > 0 ? (data.taxableAmount / data.totalSpend) * 100 : 0)} of total
                     </p>
                   </div>
                   <div className="p-3 bg-orange-100 rounded-lg">

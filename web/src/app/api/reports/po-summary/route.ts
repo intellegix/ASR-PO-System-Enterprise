@@ -101,25 +101,39 @@ const generatePOSummaryReport = async (
 
       // Calculate average processing time for completed POs
       let averageProcessingTime = 0;
-      if (completedPOs.length > 0) {
-        const processingTimes = await Promise.all(
-          completedPOs.map(async (po) => {
-            const approvalRecord = await prisma.po_approvals.findFirst({
-              where: {
-                po_id: po.id,
-                action: { in: ['Approved', 'Issued'] },
-              },
-              orderBy: { timestamp: 'desc' },
-            });
+      try {
+        if (completedPOs.length > 0) {
+          // Limit to first 50 POs to avoid timeout on large datasets
+          const samplePOs = completedPOs.slice(0, 50);
+          const processingTimes = await Promise.all(
+            samplePOs.map(async (po) => {
+              try {
+                const approvalRecord = await prisma.po_approvals.findFirst({
+                  where: {
+                    po_id: po.id,
+                    action: { in: ['Approved', 'Issued'] },
+                  },
+                  orderBy: { timestamp: 'desc' },
+                });
 
-            if (approvalRecord?.timestamp && po.created_at) {
-              return (approvalRecord.timestamp.getTime() - po.created_at.getTime()) / (1000 * 60 * 60);
-            }
-            return 0;
-          })
-        );
+                if (approvalRecord?.timestamp && po.created_at) {
+                  return (approvalRecord.timestamp.getTime() - po.created_at.getTime()) / (1000 * 60 * 60);
+                }
+              } catch {
+                // Skip individual approval lookups that fail
+              }
+              return 0;
+            })
+          );
 
-        averageProcessingTime = processingTimes.reduce((sum, time) => sum + time, 0) / processingTimes.length;
+          const validTimes = processingTimes.filter(t => t > 0);
+          averageProcessingTime = validTimes.length > 0
+            ? validTimes.reduce((sum, time) => sum + time, 0) / validTimes.length
+            : 0;
+        }
+      } catch {
+        // If processing time calculation fails, continue with 0
+        averageProcessingTime = 0;
       }
 
       // Status breakdown

@@ -1,8 +1,5 @@
 'use client';
 
-// Force dynamic rendering since this page makes API calls
-export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -173,7 +170,82 @@ export default function ApprovalBottleneckPage() {
       }
 
       const result = await response.json();
-      setData(result);
+
+      // Normalize API response to match component interface
+      const normalized: ApprovalBottleneckData = {
+        summary: {
+          totalBottlenecks: result.summary?.totalPendingPOs ?? result.summary?.totalBottlenecks ?? 0,
+          averageApprovalTime: result.summary?.averageApprovalTimeHours
+            ? result.summary.averageApprovalTimeHours / 24
+            : result.summary?.averageApprovalTime ?? 0,
+          posOver24Hours: result.summary?.posOver24Hours ?? 0,
+          posOver48Hours: result.summary?.posOver48Hours ?? 0,
+          posOver7Days: result.summary?.posOver7Days ?? 0,
+          totalValueStuck: result.summary?.totalPendingValue ?? result.summary?.totalValueStuck ?? 0,
+          averageImpactScore: result.summary?.averageImpactScore ?? 50,
+          criticalBottlenecks: result.summary?.criticalBottlenecks ?? 0,
+        },
+        bottlenecks: (result.pendingPOs || result.bottlenecks || []).map((po: any) => ({
+          poId: po.poId ?? po.id ?? '',
+          poNumber: po.poNumber ?? '',
+          vendorName: po.vendorName ?? '',
+          totalAmount: po.totalAmount ?? po.amount ?? 0,
+          divisionName: po.divisionName ?? '',
+          currentStage: po.currentStage ?? po.status ?? '',
+          pendingSince: po.pendingSince ?? po.createdAt ?? new Date().toISOString(),
+          daysInStage: po.daysInStage ?? po.daysPending ?? 0,
+          totalDaysPending: po.totalDaysPending ?? po.daysPending ?? 0,
+          approverName: po.approverName ?? po.currentApprover ?? '',
+          approverEmail: po.approverEmail ?? '',
+          priority: po.priority ?? 'medium',
+          bottleneckReason: po.bottleneckReason ?? po.reason ?? '',
+          escalationLevel: po.escalationLevel ?? 0,
+          lastContactDate: po.lastContactDate ?? null,
+          estimatedResolutionDate: po.estimatedResolutionDate ?? new Date().toISOString(),
+          impactScore: po.impactScore ?? 50,
+        })),
+        approverPerformance: (result.approverAnalysis || result.approverPerformance || []).map((a: any) => ({
+          approverId: a.approver?.id ?? a.approverId ?? '',
+          approverName: a.approver?.name ?? a.approverName ?? '',
+          approverEmail: a.approver?.email ?? a.approverEmail ?? '',
+          role: a.approver?.role ?? a.role ?? '',
+          divisionName: a.approver?.divisionName ?? a.divisionName ?? '',
+          totalPendingPOs: a.metrics?.currentPendingCount ?? a.totalPendingPOs ?? 0,
+          averageApprovalTime: a.metrics?.averageApprovalTimeHours
+            ? a.metrics.averageApprovalTimeHours / 24
+            : a.averageApprovalTime ?? 0,
+          longestPendingDays: a.metrics?.longestPendingDays ?? a.longestPendingDays ?? 0,
+          performanceScore: a.performance?.overallScore ?? a.performanceScore ?? 0,
+          bottleneckFrequency: a.bottlenecks?.bottleneckPercentage ?? a.bottleneckFrequency ?? 0,
+          workload: a.performance?.workloadAssessment ?? a.workload ?? 'moderate',
+          recommendations: Array.isArray(a.performance?.recommendations) ? a.performance.recommendations
+            : Array.isArray(a.recommendations) ? a.recommendations : [],
+        })),
+        stageAnalysis: (result.workflowMetrics?.stageAnalysis || result.stageAnalysis || []).map((s: any) => ({
+          stage: s.stage ?? s.stageName ?? '',
+          averageTime: s.averageTimeHours ? s.averageTimeHours / 24 : s.averageTime ?? 0,
+          medianTime: s.medianTimeHours ? s.medianTimeHours / 24 : s.medianTime ?? 0,
+          maxTime: s.maxTimeHours ? s.maxTimeHours / 24 : s.maxTime ?? 0,
+          posInStage: s.currentCount ?? s.posInStage ?? 0,
+          completionRate: s.completionRate ?? 0,
+          bottleneckFrequency: s.bottleneckFrequency ?? 0,
+          efficiency: s.efficiency ?? 'good',
+          recommendations: Array.isArray(s.recommendations) ? s.recommendations : [],
+        })),
+        trends: result.trends ?? {
+          dailyBottlenecks: [],
+          weeklyCompletion: [],
+        },
+        recommendations: Array.isArray(result.recommendations) ? result.recommendations.map((r: any) => ({
+          category: r.category ?? '',
+          priority: r.priority ?? 'medium',
+          action: r.action ?? r.recommendation ?? '',
+          expectedImpact: r.expectedImpact ?? r.impact ?? '',
+          effort: r.effort ?? 'medium',
+        })) : [],
+      };
+
+      setData(normalized);
       setLastRefresh(new Date());
     } catch (err) {
       console.error('Failed to fetch approval bottleneck data:', err);

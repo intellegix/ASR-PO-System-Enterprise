@@ -254,6 +254,7 @@ export function getArchiveVendors(): ArchiveVendor[] {
  */
 export function getArchiveProjects(): ArchiveProject[] {
   const db = getArchiveDb();
+  if (!db) return [];
 
   try {
     const stmt = db.prepare(`

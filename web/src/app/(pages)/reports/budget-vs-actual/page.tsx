@@ -1,8 +1,5 @@
 'use client';
 
-// Force dynamic rendering since this page makes API calls
-export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -166,7 +163,110 @@ export default function BudgetVsActualPage() {
       }
 
       const result = await response.json();
-      setData(result);
+
+      // Normalize API response to match component interface
+      const normalized: BudgetAnalysisData = {
+        summary: {
+          totalProjects: result.summary?.totalProjects ?? 0,
+          totalBudget: result.summary?.totalProjectBudgets ?? 0,
+          totalActual: result.summary?.totalActualSpend ?? 0,
+          totalVariance: result.summary?.overallVariance ?? 0,
+          projectsOverBudget: result.summary?.projectsOverBudget ?? 0,
+          projectsAtRisk: (result.riskAnalysis?.highRiskProjects?.length ?? 0),
+          averageCPI: 0,
+          averageSPI: 0,
+        },
+        projects: (result.projectAnalysis || []).map((p: any) => {
+          const budget = p.budget || {};
+          const timeline = p.timeline || {};
+          const risk = p.riskFactors || {};
+          const projStart = p.project?.startDate ? new Date(p.project.startDate) : new Date();
+          const projEnd = p.project?.endDate ? new Date(p.project.endDate) : new Date();
+          const now = new Date();
+          const totalDays = Math.max(1, (projEnd.getTime() - projStart.getTime()) / (1000 * 60 * 60 * 24));
+          const daysPassed = Math.max(0, (now.getTime() - projStart.getTime()) / (1000 * 60 * 60 * 24));
+          const percentComplete = Math.min(100, (daysPassed / totalDays) * 100);
+          const cpi = budget.currentActual > 0 && budget.originalBudget > 0
+            ? (budget.originalBudget * (percentComplete / 100)) / budget.currentActual : 1;
+          const spi = totalDays > 0 ? (daysPassed / totalDays) : 1;
+
+          return {
+            projectId: p.project?.id ?? '',
+            projectName: p.project?.name ?? '',
+            divisionName: p.project?.divisionName ?? '',
+            originalBudget: budget.originalBudget ?? 0,
+            revisedBudget: budget.originalBudget ?? 0,
+            actualSpend: budget.currentActual ?? 0,
+            commitments: budget.poCommitted ?? 0,
+            availableBudget: budget.variance ?? 0,
+            varianceAmount: budget.variance ?? 0,
+            variancePercentage: budget.variancePercentage ?? 0,
+            budgetUtilization: budget.utilizationPercentage ?? 0,
+            forecastToComplete: timeline.projectedCompletionSpend ?? 0,
+            estimateAtCompletion: timeline.projectedCompletionSpend ?? 0,
+            costPerformanceIndex: cpi,
+            schedulePerformanceIndex: spi,
+            riskLevel: risk.overallRisk ?? 'low',
+            alerts: (risk.riskReasons || []).map((r: string) => ({
+              type: 'Budget',
+              message: r,
+              severity: risk.overallRisk === 'high' ? 'critical' as const : 'warning' as const,
+            })),
+            timeline: {
+              startDate: p.project?.startDate ?? new Date().toISOString(),
+              originalEndDate: p.project?.endDate ?? new Date().toISOString(),
+              revisedEndDate: p.project?.endDate ?? new Date().toISOString(),
+              percentComplete,
+              daysRemaining: timeline.daysRemaining ?? 0,
+            },
+            recommendations: [],
+          };
+        }),
+        divisionSummary: (result.divisionSummary || []).map((d: any) => ({
+          divisionName: d.division?.name ?? '',
+          totalBudget: d.aggregate?.totalProjectBudgets ?? 0,
+          totalActual: d.aggregate?.totalActualSpend ?? 0,
+          variance: d.aggregate?.overallVariance ?? 0,
+          variancePercentage: d.performance?.averageVariancePercentage ?? 0,
+          projectCount: d.aggregate?.projectCount ?? 0,
+          averageCPI: d.aggregate?.totalProjectBudgets > 0
+            ? (d.aggregate.totalActualSpend + d.aggregate.totalCommittedSpend) / d.aggregate.totalProjectBudgets : 1,
+        })),
+        monthlyTrends: (result.budgetTrends || []).map((t: any) => ({
+          month: `${t.month ?? ''} ${t.year ?? ''}`.trim(),
+          budgetSpend: t.budgetAllocated ?? 0,
+          actualSpend: t.actualSpend ?? 0,
+          variance: (t.actualSpend ?? 0) - (t.budgetAllocated ?? 0),
+          cumulativeVariance: 0,
+        })),
+        forecastAnalysis: {
+          projectedOverrun: result.forecasting?.projectedYearEndSpend
+            ? result.forecasting.projectedYearEndSpend - (result.summary?.totalProjectBudgets ?? 0)
+            : 0,
+          confidenceLevel: 75,
+          keyRisks: (result.forecasting?.recommendedActions || []).map((action: string) => ({
+            risk: action,
+            impact: 0,
+            mitigation: '',
+          })),
+        },
+      };
+
+      // Calculate averages for CPI/SPI
+      const projects = normalized.projects;
+      if (projects.length > 0) {
+        normalized.summary.averageCPI = projects.reduce((s, p) => s + p.costPerformanceIndex, 0) / projects.length;
+        normalized.summary.averageSPI = projects.reduce((s, p) => s + p.schedulePerformanceIndex, 0) / projects.length;
+      }
+
+      // Compute cumulative variance
+      let cumVar = 0;
+      normalized.monthlyTrends.forEach(t => {
+        cumVar += t.variance;
+        t.cumulativeVariance = cumVar;
+      });
+
+      setData(normalized);
       setLastRefresh(new Date());
     } catch (err) {
       console.error('Failed to fetch budget analysis data:', err);

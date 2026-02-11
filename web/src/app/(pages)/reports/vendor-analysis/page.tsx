@@ -1,8 +1,5 @@
 'use client';
 
-// Force dynamic rendering since this page makes API calls
-export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
@@ -144,7 +141,70 @@ export default function VendorAnalysisPage() {
       }
 
       const result = await response.json();
-      setData(result);
+
+      // Normalize API response to match component interface
+      const normalized: VendorAnalysisData = {
+        summary: {
+          totalVendors: result.summary?.totalVendors ?? 0,
+          totalSpend: result.summary?.totalSpend ?? 0,
+          averageQualityScore: result.summary?.overallPerformanceScore ?? 0,
+          topPerformers: (result.vendorAnalysis || []).filter((v: any) => (v.performance?.qualityScore ?? 0) >= 85).length,
+          riskVendors: (result.vendorAnalysis || []).filter((v: any) => v.riskFactors?.overallRisk === 'high').length,
+        },
+        vendors: (result.vendorAnalysis || []).map((v: any) => ({
+          vendorId: v.vendor?.id ?? '',
+          vendorName: v.vendor?.name ?? 'Unknown',
+          totalSpend: v.financialMetrics?.totalSpend ?? 0,
+          totalOrders: v.financialMetrics?.totalPOCount ?? 0,
+          averageOrderValue: v.financialMetrics?.averagePOSize ?? 0,
+          qualityScore: v.performance?.qualityScore ?? 0,
+          onTimeDeliveryRate: v.performance?.onTimeDeliveryRate ?? 0,
+          completionRate: v.performance?.completionRate ?? 0,
+          paymentTerms: v.paymentTerms?.defaultTerms ?? 'Net30',
+          w9OnFile: v.vendor?.compliance?.w9OnFile ?? false,
+          industryType: v.vendor?.type ?? 'Other',
+          riskFactors: [],
+          monthlyTrend: (v.spendingTrends || []).map((t: any) => ({
+            month: t.month,
+            spend: t.totalAmount,
+            orders: t.poCount,
+            qualityScore: v.performance?.qualityScore ?? 0,
+          })),
+          contactInfo: {
+            email: v.vendor?.contactInfo?.contactEmail ?? '',
+            phone: v.vendor?.contactInfo?.contactPhone ?? '',
+            address: '',
+          },
+        })),
+        industryBreakdown: (result.industryBreakdown || []).map((i: any) => ({
+          industry: i.vendorType ?? 'Other',
+          vendorCount: i.vendorCount ?? 0,
+          totalSpend: i.totalSpend ?? 0,
+          averageQualityScore: i.performanceScore ?? 0,
+        })),
+        paymentTermsAnalysis: (result.paymentTermsAnalysis || []).map((t: any) => ({
+          terms: t.terms ?? '',
+          vendorCount: t.vendorCount ?? 0,
+          totalSpend: t.totalSpend ?? 0,
+          averageOrderValue: t.vendorCount > 0 ? t.totalSpend / t.vendorCount : 0,
+        })),
+        riskAnalysis: {
+          concentrationRisk: {
+            topVendorPercentage: (result.vendorAnalysis || [])[0]?.financialMetrics?.spendShare ?? 0,
+            top5VendorPercentage: result.summary?.vendorConcentrationRisk ?? 0,
+            recommendation: result.summary?.vendorConcentrationRisk > 50
+              ? 'Consider diversifying vendor base to reduce concentration risk'
+              : 'Vendor concentration is within acceptable limits',
+          },
+          complianceRisk: {
+            missingW9: (result.vendorAnalysis || []).filter((v: any) => !v.vendor?.compliance?.w9OnFile).length,
+            outdatedInfo: 0,
+            recommendation: 'Ensure all active vendors have current W9 forms on file',
+          },
+        },
+      };
+
+      setData(normalized);
       setLastRefresh(new Date());
     } catch (err) {
       console.error('Failed to fetch vendor analysis data:', err);

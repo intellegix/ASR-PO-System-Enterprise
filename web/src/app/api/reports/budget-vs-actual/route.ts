@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
+import { Prisma } from '@prisma/client';
 import { hasPermission } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
@@ -130,7 +131,6 @@ const generateBudgetActualReport = async (
   const projectWhereClause: any = {
     OR: [
       { status: 'Active' },
-      { status: 'InProgress' },
       { status: 'Completed' },
     ],
     budget_total: { not: null },
@@ -346,7 +346,7 @@ const generateBudgetActualReport = async (
           COALESCE(SUM(total_amount), 0)::float as actual_spend,
           COALESCE(SUM(SUM(total_amount)) OVER (PARTITION BY project_id ORDER BY EXTRACT(YEAR FROM created_at), EXTRACT(MONTH FROM created_at)), 0)::float as cumulative_spend
         FROM po_headers
-        WHERE project_id = ANY(${projectIds})
+        WHERE project_id::text IN (${Prisma.join(projectIds)})
           AND deleted_at IS NULL
           AND created_at >= ${startDate}
           AND created_at <= ${endDate}
