@@ -700,7 +700,7 @@ export default function CreatePOPage() {
         )}
 
         {/* Step 5: Line Items */}
-        {step === 6 && (
+        {step === 5 && (
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-semibold text-slate-800 mb-1">Add Line Items</h2>
