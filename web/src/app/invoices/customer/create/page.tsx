@@ -22,6 +22,7 @@ export default function CreateCustomerInvoicePage() {
   }, []);
 
   const [form, setForm] = useState({
+    clientId: '',
     projectId: '',
     divisionId: '',
     customerName: '',
@@ -36,6 +37,16 @@ export default function CreateCustomerInvoicePage() {
   const [lineItems, setLineItems] = useState<LineItem[]>([
     { description: '', quantity: 1, unitPrice: 0 },
   ]);
+
+  // Fetch clients
+  const { data: clientsList } = useQuery({
+    queryKey: ['clients'],
+    queryFn: async () => {
+      const res = await fetch('/api/clients');
+      if (!res.ok) throw new Error('Failed to fetch clients');
+      return res.json();
+    },
+  });
 
   // Fetch projects
   const { data: projects } = useQuery({
@@ -173,6 +184,35 @@ export default function CreateCustomerInvoicePage() {
                     ))}
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Client (from master list)</label>
+                <select
+                  value={form.clientId}
+                  onChange={(e) => {
+                    const clientId = e.target.value;
+                    setForm(prev => ({ ...prev, clientId }));
+                    if (clientId) {
+                      const client = (Array.isArray(clientsList) ? clientsList : []).find((c: any) => c.id === clientId);
+                      if (client) {
+                        setForm(prev => ({
+                          ...prev,
+                          clientId,
+                          customerName: client.client_name,
+                          customerEmail: client.contact_email || prev.customerEmail,
+                          customerAddress: client.address || prev.customerAddress,
+                        }));
+                      }
+                    }
+                  }}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select client (optional)...</option>
+                  {(Array.isArray(clientsList) ? clientsList : []).map((c: any) => (
+                    <option key={c.id} value={c.id}>{c.client_name} {c.category ? `(${c.category})` : ''}</option>
+                  ))}
+                </select>
               </div>
 
               <div>

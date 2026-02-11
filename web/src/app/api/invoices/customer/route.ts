@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
+      clientId,
       projectId,
       divisionId,
       customerName,
@@ -132,6 +133,7 @@ export async function POST(request: NextRequest) {
         invoice_number: invoiceNumber,
         project_id: projectId,
         division_id: divisionId || project.primary_division_id || null,
+        client_id: clientId || null,
         customer_name: customerName,
         customer_email: customerEmail || null,
         customer_address: customerAddress || null,

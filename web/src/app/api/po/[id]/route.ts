@@ -41,6 +41,7 @@ export async function GET(
           },
           orderBy: { line_number: 'asc' },
         },
+        clients: true,
         vendors: true,
         projects: true,
         divisions: true,

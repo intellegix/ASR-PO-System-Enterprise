@@ -7,6 +7,19 @@ import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
 
 // Types
+interface Client {
+  id: string;
+  client_name: string;
+  client_code: string;
+  category: string | null;
+  parent_entity: string | null;
+  aliases: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  address: string | null;
+}
+
 interface Project {
   id: string;
   project_code: string;
@@ -95,6 +108,7 @@ export default function CreatePOPage() {
   const router = useRouter();
 
   // Data states
+  const [clients, setClients] = useState<Client[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -103,6 +117,7 @@ export default function CreatePOPage() {
 
   // Form states
   const [step, setStep] = useState(1);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrder | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
@@ -150,6 +165,7 @@ export default function CreatePOPage() {
   const [submitting, setSubmitting] = useState(false);
 
   // Search states
+  const [clientSearch, setClientSearch] = useState('');
   const [projectSearch, setProjectSearch] = useState('');
   const [vendorSearch, setVendorSearch] = useState('');
 
@@ -158,13 +174,15 @@ export default function CreatePOPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [projectsRes, vendorsRes, divisionsRes, glRes] = await Promise.all([
+        const [clientsRes, projectsRes, vendorsRes, divisionsRes, glRes] = await Promise.all([
+          fetch('/api/clients'),
           fetch('/api/projects'),
           fetch('/api/vendors'),
           fetch('/api/divisions'),
           fetch('/api/gl-accounts'),
         ]);
 
+        if (clientsRes.ok) setClients(await clientsRes.json());
         if (projectsRes.ok) setProjects(await projectsRes.json());
         if (vendorsRes.ok) setVendors(await vendorsRes.json());
         if (divisionsRes.ok) setDivisions(await divisionsRes.json());
@@ -238,7 +256,7 @@ export default function CreatePOPage() {
         setNewWOTitle('');
         setNewWODescription('');
         setNewWOTrade('');
-        setStep(3); // Move to vendor selection
+        setStep(4); // Move to vendor selection
       } else {
         const errorData = await res.json();
         setWoError(errorData.error || 'Failed to create work order');
@@ -302,6 +320,7 @@ export default function CreatePOPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          clientId: selectedClient?.id || null,
           projectId: selectedProject.id,
           workOrderId: selectedWorkOrder?.id || null,
           vendorId: selectedVendor.id,
@@ -338,6 +357,14 @@ export default function CreatePOPage() {
   };
 
   // Filter functions
+  const filteredClients = clients.filter(c => {
+    const search = clientSearch.toLowerCase();
+    return c.client_name.toLowerCase().includes(search) ||
+      c.client_code.toLowerCase().includes(search) ||
+      (c.category || '').toLowerCase().includes(search) ||
+      (c.aliases || '').toLowerCase().includes(search);
+  });
+
   const filteredProjects = projects.filter(p =>
     p.project_name.toLowerCase().includes(projectSearch.toLowerCase()) ||
     p.project_code.toLowerCase().includes(projectSearch.toLowerCase())
@@ -369,7 +396,7 @@ export default function CreatePOPage() {
         </div>
         {/* Progress bar */}
         <div className="flex px-4 pb-3 gap-1">
-          {['Project', 'Work Order', 'Vendor', 'Line Items', 'Review'].map((label, i) => (
+          {['Client', 'Project', 'Work Order', 'Vendor', 'Line Items', 'Review'].map((label, i) => (
             <div key={i} className="flex-1 flex flex-col items-center gap-1">
               <div
                 className={`h-1 w-full rounded ${i + 1 <= step ? 'bg-orange-500' : 'bg-slate-200'}`}
@@ -383,8 +410,68 @@ export default function CreatePOPage() {
       </header>
 
       <main className="p-4 pb-32">
-        {/* Step 1: Select Project */}
+        {/* Step 1: Select Client */}
         {step === 1 && (
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-800 mb-1">Select Client</h2>
+              <p className="text-sm text-slate-500">Choose the client for this purchase order</p>
+            </div>
+
+            <input
+              type="text"
+              placeholder="Search clients by name, code, or category..."
+              aria-label="Search clients"
+              value={clientSearch}
+              onChange={(e) => setClientSearch(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            />
+
+            <div className="space-y-2">
+              {filteredClients.map(client => (
+                <button
+                  key={client.id}
+                  onClick={() => {
+                    setSelectedClient(client);
+                    markDirty();
+                    setStep(2);
+                  }}
+                  className={`w-full text-left p-4 rounded-xl border transition ${
+                    selectedClient?.id === client.id
+                      ? 'border-orange-500 bg-orange-50'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium text-slate-900">{client.client_name}</p>
+                      <p className="text-sm text-slate-500">{client.client_code} {client.category ? `• ${client.category}` : ''}</p>
+                    </div>
+                    {client.parent_entity && (
+                      <p className="text-xs text-slate-400">{client.parent_entity}</p>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Skip Client Option */}
+            <div className="pt-4 border-t border-slate-200">
+              <button
+                onClick={() => {
+                  setSelectedClient(null);
+                  setStep(2);
+                }}
+                className="w-full py-3 px-4 text-slate-500 hover:text-slate-700 text-sm transition"
+              >
+                Skip - Continue without Client
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Select Project */}
+        {step === 2 && (
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-semibold text-slate-800 mb-1">Select Project</h2>
@@ -407,7 +494,7 @@ export default function CreatePOPage() {
                   onClick={() => {
                     setSelectedProject(project);
                     markDirty();
-                    setStep(2);
+                    setStep(3);
                   }}
                   className={`w-full text-left p-4 rounded-xl border transition ${
                     selectedProject?.id === project.id
@@ -423,8 +510,8 @@ export default function CreatePOPage() {
           </div>
         )}
 
-        {/* Step 2: Select Work Order */}
-        {step === 2 && (
+        {/* Step 3: Select Work Order */}
+        {step === 3 && (
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-semibold text-slate-800 mb-1">Select Work Order</h2>
@@ -533,7 +620,7 @@ export default function CreatePOPage() {
                     key={wo.id}
                     onClick={() => {
                       setSelectedWorkOrder(wo);
-                      setStep(3);
+                      setStep(4);
                     }}
                     className={`w-full text-left p-4 rounded-xl border transition ${
                       selectedWorkOrder?.id === wo.id
@@ -556,7 +643,7 @@ export default function CreatePOPage() {
               <button
                 onClick={() => {
                   setSelectedWorkOrder(null);
-                  setStep(3);
+                  setStep(4);
                 }}
                 className="w-full py-3 px-4 text-slate-500 hover:text-slate-700 text-sm transition"
               >
@@ -566,8 +653,8 @@ export default function CreatePOPage() {
           </div>
         )}
 
-        {/* Step 3: Select Vendor */}
-        {step === 3 && (
+        {/* Step 4: Select Vendor */}
+        {step === 4 && (
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-semibold text-slate-800 mb-1">Select Vendor</h2>
@@ -589,7 +676,7 @@ export default function CreatePOPage() {
                   key={vendor.id}
                   onClick={() => {
                     setSelectedVendor(vendor);
-                    setStep(4);
+                    setStep(5);
                   }}
                   className={`w-full text-left p-4 rounded-xl border transition ${
                     selectedVendor?.id === vendor.id
@@ -612,8 +699,8 @@ export default function CreatePOPage() {
           </div>
         )}
 
-        {/* Step 4: Line Items */}
-        {step === 4 && (
+        {/* Step 5: Line Items */}
+        {step === 6 && (
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-semibold text-slate-800 mb-1">Add Line Items</h2>
@@ -774,7 +861,7 @@ export default function CreatePOPage() {
                 </div>
 
                 <button
-                  onClick={() => setStep(5)}
+                  onClick={() => setStep(6)}
                   className="w-full py-3 px-4 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition"
                 >
                   Continue to Review
@@ -784,8 +871,8 @@ export default function CreatePOPage() {
           </div>
         )}
 
-        {/* Step 5: Review & Submit */}
-        {step === 5 && (
+        {/* Step 6: Review & Submit */}
+        {step === 6 && (
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-semibold text-slate-800 mb-1">Review PO</h2>
@@ -794,6 +881,12 @@ export default function CreatePOPage() {
 
             {/* Summary Card */}
             <div className="bg-white rounded-xl p-4 border border-slate-200 space-y-3">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <span className="text-slate-500">Client</span>
+                <span className={`font-medium ${selectedClient ? 'text-slate-900' : 'text-slate-400 italic'}`}>
+                  {selectedClient?.client_name || 'Not selected'}
+                </span>
+              </div>
               <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                 <span className="text-slate-500">Project</span>
                 <span className="font-medium text-slate-900">{selectedProject?.project_name}</span>
@@ -868,7 +961,7 @@ export default function CreatePOPage() {
       </main>
 
       {/* Bottom Actions */}
-      {step === 5 && (
+      {step === 6 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 space-y-2">
           <button
             onClick={() => handleSubmit('Submitted')}

@@ -60,6 +60,10 @@ interface PurchaseOrder {
   updated_at: string;
   line_items: LineItem[];
   audit_log: AuditEntry[];
+  client?: {
+    client_name: string;
+    category: string | null;
+  } | null;
   vendor?: {
     name: string;
     contact_person: string | null;
@@ -138,6 +142,10 @@ function ViewPurchaseOrder() {
           created_by: a.actor_user?.first_name ? `${a.actor_user.first_name} ${a.actor_user.last_name}` : null,
           authorized_by: null,
         })),
+        client: data.clients ? {
+          client_name: data.clients.client_name,
+          category: data.clients.category || null,
+        } : null,
         vendor: data.vendors ? {
           name: data.vendors.vendor_name,
           contact_person: data.vendors.contact_name || null,
@@ -321,6 +329,12 @@ function ViewPurchaseOrder() {
                   <div>
                     <dt className="text-sm font-medium text-gray-600">Authorized By</dt>
                     <dd className="text-sm text-gray-900">{po.authorized_by}</dd>
+                  </div>
+                )}
+                {po.client && (
+                  <div>
+                    <dt className="text-sm font-medium text-gray-600">Client</dt>
+                    <dd className="text-sm text-gray-900">{po.client.client_name}{po.client.category ? ` (${po.client.category})` : ''}</dd>
                   </div>
                 )}
                 <div>

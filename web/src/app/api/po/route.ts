@@ -37,6 +37,9 @@ const getHandler = withValidation(
       take: query?.limit || 50,
       skip: query?.page ? (query.page - 1) * (query.limit || 50) : 0,
       include: {
+        clients: {
+          select: { client_name: true, client_code: true },
+        },
         vendors: {
           select: { vendor_name: true, vendor_code: true },
         },
@@ -73,6 +76,7 @@ const postHandler = withValidation(
     }
 
     const {
+      clientId,
       projectId,
       workOrderId,
       vendorId,
@@ -219,6 +223,7 @@ const postHandler = withValidation(
     const po = await prisma.po_headers.create({
       data: {
         po_number: poNumber,
+        client_id: clientId || null,
         po_leader_code: purchaserId,
         po_gl_code: division.cost_center_prefix,
         po_work_order_num: workOrderSequence,
@@ -244,6 +249,7 @@ const postHandler = withValidation(
       },
       include: {
         po_line_items: true,
+        clients: true,
         vendors: true,
         projects: true,
         divisions: true,

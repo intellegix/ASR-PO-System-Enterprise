@@ -123,9 +123,11 @@ model po_headers {
   deleted_at                                   DateTime?         @db.Timestamptz(6)
   qb_bill_id                                   String?           @db.VarChar(50)
   qb_sync_status                               qb_sync_status?   @default(PENDING)
+  client_id                                    String?           @db.Uuid
   qb_synced_at                                 DateTime?         @db.Timestamptz(6)
   po_approvals                                 po_approvals[]
   users_po_headers_approved_by_user_idTousers  users?            @relation("po_headers_approved_by_user_idTousers", fields: [approved_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  clients                                      clients?          @relation(fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   divisions                                    divisions         @relation(fields: [division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   division_leaders                             division_leaders? @relation(fields: [division_leader_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   projects                                     projects          @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -135,6 +137,7 @@ model po_headers {
   po_line_items                                po_line_items[]
   vendor_invoices                              vendor_invoices[]
 
+  @@index([client_id], map: "idx_po_headers_client")
   @@index([created_at], map: "idx_po_headers_created")
   @@index([division_id], map: "idx_po_headers_division")
   @@index([po_leader_code], map: "idx_po_headers_leader_code")
@@ -193,6 +196,7 @@ model projects {
   created_at          DateTime?       @default(now()) @db.Timestamptz(6)
   updated_at          DateTime?       @default(now()) @db.Timestamptz(6)
   po_headers          po_headers[]
+  clients             clients?        @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   divisions           divisions?      @relation(fields: [primary_division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   work_orders         work_orders[]
   vendor_invoices     vendor_invoices[]
@@ -386,6 +390,33 @@ enum qb_sync_status {
   RETRY
 }
 
+/// Client master list for PO and invoice association
+model clients {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  client_name      String    @db.VarChar(200)
+  client_code      String    @unique @db.VarChar(20)
+  category         String?   @db.VarChar(50)
+  parent_entity    String?   @db.VarChar(200)
+  aliases          String?
+  sub_projects     String?
+  contact_name     String?   @db.VarChar(200)
+  contact_email    String?   @db.VarChar(255)
+  contact_phone    String?   @db.VarChar(20)
+  address          String?
+  notes            String?
+  is_active        Boolean   @default(true)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+
+  po_headers        po_headers[]
+  customer_invoices customer_invoices[]
+  projects          projects[]
+
+  @@index([client_name], map: "idx_clients_name")
+  @@index([category], map: "idx_clients_category")
+  @@index([is_active], map: "idx_clients_active")
+}
+
 /// QuickBooks OAuth token storage for API integration
 model qb_auth_tokens {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -437,6 +468,7 @@ model customer_invoices {
   invoice_number     String                  @db.VarChar(50)
   project_id         String                  @db.Uuid
   division_id        String?                 @db.Uuid
+  client_id          String?                 @db.Uuid
   customer_name      String                  @db.VarChar(200)
   customer_email     String?                 @db.VarChar(200)
   customer_address   String?
@@ -452,11 +484,13 @@ model customer_invoices {
   created_at         DateTime                @default(now()) @db.Timestamptz(6)
   updated_at         DateTime                @updatedAt
 
+  clients            clients?                @relation(fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   projects           projects                @relation(fields: [project_id], references: [id])
   divisions          divisions?              @relation(fields: [division_id], references: [id])
   users              users                   @relation(fields: [created_by_user_id], references: [id])
   line_items         customer_invoice_items[]
 
+  @@index([client_id], map: "idx_customer_invoices_client")
   @@index([project_id], map: "idx_customer_invoices_project")
   @@index([status], map: "idx_customer_invoices_status")
 }

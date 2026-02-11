@@ -82,6 +82,7 @@ export const poLineItemSchema = z.object({
 
 // Base PO schema without refinements
 const basePOSchema = z.object({
+  clientId: uuidSchema.nullable().optional(),
   projectId: uuidSchema,
   workOrderId: uuidSchema.nullable().optional(),
   vendorId: uuidSchema,
