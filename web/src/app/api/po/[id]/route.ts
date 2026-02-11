@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
+import { withRateLimit } from '@/lib/validation/middleware';
 import prisma from '@/lib/db';
 // Force dynamic rendering for API route
 export const dynamic = 'force-dynamic';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function GET(
+const getHandler = async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -72,12 +73,12 @@ export async function GET(
     console.error('Error fetching PO:', error);
     return NextResponse.json({ error: 'Failed to fetch PO' }, { status: 500 });
   }
-}
+};
 
-export async function PUT(
+const putHandler = async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -136,12 +137,12 @@ export async function PUT(
     console.error('Error updating PO:', error);
     return NextResponse.json({ error: 'Failed to update PO' }, { status: 500 });
   }
-}
+};
 
-export async function DELETE(
+const deleteHandler = async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -195,4 +196,8 @@ export async function DELETE(
     console.error('Error deleting PO:', error);
     return NextResponse.json({ error: 'Failed to delete PO' }, { status: 500 });
   }
-}
+};
+
+export const GET = withRateLimit(200, 60 * 1000)(getHandler);
+export const PUT = withRateLimit(20, 60 * 1000)(putHandler);
+export const DELETE = withRateLimit(10, 60 * 1000)(deleteHandler);

@@ -3,11 +3,12 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
 import { hasPermission } from '@/lib/auth/permissions';
+import { withRateLimit } from '@/lib/validation/middleware';
 // Force dynamic rendering for API route
 export const dynamic = 'force-dynamic';
 
 
-export async function GET(request: NextRequest) {
+const getHandler = async (request: NextRequest) => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -88,4 +89,6 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const GET = withRateLimit(100, 60 * 1000)(getHandler);

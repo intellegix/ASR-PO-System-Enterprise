@@ -1,19 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
+import { hasPermission } from '@/lib/auth/permissions';
+import { withRateLimit } from '@/lib/validation/middleware';
 import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 // GET - Fetch dashboard statistics
-export async function GET(request: NextRequest) {
+const getHandler = async (request: NextRequest) => {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
+    }
+
+    const user = await prisma.users.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+    if (!user || !hasPermission(user.role as any, 'report:view')) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
     const url = new URL(request.url);
@@ -168,4 +178,6 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const GET = withRateLimit(50, 60 * 1000)(getHandler);

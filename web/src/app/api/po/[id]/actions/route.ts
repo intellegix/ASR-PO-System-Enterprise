@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
+import { withRateLimit } from '@/lib/validation/middleware';
 import prisma from '@/lib/db';
 import {
   sendApprovalNeededEmails,
@@ -24,10 +25,10 @@ interface ActionRequest {
   notes?: string;
 }
 
-export async function POST(
+const postHandler = async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -328,7 +329,9 @@ export async function POST(
       { status: 500 }
     );
   }
-}
+};
+
+export const POST = withRateLimit(20, 60 * 1000)(postHandler);
 
 function getSuccessMessage(action: POAction, poNumber: string): string {
   switch (action) {

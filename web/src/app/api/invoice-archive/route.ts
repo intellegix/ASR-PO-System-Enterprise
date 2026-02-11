@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
+import { withRateLimit } from '@/lib/validation/middleware';
 
 // Force dynamic rendering for API route
 export const dynamic = 'force-dynamic';
@@ -12,7 +13,7 @@ import {
   getArchiveProjects,
 } from '@/lib/invoice-archive';
 
-export async function GET(request: NextRequest) {
+const getHandler = async (request: NextRequest) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -60,4 +61,6 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const GET = withRateLimit(50, 60 * 1000)(getHandler);

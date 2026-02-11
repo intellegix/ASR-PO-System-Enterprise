@@ -15,6 +15,8 @@ const nextConfig: NextConfig = {
 
   // Security + CORS headers
   async headers() {
+    const productionOrigin = process.env.NEXT_PUBLIC_APP_URL || 'https://web-intellegix.vercel.app';
+
     return [
       {
         source: '/:path*',
@@ -32,8 +34,16 @@ const nextConfig: NextConfig = {
             value: 'strict-origin-when-cross-origin',
           },
           {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), payment=()',
+          },
+          {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.vercel.app https://*.neon.tech; frame-ancestors 'none';",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.vercel.app https://*.neon.tech; frame-ancestors 'none';",
           },
         ],
       },
@@ -42,7 +52,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
-            value: '*'
+            value: productionOrigin,
           },
           {
             key: 'Access-Control-Allow-Methods',

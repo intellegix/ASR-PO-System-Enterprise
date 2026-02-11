@@ -1,17 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
+import { hasPermission } from '@/lib/auth/permissions';
+import { withRateLimit } from '@/lib/validation/middleware';
 import prisma from '@/lib/db';
 import log, { auditLog } from '@/lib/logging/logger';
 
 export const dynamic = 'force-dynamic';
 
 // GET - List vendor invoices
-export async function GET(request: NextRequest) {
+const getHandler = async (request: NextRequest) => {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.users.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+    if (!user || !hasPermission(user.role as any, 'po:read')) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -47,14 +57,22 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
 
 // POST - Create vendor invoice
-export async function POST(request: NextRequest) {
+const postHandler = async (request: NextRequest) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.users.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+    if (!user || !hasPermission(user.role as any, 'po:create')) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -159,4 +177,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const GET = withRateLimit(100, 60 * 1000)(getHandler);
+export const POST = withRateLimit(20, 60 * 1000)(postHandler);

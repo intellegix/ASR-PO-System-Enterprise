@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
+import { withRateLimit } from '@/lib/validation/middleware';
 import prisma from '@/lib/db';
 // Force dynamic rendering for API route
 export const dynamic = 'force-dynamic';
 
 
-export async function GET() {
+const getHandler = async () => {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -31,4 +32,6 @@ export async function GET() {
     console.error('Error fetching GL accounts:', error);
     return NextResponse.json({ error: 'Failed to fetch GL accounts' }, { status: 500 });
   }
-}
+};
+
+export const GET = withRateLimit(100, 60 * 1000)(getHandler);

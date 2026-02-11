@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
+import { withRateLimit } from '@/lib/validation/middleware';
 import prisma from '@/lib/db';
 import { generatePOPdf } from '@/lib/pdf/po-pdf';
 import { generatePDFSafely, generateFallbackPDF } from '@/lib/pdf/error-handler';
@@ -10,10 +11,10 @@ import { logPDFOperation } from '@/lib/pdf/config';
 export const dynamic = 'force-dynamic';
 
 
-export async function GET(
+const getHandler = async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const startTime = Date.now();
   const { id } = await params;
 
@@ -180,4 +181,6 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+};
+
+export const GET = withRateLimit(50, 60 * 1000)(getHandler);
