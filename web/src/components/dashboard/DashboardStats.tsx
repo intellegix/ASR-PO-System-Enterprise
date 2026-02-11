@@ -58,7 +58,7 @@ export function DashboardStats({ dateRange }: DashboardStatsProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
@@ -89,7 +89,7 @@ export function DashboardStats({ dateRange }: DashboardStatsProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       <StatsCard
         title="Total Purchase Orders"
         value={stats.totalPOs}

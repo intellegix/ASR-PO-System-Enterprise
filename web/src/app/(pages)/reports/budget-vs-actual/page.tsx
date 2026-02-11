@@ -391,21 +391,21 @@ export default function BudgetVsActualPage() {
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center space-x-4">
                 <Link
                   href="/reports"
                   className="flex items-center space-x-2 text-slate-600 hover:text-orange-600 transition-colors"
                 >
                   <ArrowLeftIcon />
-                  <span>Back to Reports</span>
+                  <span className="hidden sm:inline">Back to Reports</span>
                 </Link>
-                <div className="h-6 w-px bg-slate-300" />
+                <div className="h-6 w-px bg-slate-300 hidden sm:block" />
                 <div className="flex items-center space-x-3">
                   <CalculatorIcon className="w-6 h-6 text-orange-600" />
                   <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Budget vs Actual Analysis</h1>
-                    <p className="text-slate-600">Project budget variance and forecasting</p>
+                    <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Budget vs Actual Analysis</h1>
+                    <p className="text-sm sm:text-base text-slate-600">Project budget variance and forecasting</p>
                   </div>
                 </div>
               </div>
@@ -444,7 +444,7 @@ export default function BudgetVsActualPage() {
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
           <h3 className="text-lg font-semibold text-slate-900 mb-4">Report Filters</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Start Date</label>
               <input
@@ -522,7 +522,7 @@ export default function BudgetVsActualPage() {
 
         {/* Export Options */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Export Options</h3>
               <p className="text-sm text-slate-600">Download budget analysis in various formats</p>

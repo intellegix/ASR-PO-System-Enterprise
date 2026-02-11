@@ -96,7 +96,7 @@ export default function Dashboard() {
       />
 
       {/* Dashboard content grid */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PendingApprovals
           limit={8}
           className="lg:col-span-1"

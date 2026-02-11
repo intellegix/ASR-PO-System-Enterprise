@@ -230,38 +230,40 @@ export default function InvoicesPage() {
                 )}
               </div>
             ) : (
-              <table className="w-full">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
                 <thead className="bg-slate-50 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   <tr>
-                    <th className="px-6 py-3">Invoice #</th>
-                    <th className="px-6 py-3">Vendor</th>
-                    <th className="px-6 py-3">PO #</th>
-                    <th className="px-6 py-3">Amount</th>
-                    <th className="px-6 py-3">Status</th>
-                    <th className="px-6 py-3">Received</th>
+                    <th className="px-4 sm:px-6 py-3">Invoice #</th>
+                    <th className="px-4 sm:px-6 py-3">Vendor</th>
+                    <th className="px-4 sm:px-6 py-3">PO #</th>
+                    <th className="px-4 sm:px-6 py-3">Amount</th>
+                    <th className="px-4 sm:px-6 py-3">Status</th>
+                    <th className="px-4 sm:px-6 py-3">Received</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredVendorInvoices.map((inv: any) => (
                     <tr key={inv.id} className="hover:bg-slate-50 transition">
-                      <td className="px-6 py-4 text-sm font-medium text-slate-900">{inv.invoice_number}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{inv.vendors?.vendor_name}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{inv.po_headers?.po_number || '-'}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-slate-900">
+                      <td className="px-4 sm:px-6 py-4 text-sm font-medium text-slate-900">{inv.invoice_number}</td>
+                      <td className="px-4 sm:px-6 py-4 text-sm text-slate-600">{inv.vendors?.vendor_name}</td>
+                      <td className="px-4 sm:px-6 py-4 text-sm text-slate-600">{inv.po_headers?.po_number || '-'}</td>
+                      <td className="px-4 sm:px-6 py-4 text-sm font-medium text-slate-900">
                         ${Number(inv.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4">
                         <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColor(inv.status)}`}>
                           {inv.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-500">
+                      <td className="px-4 sm:px-6 py-4 text-sm text-slate-500">
                         {new Date(inv.date_received).toLocaleDateString()}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         )}
@@ -289,40 +291,42 @@ export default function InvoicesPage() {
                 )}
               </div>
             ) : (
-              <table className="w-full">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
                 <thead className="bg-slate-50 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   <tr>
-                    <th className="px-6 py-3">Invoice #</th>
-                    <th className="px-6 py-3">Customer</th>
-                    <th className="px-6 py-3">Project</th>
-                    <th className="px-6 py-3">Amount</th>
-                    <th className="px-6 py-3">Status</th>
-                    <th className="px-6 py-3">Issued</th>
+                    <th className="px-4 sm:px-6 py-3">Invoice #</th>
+                    <th className="px-4 sm:px-6 py-3">Customer</th>
+                    <th className="px-4 sm:px-6 py-3">Project</th>
+                    <th className="px-4 sm:px-6 py-3">Amount</th>
+                    <th className="px-4 sm:px-6 py-3">Status</th>
+                    <th className="px-4 sm:px-6 py-3">Issued</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredCustomerInvoices.map((inv: any) => (
                     <tr key={inv.id} className="hover:bg-slate-50 transition">
-                      <td className="px-6 py-4 text-sm font-medium text-slate-900">{inv.invoice_number}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{inv.customer_name}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
+                      <td className="px-4 sm:px-6 py-4 text-sm font-medium text-slate-900">{inv.invoice_number}</td>
+                      <td className="px-4 sm:px-6 py-4 text-sm text-slate-600">{inv.customer_name}</td>
+                      <td className="px-4 sm:px-6 py-4 text-sm text-slate-600">
                         {inv.projects?.project_code} - {inv.projects?.project_name}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-slate-900">
+                      <td className="px-4 sm:px-6 py-4 text-sm font-medium text-slate-900">
                         ${Number(inv.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4">
                         <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColor(inv.status)}`}>
                           {inv.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-500">
+                      <td className="px-4 sm:px-6 py-4 text-sm text-slate-500">
                         {new Date(inv.date_issued).toLocaleDateString()}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         )}

@@ -190,19 +190,19 @@ function POSummaryReport() {
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center space-x-4">
                 <Link
                   href="/reports"
                   className="flex items-center space-x-2 text-slate-600 hover:text-orange-600 transition-colors"
                 >
                   <ArrowLeftIcon />
-                  <span>Back to Reports</span>
+                  <span className="hidden sm:inline">Back to Reports</span>
                 </Link>
-                <div className="h-6 w-px bg-slate-300" />
+                <div className="h-6 w-px bg-slate-300 hidden sm:block" />
                 <div>
-                  <h1 className="text-2xl font-bold text-slate-900">PO Summary by Division</h1>
-                  <p className="text-slate-600">Executive overview of purchasing activity and spending</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900">PO Summary by Division</h1>
+                  <p className="text-sm sm:text-base text-slate-600">Executive overview of purchasing activity and spending</p>
                 </div>
               </div>
 

@@ -462,7 +462,7 @@ export default function CreatePOPage() {
               <div
                 className={`h-1 w-full rounded ${i + 1 <= step ? 'bg-orange-500' : 'bg-slate-200'}`}
               />
-              <span className={`text-[10px] leading-tight ${i + 1 <= step ? 'text-orange-600 font-medium' : 'text-slate-400'}`}>
+              <span className={`text-[8px] sm:text-[10px] leading-tight hidden sm:block ${i + 1 <= step ? 'text-orange-600 font-medium' : 'text-slate-400'}`}>
                 {label}
               </span>
             </div>
@@ -506,7 +506,7 @@ export default function CreatePOPage() {
                     {clientError}
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Client Name <span className="text-red-500">*</span></label>
                     <input
@@ -530,7 +530,7 @@ export default function CreatePOPage() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Category</label>
                     <input
@@ -554,7 +554,7 @@ export default function CreatePOPage() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Contact Name</label>
                     <input
