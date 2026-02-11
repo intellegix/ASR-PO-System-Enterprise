@@ -64,5 +64,86 @@ const getHandler = async (request: NextRequest) => {
   }
 };
 
+// POST handler for creating projects
+const postHandler = async (request: NextRequest) => {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const user = await prisma.users.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    if (!hasPermission(user.role as any, 'po:create')) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { project_code, project_name, customer_id, district_name, property_address } = body;
+
+    if (!project_code || !project_name) {
+      return NextResponse.json({ error: 'project_code and project_name are required' }, { status: 400 });
+    }
+
+    if (project_code.length > 15) {
+      return NextResponse.json({ error: 'project_code must be 15 characters or fewer' }, { status: 400 });
+    }
+
+    if (project_name.length > 200) {
+      return NextResponse.json({ error: 'project_name must be 200 characters or fewer' }, { status: 400 });
+    }
+
+    const existing = await prisma.projects.findUnique({
+      where: { project_code },
+    });
+
+    if (existing) {
+      return NextResponse.json({ error: 'A project with this code already exists' }, { status: 409 });
+    }
+
+    const project = await prisma.projects.create({
+      data: {
+        project_code,
+        project_name,
+        customer_id: customer_id || null,
+        district_name: district_name || null,
+        property_address: property_address || null,
+        status: 'Active',
+      },
+      select: {
+        id: true,
+        project_code: true,
+        project_name: true,
+        district_name: true,
+        property_address: true,
+      },
+    });
+
+    log.info('Project created', {
+      userId: session.user.id,
+      userRole: user.role,
+      projectId: project.id,
+      projectCode: project.project_code,
+    });
+
+    return NextResponse.json(project, { status: 201 });
+  } catch (error) {
+    log.error('Failed to create project', {
+      error: error instanceof Error ? error.message : String(error),
+      userId: session.user.id,
+    });
+
+    return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
+  }
+};
+
 // Apply rate limiting
 export const GET = withRateLimit(100, 60 * 1000)(getHandler);
+export const POST = withRateLimit(20, 60 * 1000)(postHandler);

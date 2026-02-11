@@ -1,5 +1,10 @@
 # ASR Purchase Order System - Claude Code Configuration
 
+## CRITICAL: Browser Automation
+- **ALWAYS use `mcp__browser-bridge__*` tools** for all browser automation
+- **NEVER use `mcp__claude-in-chrome__*` tools** — extension is unreliable
+- `browser_fill_form` doesn't trigger React state updates — use button clicks instead
+
 ## CRITICAL: Master Plan Integration Protocol
 
 **ENFORCE**: Claude MUST ALWAYS suggest next steps based on recent project activity by referencing the master plan.

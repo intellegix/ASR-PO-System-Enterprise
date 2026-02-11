@@ -191,6 +191,49 @@ export default function CreatePOPage() {
     }
   };
 
+  // Create new project
+  const handleCreateProject = async () => {
+    if (!newProjectCode || !newProjectName) return;
+
+    setCreatingProject(true);
+    setProjectError(null);
+
+    try {
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          project_code: newProjectCode,
+          project_name: newProjectName,
+          customer_id: selectedClient?.id || null,
+          district_name: newProjectDistrict || null,
+          property_address: newProjectAddress || null,
+        }),
+      });
+
+      if (res.ok) {
+        const newProject = await res.json();
+        setProjects([newProject, ...projects]);
+        setSelectedProject(newProject);
+        setShowNewProjectForm(false);
+        setNewProjectCode('');
+        setNewProjectName('');
+        setNewProjectDistrict('');
+        setNewProjectAddress('');
+        markDirty();
+        setStep(3);
+      } else {
+        const errorData = await res.json();
+        setProjectError(errorData.error || 'Failed to create project');
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+      setProjectError('Network error. Please try again.');
+    } finally {
+      setCreatingProject(false);
+    }
+  };
+
   // New client form
   const [showNewClientForm, setShowNewClientForm] = useState(false);
   const [newClientName, setNewClientName] = useState('');
@@ -202,6 +245,15 @@ export default function CreatePOPage() {
   const [newClientContactPhone, setNewClientContactPhone] = useState('');
   const [creatingClient, setCreatingClient] = useState(false);
   const [clientError, setClientError] = useState<string | null>(null);
+
+  // New project form
+  const [showNewProjectForm, setShowNewProjectForm] = useState(false);
+  const [newProjectCode, setNewProjectCode] = useState('');
+  const [newProjectName, setNewProjectName] = useState('');
+  const [newProjectDistrict, setNewProjectDistrict] = useState('');
+  const [newProjectAddress, setNewProjectAddress] = useState('');
+  const [creatingProject, setCreatingProject] = useState(false);
+  const [projectError, setProjectError] = useState<string | null>(null);
 
   // New work order form
   const [showNewWOForm, setShowNewWOForm] = useState(false);
@@ -670,6 +722,100 @@ export default function CreatePOPage() {
               onChange={(e) => setProjectSearch(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             />
+
+            {/* Add New Project Button */}
+            <button
+              onClick={() => setShowNewProjectForm(true)}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-orange-300 rounded-xl text-orange-600 hover:bg-orange-50 transition"
+            >
+              <PlusIcon />
+              <span>Add New Project</span>
+            </button>
+
+            {/* New Project Form */}
+            {showNewProjectForm && (
+              <div className="bg-white rounded-xl p-4 border border-slate-200 space-y-3">
+                <h3 className="font-medium text-slate-800">New Project</h3>
+                {projectError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {projectError}
+                  </div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Project Code <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      placeholder="e.g., PRJ-001"
+                      value={newProjectCode}
+                      onChange={(e) => setNewProjectCode(e.target.value.toUpperCase())}
+                      maxLength={15}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                      disabled={creatingProject}
+                    />
+                    <p className="text-[10px] text-slate-400 mt-0.5">Max 15 characters, uppercase</p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Project Name <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Main St Roof Replacement"
+                      value={newProjectName}
+                      onChange={(e) => setNewProjectName(e.target.value)}
+                      maxLength={200}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                      disabled={creatingProject}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">District Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., San Diego Unified"
+                      value={newProjectDistrict}
+                      onChange={(e) => setNewProjectDistrict(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                      disabled={creatingProject}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Property Address</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., 123 Main St, San Diego, CA"
+                      value={newProjectAddress}
+                      onChange={(e) => setNewProjectAddress(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                      disabled={creatingProject}
+                    />
+                  </div>
+                </div>
+                {selectedClient && (
+                  <p className="text-xs text-slate-500">This project will be linked to client: <span className="font-medium">{selectedClient.client_name}</span></p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowNewProjectForm(false);
+                      setProjectError(null);
+                    }}
+                    disabled={creatingProject}
+                    className="flex-1 py-2 px-4 border border-slate-300 rounded-lg text-slate-600 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateProject}
+                    disabled={!newProjectCode || !newProjectName || creatingProject}
+                    className="flex-1 py-2 px-4 bg-orange-500 text-white rounded-lg disabled:opacity-50"
+                  >
+                    {creatingProject ? 'Creating...' : 'Create Project'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               {filteredProjects.length === 0 ? (
