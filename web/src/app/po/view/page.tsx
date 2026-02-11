@@ -108,7 +108,50 @@ function ViewPurchaseOrder() {
       }
 
       const data = await response.json();
-      setPo(data);
+      // Normalize API response to match component interface
+      const reqUser = data.users_po_headers_requested_by_user_idTousers;
+      const appUser = data.users_po_headers_approved_by_user_idTousers;
+      const normalized: PurchaseOrder = {
+        ...data,
+        description: data.notes_internal || '',
+        requested_by: reqUser ? `${reqUser.first_name} ${reqUser.last_name}` : '',
+        authorized_by: appUser ? `${appUser.first_name} ${appUser.last_name}` : null,
+        priority: data.priority || '',
+        notes: data.notes_vendor || data.notes_internal || null,
+        is_taxable: Number(data.tax_amount) > 0,
+        shipping_amount: 0,
+        total_with_tax: data.total_amount,
+        line_items: (data.po_line_items || []).map((li: any) => ({
+          ...li,
+          gl_accounts: li.gl_accounts || (li.gl_account_code ? {
+            gl_code_short: li.gl_account_code,
+            gl_account_name: li.gl_account_name || '',
+          } : null),
+        })),
+        audit_log: (data.po_approvals || []).map((a: any) => ({
+          id: a.id,
+          action: a.action,
+          timestamp: a.created_at,
+          notes: a.notes,
+          status_before: a.status_before,
+          status_after: a.status_after,
+          created_by: a.actor_user?.first_name ? `${a.actor_user.first_name} ${a.actor_user.last_name}` : null,
+          authorized_by: null,
+        })),
+        vendor: data.vendors ? {
+          name: data.vendors.vendor_name,
+          contact_person: data.vendors.contact_name || null,
+          phone: data.vendors.contact_phone || data.vendors.phone_main || null,
+          email: data.vendors.contact_email || null,
+        } : null,
+        project: data.projects ? {
+          project_name: `${data.projects.project_code} - ${data.projects.project_name}`,
+        } : null,
+        division: data.divisions ? {
+          division_name: data.divisions.division_name,
+        } : null,
+      };
+      setPo(normalized);
     } catch (error) {
       console.error('Error fetching purchase order:', error);
       setError(error instanceof Error ? error.message : 'Failed to load purchase order');

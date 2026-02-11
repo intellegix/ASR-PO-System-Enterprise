@@ -32,6 +32,7 @@ export async function GET(
             quantity: true,
             unit_of_measure: true,
             unit_price: true,
+            line_subtotal: true,
             gl_account_code: true,
             gl_account_number: true,
             gl_account_name: true,

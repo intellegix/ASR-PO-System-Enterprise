@@ -137,12 +137,12 @@ export default function POListPage() {
       const params = new URLSearchParams();
       if (statusFilter) params.set('status', statusFilter);
       if (divisionFilter) params.set('divisionId', divisionFilter);
-      params.set('limit', '500');
+      params.set('limit', '100');
 
       const response = await fetch(`/api/po?${params}`);
       if (response.ok) {
         const data = await response.json();
-        setPOs(data);
+        setPOs(Array.isArray(data) ? data : []);
       }
     } catch (error) {
       console.error('Error fetching POs:', error);
