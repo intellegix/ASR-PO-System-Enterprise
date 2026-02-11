@@ -197,7 +197,7 @@ export default function KPIMetrics({ divisionId, timeframe = 'current_month', cl
         {/* Total POs */}
         <div className="bg-white rounded-xl p-5 shadow-sm">
           <p className="text-sm text-slate-500 mb-1">Total POs</p>
-          <p className="text-2xl font-bold text-slate-900">{kpis.metrics.totalCount || '—'}</p>
+          <p className="text-2xl font-bold text-slate-900">{kpis.metrics.totalCount || 0}</p>
           {kpis.metrics.totalCount > 0 && (
             <div className="flex items-center gap-1 mt-1">
               <TrendIcon
@@ -218,7 +218,7 @@ export default function KPIMetrics({ divisionId, timeframe = 'current_month', cl
         <div className="bg-white rounded-xl p-5 shadow-sm">
           <p className="text-sm text-slate-500 mb-1">{kpis.timeframe.label} Spend</p>
           <p className="text-2xl font-bold text-slate-900">
-            {kpis.metrics.totalCount === 0 ? '—' :
+            {kpis.metrics.totalSpend === 0 ? '$0' :
               `$${kpis.metrics.totalSpend >= 1000000
                 ? `${(kpis.metrics.totalSpend / 1000000).toFixed(1)}M`
                 : `${(kpis.metrics.totalSpend / 1000).toFixed(0)}k`
@@ -236,7 +236,7 @@ export default function KPIMetrics({ divisionId, timeframe = 'current_month', cl
         <div className="bg-white rounded-xl p-5 shadow-sm">
           <p className="text-sm text-slate-500 mb-1">Avg PO Value</p>
           <p className="text-2xl font-bold text-slate-900">
-            {kpis.metrics.totalCount === 0 ? '—' :
+            {kpis.metrics.totalCount === 0 ? '$0' :
               `$${avgPOValue >= 10000
                 ? `${(avgPOValue / 1000).toFixed(0)}k`
                 : avgPOValue.toLocaleString()

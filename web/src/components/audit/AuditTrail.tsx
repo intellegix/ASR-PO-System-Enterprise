@@ -404,7 +404,7 @@ export default function AuditTrail({ poId, limit = 50, className = '' }: AuditTr
                                   </span>
                                   <span className="flex items-center">
                                     <UserIcon className="w-3 h-3 mr-1" />
-                                    {entry.actor.role}
+                                    {entry.actor.role.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
                                   </span>
                                   <span>
                                     {entry.po.division_name} • {formatCurrency(entry.po.total_amount)}
@@ -449,7 +449,7 @@ export default function AuditTrail({ poId, limit = 50, className = '' }: AuditTr
                                   </div>
                                   <div className="flex justify-between">
                                     <dt className="text-slate-500">Role:</dt>
-                                    <dd className="text-slate-900">{entry.actor.role}</dd>
+                                    <dd className="text-slate-900">{entry.actor.role.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}</dd>
                                   </div>
                                   <div className="flex justify-between">
                                     <dt className="text-slate-500">Email:</dt>

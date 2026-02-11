@@ -610,11 +610,11 @@ export default function BudgetVsActualPage() {
                       {formatCurrency(Math.abs(data.summary.totalVariance))}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
-                      {data.summary.totalVariance > 0 ? 'Over budget' : 'Under budget'}
+                      {data.summary.totalActual > data.summary.totalBudget ? 'Over budget' : 'Under budget'}
                     </p>
                   </div>
-                  <div className={`p-3 rounded-lg ${data.summary.totalVariance > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
-                    {data.summary.totalVariance > 0 ?
+                  <div className={`p-3 rounded-lg ${data.summary.totalActual > data.summary.totalBudget ? 'bg-red-100' : 'bg-green-100'}`}>
+                    {data.summary.totalActual > data.summary.totalBudget ?
                       <TrendingUpIcon className="w-6 h-6 text-red-600" /> :
                       <TrendingDownIcon className="w-6 h-6 text-green-600" />
                     }

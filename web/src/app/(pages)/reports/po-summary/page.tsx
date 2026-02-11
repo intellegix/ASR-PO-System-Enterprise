@@ -233,7 +233,7 @@ function POSummaryReport() {
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
           <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
-            <FilterIcon className="mr-2" />
+            <FilterIcon className="w-5 h-5 mr-2" />
             Report Filters
           </h3>
 

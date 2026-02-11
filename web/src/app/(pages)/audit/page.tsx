@@ -114,7 +114,7 @@ export default function AuditPage() {
               <div className="text-right">
                 <p className="text-sm text-slate-500">Welcome back, {user?.name?.split(' ')[0]}</p>
                 <p className="text-xs text-slate-400">
-                  {user?.divisionName || 'All Divisions'} • {userRole.replace('_', ' ')}
+                  {user?.divisionName || 'All Divisions'} • {userRole.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
                 </p>
               </div>
             </div>

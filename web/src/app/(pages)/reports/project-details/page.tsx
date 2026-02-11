@@ -632,7 +632,9 @@ export default function ProjectDetailsPage() {
                       <p className="text-sm font-medium text-slate-600">Actual Spend</p>
                       <p className="text-xl font-bold text-slate-900">{formatCurrency(data.projectInfo.actualSpend)}</p>
                       <p className="text-xs text-slate-500 mt-1">
-                        {formatPercentage((data.projectInfo.actualSpend / data.projectInfo.totalBudget) * 100)} of budget
+                        {data.projectInfo.totalBudget > 0
+                          ? `${formatPercentage((data.projectInfo.actualSpend / data.projectInfo.totalBudget) * 100)} of budget`
+                          : 'No budget set'}
                       </p>
                     </div>
                     <div className="p-2 bg-green-100 rounded-lg">
@@ -807,7 +809,9 @@ export default function ProjectDetailsPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-slate-900">{formatCurrency(division.totalSpend)}</div>
                           <div className="text-xs text-slate-500">
-                            {formatPercentage((division.totalSpend / division.budgetAllocated) * 100)} utilized
+                            {division.budgetAllocated > 0
+                              ? `${formatPercentage((division.totalSpend / division.budgetAllocated) * 100)} utilized`
+                              : 'No budget allocated'}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

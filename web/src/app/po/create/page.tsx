@@ -143,6 +143,66 @@ export default function CreatePOPage() {
 
   const markDirty = useCallback(() => { if (!isDirty) setIsDirty(true); }, [isDirty]);
 
+  // Create new client
+  const handleCreateClient = async () => {
+    if (!newClientName || !newClientCode) return;
+
+    setCreatingClient(true);
+    setClientError(null);
+
+    try {
+      const res = await fetch('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_name: newClientName,
+          client_code: newClientCode,
+          category: newClientCategory || null,
+          parent_entity: newClientParentEntity || null,
+          contact_name: newClientContactName || null,
+          contact_email: newClientContactEmail || null,
+          contact_phone: newClientContactPhone || null,
+        }),
+      });
+
+      if (res.ok) {
+        const newClient = await res.json();
+        setClients([newClient, ...clients]);
+        setSelectedClient(newClient);
+        setShowNewClientForm(false);
+        setNewClientName('');
+        setNewClientCode('');
+        setNewClientCategory('');
+        setNewClientParentEntity('');
+        setNewClientContactName('');
+        setNewClientContactEmail('');
+        setNewClientContactPhone('');
+        markDirty();
+        setStep(2);
+      } else {
+        const errorData = await res.json();
+        setClientError(errorData.error || 'Failed to create client');
+      }
+    } catch (error) {
+      console.error('Error creating client:', error);
+      setClientError('Network error. Please try again.');
+    } finally {
+      setCreatingClient(false);
+    }
+  };
+
+  // New client form
+  const [showNewClientForm, setShowNewClientForm] = useState(false);
+  const [newClientName, setNewClientName] = useState('');
+  const [newClientCode, setNewClientCode] = useState('');
+  const [newClientCategory, setNewClientCategory] = useState('');
+  const [newClientParentEntity, setNewClientParentEntity] = useState('');
+  const [newClientContactName, setNewClientContactName] = useState('');
+  const [newClientContactEmail, setNewClientContactEmail] = useState('');
+  const [newClientContactPhone, setNewClientContactPhone] = useState('');
+  const [creatingClient, setCreatingClient] = useState(false);
+  const [clientError, setClientError] = useState<string | null>(null);
+
   // New work order form
   const [showNewWOForm, setShowNewWOForm] = useState(false);
   const [newWOTitle, setNewWOTitle] = useState('');
@@ -362,7 +422,8 @@ export default function CreatePOPage() {
     return c.client_name.toLowerCase().includes(search) ||
       c.client_code.toLowerCase().includes(search) ||
       (c.category || '').toLowerCase().includes(search) ||
-      (c.aliases || '').toLowerCase().includes(search);
+      (c.aliases || '').toLowerCase().includes(search) ||
+      (c.parent_entity || '').toLowerCase().includes(search);
   });
 
   const filteredProjects = projects.filter(p =>
@@ -420,12 +481,135 @@ export default function CreatePOPage() {
 
             <input
               type="text"
-              placeholder="Search clients by name, code, or category..."
+              placeholder="Search clients by name, code, category, or parent entity..."
               aria-label="Search clients"
               value={clientSearch}
               onChange={(e) => setClientSearch(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             />
+
+            {/* Add New Client Button */}
+            <button
+              onClick={() => setShowNewClientForm(true)}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-orange-300 rounded-xl text-orange-600 hover:bg-orange-50 transition"
+            >
+              <PlusIcon />
+              <span>Add New Client</span>
+            </button>
+
+            {/* New Client Form */}
+            {showNewClientForm && (
+              <div className="bg-white rounded-xl p-4 border border-slate-200 space-y-3">
+                <h3 className="font-medium text-slate-800">New Client</h3>
+                {clientError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {clientError}
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Client Name <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Acme Corp"
+                      value={newClientName}
+                      onChange={(e) => setNewClientName(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                      disabled={creatingClient}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Client Code <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      placeholder="e.g., ACME"
+                      value={newClientCode}
+                      onChange={(e) => setNewClientCode(e.target.value.toUpperCase())}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                      disabled={creatingClient}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Category</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., School District"
+                      value={newClientCategory}
+                      onChange={(e) => setNewClientCategory(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                      disabled={creatingClient}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Parent Entity</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Liberty Military Housing"
+                      value={newClientParentEntity}
+                      onChange={(e) => setNewClientParentEntity(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                      disabled={creatingClient}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Contact Name</label>
+                    <input
+                      type="text"
+                      placeholder="Name"
+                      value={newClientContactName}
+                      onChange={(e) => setNewClientContactName(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                      disabled={creatingClient}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Contact Email</label>
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      value={newClientContactEmail}
+                      onChange={(e) => setNewClientContactEmail(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                      disabled={creatingClient}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Contact Phone</label>
+                    <input
+                      type="tel"
+                      placeholder="Phone"
+                      value={newClientContactPhone}
+                      onChange={(e) => setNewClientContactPhone(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+                      disabled={creatingClient}
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowNewClientForm(false);
+                      setClientError(null);
+                    }}
+                    disabled={creatingClient}
+                    className="flex-1 py-2 px-4 border border-slate-300 rounded-lg text-slate-600 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateClient}
+                    disabled={!newClientName || !newClientCode || creatingClient}
+                    className="flex-1 py-2 px-4 bg-orange-500 text-white rounded-lg disabled:opacity-50"
+                  >
+                    {creatingClient ? 'Creating...' : 'Create Client'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               {filteredClients.map(client => (
@@ -488,24 +672,49 @@ export default function CreatePOPage() {
             />
 
             <div className="space-y-2">
-              {filteredProjects.map(project => (
-                <button
-                  key={project.id}
-                  onClick={() => {
-                    setSelectedProject(project);
-                    markDirty();
-                    setStep(3);
-                  }}
-                  className={`w-full text-left p-4 rounded-xl border transition ${
-                    selectedProject?.id === project.id
-                      ? 'border-orange-500 bg-orange-50'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
-                  }`}
-                >
-                  <p className="font-medium text-slate-900">{project.project_name}</p>
-                  <p className="text-sm text-slate-500">{project.project_code} • {project.district_name}</p>
-                </button>
-              ))}
+              {filteredProjects.length === 0 ? (
+                <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-200">
+                  <svg className="mx-auto h-10 w-10 text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <p className="text-slate-600 font-medium">No projects found</p>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {projectSearch ? 'Try a different search term' : 'No projects available'}
+                  </p>
+                </div>
+              ) : (
+                filteredProjects.map(project => (
+                  <button
+                    key={project.id}
+                    onClick={() => {
+                      setSelectedProject(project);
+                      markDirty();
+                      setStep(3);
+                    }}
+                    className={`w-full text-left p-4 rounded-xl border transition ${
+                      selectedProject?.id === project.id
+                        ? 'border-orange-500 bg-orange-50'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    <p className="font-medium text-slate-900">{project.project_name}</p>
+                    <p className="text-sm text-slate-500">{project.project_code} • {project.district_name}</p>
+                  </button>
+                ))
+              )}
+            </div>
+
+            {/* Skip Project Option */}
+            <div className="pt-4 border-t border-slate-200">
+              <button
+                onClick={() => {
+                  setSelectedProject(null);
+                  setStep(3);
+                }}
+                className="w-full py-3 px-4 text-slate-500 hover:text-slate-700 text-sm transition"
+              >
+                Skip - Continue without Project
+              </button>
             </div>
           </div>
         )}
