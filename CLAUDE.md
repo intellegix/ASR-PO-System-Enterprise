@@ -5,6 +5,12 @@
 - **NEVER use `mcp__claude-in-chrome__*` tools** — extension is unreliable
 - `browser_fill_form` doesn't trigger React state updates — use button clicks instead
 
+## CRITICAL: Testing Philosophy
+- **ALWAYS test as a user would** — through the browser UI, not backend scripts
+- This ensures full end-to-end functionality is validated and missing features are discovered
+- If a user action can't be completed through the UI, that's a bug to fix — not a reason to use a workaround
+- Only use backend/database scripts for data inspection, never for actions users should be able to perform
+
 ## CRITICAL: Master Plan Integration Protocol
 
 **ENFORCE**: Claude MUST ALWAYS suggest next steps based on recent project activity by referencing the master plan.

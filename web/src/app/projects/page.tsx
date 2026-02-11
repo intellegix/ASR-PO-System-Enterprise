@@ -32,6 +32,7 @@ export default function ProjectsPage() {
 
   const [search, setSearch] = useState('');
   const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
 
   const isAdmin = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER'].includes(user?.role || '');
 
@@ -65,6 +66,30 @@ export default function ProjectsPage() {
       setSyncMessage({
         type: 'error',
         text: error.message || 'Failed to sync projects from Raken.',
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (projectId: string) => {
+      const response = await fetch(`/api/projects/${projectId}`, { method: 'DELETE' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to delete project');
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setDeleteTarget(null);
+      setSyncMessage({
+        type: 'success',
+        text: `Project ${data.project_code} deleted successfully.`,
+      });
+    },
+    onError: (error: Error) => {
+      setDeleteTarget(null);
+      setSyncMessage({
+        type: 'error',
+        text: error.message,
       });
     },
   });
@@ -221,6 +246,9 @@ export default function ProjectsPage() {
                       <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Clark Rep</th>
                       <th className="text-center px-4 py-3 text-sm font-medium text-slate-700">Raken Status</th>
                       <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Address</th>
+                      {isAdmin && (
+                        <th className="text-center px-4 py-3 text-sm font-medium text-slate-700 w-20">Actions</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
@@ -260,6 +288,38 @@ export default function ProjectsPage() {
                         <td className="px-4 py-3 text-sm text-slate-600 max-w-[200px] truncate">
                           {project.property_address || '-'}
                         </td>
+                        {isAdmin && (
+                          <td className="px-4 py-3 text-center">
+                            {deleteTarget?.id === project.id ? (
+                              <span className="inline-flex items-center gap-2 text-sm">
+                                <span className="text-slate-600">Delete?</span>
+                                <button
+                                  onClick={() => deleteMutation.mutate(project.id)}
+                                  disabled={deleteMutation.isPending}
+                                  className="text-red-600 hover:text-red-800 font-medium"
+                                >
+                                  {deleteMutation.isPending ? '...' : 'Yes'}
+                                </button>
+                                <button
+                                  onClick={() => setDeleteTarget(null)}
+                                  className="text-slate-500 hover:text-slate-700 font-medium"
+                                >
+                                  No
+                                </button>
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => setDeleteTarget(project)}
+                                className="text-slate-400 hover:text-red-500 transition"
+                                title="Delete project"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            )}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -274,18 +334,50 @@ export default function ProjectsPage() {
                         <p className="font-mono font-medium text-slate-900">{project.project_code}</p>
                         <p className="text-sm text-slate-600">{project.project_name || '-'}</p>
                       </div>
-                      {project.raken_uuid ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          Synced
-                        </span>
-                      ) : (
-                        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-500">
-                          Local Only
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {isAdmin && (
+                          deleteTarget?.id === project.id ? (
+                            <span className="inline-flex items-center gap-2 text-sm">
+                              <span className="text-slate-600">Delete?</span>
+                              <button
+                                onClick={() => deleteMutation.mutate(project.id)}
+                                disabled={deleteMutation.isPending}
+                                className="text-red-600 hover:text-red-800 font-medium"
+                              >
+                                {deleteMutation.isPending ? '...' : 'Yes'}
+                              </button>
+                              <button
+                                onClick={() => setDeleteTarget(null)}
+                                className="text-slate-500 hover:text-slate-700 font-medium"
+                              >
+                                No
+                              </button>
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => setDeleteTarget(project)}
+                              className="text-slate-400 hover:text-red-500 transition"
+                              title="Delete project"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          )
+                        )}
+                        {project.raken_uuid ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Synced
+                          </span>
+                        ) : (
+                          <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-500">
+                            Local Only
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
