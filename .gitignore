@@ -63,6 +63,9 @@ Thumbs.db
 *.tmp
 *.temp
 nul
+cookies*.txt
+FRONTEND_TEST_RESULTS_*.md
+*-implement-the-following-plan.txt
 
 # Database files
 *.db
