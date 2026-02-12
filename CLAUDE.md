@@ -90,6 +90,21 @@ PO status flow: `Draft → Submitted → Approved → Issued → Received → In
 
 All PO actions are logged to `po_approvals` for audit trail.
 
+## CI Pipeline (`.github/workflows/ci.yml`)
+
+Runs on push to `master` and PRs against `master`. Node 20 (pinned via `.nvmrc`).
+
+| Step | Command | Blocking? |
+|------|---------|-----------|
+| Type check | `tsc --noEmit` | No (`continue-on-error`) — ~136 pre-existing TS errors |
+| Lint | `eslint` | No (`continue-on-error`) — pre-existing lint errors |
+| Test | `jest --coverage --passWithNoTests` | No (`continue-on-error`) — 4 failures in `po-number.test.ts` |
+| Build | `prisma generate && next build` | **Yes — hard gate** |
+
+**CI env vars**: The build step requires `DATABASE_URL` (valid postgres URL) and `NEXTAUTH_SECRET` (32+ chars, hex-style — the validator rejects strings containing "secret", "password", "test", etc.). Both are set as job-level `env:` with dummy values.
+
+**Making steps blocking**: Remove the `continue-on-error: true` line for each step as its pre-existing errors are cleaned up.
+
 ## Deployment
 
 - **Production**: https://web-intellegix.vercel.app (Vercel, intellegix team, Pro plan)
