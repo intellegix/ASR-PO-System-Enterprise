@@ -38,6 +38,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/puppeteer": "^5.4.7",
+    "@vercel/blob": "^2.2.0",
     "autoprefixer": "^10.4.20",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",

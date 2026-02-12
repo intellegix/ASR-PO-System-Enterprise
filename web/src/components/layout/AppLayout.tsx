@@ -78,6 +78,12 @@ const BuildingIcon = ({ className = "w-5 h-5" }: IconProps) => (
   </svg>
 );
 
+const UsersIcon = ({ className = "w-5 h-5" }: IconProps) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+  </svg>
+);
+
 const ShieldCheckIcon = ({ className = "w-5 h-5" }: IconProps) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -142,6 +148,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
     { href: '/approvals', label: 'Approvals', icon: CheckCircleIcon, badge: pendingCount },
     { href: '/work-orders', label: 'Work Orders', icon: ClipboardIcon },
     { href: '/vendors', label: 'Vendors', icon: TruckIcon },
+    { href: '/clients', label: 'Clients', icon: UsersIcon },
     { href: '/invoices', label: 'Invoices', icon: DocumentIcon },
     { href: '/invoice-archive', label: 'Invoice Archive', icon: ArchiveIcon },
     { href: '/reports', label: 'Reports', icon: ChartIcon },

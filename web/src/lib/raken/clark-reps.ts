@@ -1,8 +1,12 @@
 /**
  * Clark Reps Mapping Service
  * Maps contract codes to Clark representatives and properties.
- * Source: Certified Payroll 2.0 App clark_reps_data.json (2024-12-30)
+ *
+ * Primary: DB-backed lookup (synced from Certified Payroll via /api/sync/clark-reps)
+ * Fallback: Hardcoded data snapshot (2024-12-30) used when DB has no assignments
  */
+
+import prisma from '@/lib/db';
 
 interface ClarkRepData {
   name: string;
@@ -165,7 +169,101 @@ export function getAllProperties(): PropertyInfo[] {
 
 /**
  * Get the raw Clark reps data for API responses.
+ * Returns hardcoded fallback data (used by Raken sync for initial lookup).
  */
 export function getClarkRepsData(): ClarkRepData[] {
   return CLARK_REPS_DATA;
+}
+
+/**
+ * DB-backed Clark Rep lookup.
+ * Queries the projects table for clark_rep/district_name assignments.
+ * Falls back to hardcoded data if DB has no synced assignments.
+ */
+export async function findClarkRepForJobFromDB(contractCode: string): Promise<ClarkRepMatch | null> {
+  const normalized = contractCode.toUpperCase().replace(/\s+/g, ' ').trim();
+
+  try {
+    // Try DB first — exact case-insensitive match
+    let project = await prisma.projects.findFirst({
+      where: {
+        project_code: { equals: normalized, mode: 'insensitive' },
+        clark_rep: { not: null },
+      },
+      select: { clark_rep: true, district_name: true },
+    });
+
+    // If no match, try with spaces stripped (e.g. "CY25020" matches "CY25 020")
+    if (!project) {
+      const noSpaces = normalized.replace(/\s+/g, '');
+      const candidates = await prisma.projects.findMany({
+        where: { clark_rep: { not: null } },
+        select: { project_code: true, clark_rep: true, district_name: true },
+      });
+      project = candidates.find(
+        (c) => c.project_code.toUpperCase().replace(/\s+/g, '') === noSpaces
+      ) || null;
+    }
+
+    if (project?.clark_rep) {
+      return {
+        clarkRep: project.clark_rep,
+        property: project.district_name || '',
+      };
+    }
+  } catch {
+    // DB error — fall through to hardcoded data
+  }
+
+  // Fallback to hardcoded index
+  return contractIndex.get(normalized) || null;
+}
+
+/**
+ * Get all Clark Rep assignments from the DB, grouped like the hardcoded data.
+ * Falls back to hardcoded data if DB has no synced assignments.
+ */
+export async function getClarkRepsFromDB(): Promise<ClarkRepData[]> {
+  try {
+    const projects = await prisma.projects.findMany({
+      where: {
+        clark_rep: { not: null },
+        last_synced_at: { not: null },
+      },
+      select: { project_code: true, clark_rep: true, district_name: true },
+      orderBy: [{ clark_rep: 'asc' }, { district_name: 'asc' }],
+    });
+
+    if (projects.length === 0) {
+      return CLARK_REPS_DATA;
+    }
+
+    // Group by clark_rep -> property -> jobs
+    const repMap = new Map<string, Map<string, string[]>>();
+    for (const p of projects) {
+      if (!p.clark_rep) continue;
+      const propName = p.district_name || 'Unassigned';
+      if (!repMap.has(p.clark_rep)) {
+        repMap.set(p.clark_rep, new Map());
+      }
+      const propMap = repMap.get(p.clark_rep)!;
+      if (!propMap.has(propName)) {
+        propMap.set(propName, []);
+      }
+      propMap.get(propName)!.push(p.project_code);
+    }
+
+    const result: ClarkRepData[] = [];
+    for (const [repName, propMap] of repMap) {
+      const properties: Array<{ name: string; jobs: string[] }> = [];
+      for (const [propName, jobs] of propMap) {
+        properties.push({ name: propName, jobs });
+      }
+      result.push({ name: repName, properties });
+    }
+
+    return result;
+  } catch {
+    return CLARK_REPS_DATA;
+  }
 }

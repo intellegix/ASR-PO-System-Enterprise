@@ -34,10 +34,14 @@ const getHandler = async (request: NextRequest) => {
 
     const { searchParams } = new URL(request.url);
     const divisionId = searchParams.get('divisionId');
+    const propertyId = searchParams.get('propertyId');
 
     const where: Record<string, unknown> = { status: 'Active' };
     if (divisionId) {
       where.primary_division_id = divisionId;
+    }
+    if (propertyId) {
+      where.property_id = propertyId;
     }
 
     const projects = await prisma.projects.findMany({

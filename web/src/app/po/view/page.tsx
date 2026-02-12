@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { PhoneLink } from '@/components/ui/PhoneLink';
 import AppLayout from '@/components/layout/AppLayout';
+import ReceiptScanner from '@/components/po/ReceiptScanner';
 
 // Interfaces for completion form
 interface Vendor {
@@ -132,6 +133,7 @@ function ViewPurchaseOrder() {
   const [newItemTaxable, setNewItemTaxable] = useState(true);
   const [completionSubmitting, setCompletionSubmitting] = useState(false);
   const [completionError, setCompletionError] = useState<string | null>(null);
+  const [receiptScanned, setReceiptScanned] = useState(false);
 
   // Get ID from URL parameters instead of route parameters
   const id = searchParams.get('id');
@@ -270,7 +272,7 @@ function ViewPurchaseOrder() {
   const completionTax = completionTaxable * 0.0775;
   const completionTotal = completionSubtotal + completionTax;
 
-  const handleCompletePO = async (status: 'Draft' | 'Submitted') => {
+  const handleCompletePO = async (status: 'Draft' | 'Approved') => {
     if (!id || !completionVendorId || completionLineItems.length === 0) return;
     setCompletionSubmitting(true);
     setCompletionError(null);
@@ -308,6 +310,33 @@ function ViewPurchaseOrder() {
       setCompletionError('Network error. Please try again.');
     } finally {
       setCompletionSubmitting(false);
+    }
+  };
+
+  // Handle receipt scan completion
+  const handleScanComplete = (result: any) => {
+    setReceiptScanned(true);
+    // Auto-fill vendor
+    if (result.vendor?.name) {
+      setCompletionVendorSearch(result.vendor.name);
+      if (result.vendor.matchedVendorId) {
+        setCompletionVendorId(result.vendor.matchedVendorId);
+      }
+    }
+    // Auto-fill line items
+    if (result.lineItems?.length > 0) {
+      const defaultGLId = glAccounts.length > 0 ? glAccounts[0].id : '';
+      const items = result.lineItems.map((item: any, i: number) => ({
+        id: `scan-${Date.now()}-${i}`,
+        itemDescription: item.description,
+        quantity: item.quantity || 1,
+        unitOfMeasure: 'EA',
+        unitPrice: item.unitPrice || item.total || 0,
+        glAccountId: defaultGLId,
+        glAccountName: glAccounts.length > 0 ? glAccounts[0].gl_account_name : undefined,
+        isTaxable: true,
+      }));
+      setCompletionLineItems(items);
     }
   };
 
@@ -562,6 +591,21 @@ function ViewPurchaseOrder() {
               </div>
             </div>
 
+            {/* Receipt Scanner */}
+            {id && (
+              <ReceiptScanner poId={id} onScanComplete={handleScanComplete} />
+            )}
+
+            {/* Receipt scanned banner */}
+            {receiptScanned && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <p className="text-sm text-green-700">Receipt scanned — review and edit the details below</p>
+              </div>
+            )}
+
             {completionError && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
                 {completionError}
@@ -810,11 +854,11 @@ function ViewPurchaseOrder() {
                 {completionSubmitting ? 'Saving...' : 'Save Draft'}
               </button>
               <button
-                onClick={() => handleCompletePO('Submitted')}
+                onClick={() => handleCompletePO('Approved')}
                 disabled={completionSubmitting || !completionVendorId || completionLineItems.length === 0}
-                className="flex-1 py-3 px-4 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition disabled:opacity-50"
+                className="flex-1 py-3 px-4 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition disabled:opacity-50"
               >
-                {completionSubmitting ? 'Submitting...' : 'Submit for Approval'}
+                {completionSubmitting ? 'Approving...' : 'Approve'}
               </button>
             </div>
           </div>

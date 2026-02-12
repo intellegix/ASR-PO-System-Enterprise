@@ -261,14 +261,21 @@ export default function ApprovalsPage() {
                     {/* Header Row */}
                     <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                       <div>
-                        <Link
-                          href={`/po/view?id=${po.id}`}
-                          className="font-mono font-bold text-lg text-slate-900 hover:text-blue-600"
-                        >
-                          {po.po_number}
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/po/view?id=${po.id}`}
+                            className="font-mono font-bold text-lg text-slate-900 hover:text-blue-600"
+                          >
+                            {po.po_number}
+                          </Link>
+                          {!po.vendors && (
+                            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                              Needs Vendor Info
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-slate-500">
-                          {po.vendors?.vendor_name} &bull; {po.divisions?.division_name}
+                          {po.vendors?.vendor_name || 'TBD'} &bull; {po.divisions?.division_name}
                         </p>
                       </div>
                       <div className="text-right">

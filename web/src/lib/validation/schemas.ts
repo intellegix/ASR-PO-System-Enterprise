@@ -298,6 +298,8 @@ export const bulkUpdatePOStatusSchema = z.object({
 export const quickCreatePOSchema = z.object({
   projectId: uuidSchema,
   divisionId: uuidSchema,
+  clientId: uuidSchema.nullable().optional(),
+  propertyId: uuidSchema.nullable().optional(),
   workOrderId: uuidSchema.nullable().optional(),
   createWorkOrder: z.object({
     title: sanitizedTextSchema(200).min(1, 'Work order title is required'),
@@ -321,10 +323,26 @@ export const completePOSchema = z.object({
     'Invalid date format'
   ).nullable().optional(),
   termsCode: codeSchema(10).optional(),
-  status: z.enum(['Draft', 'Submitted']).optional(),
+  status: z.enum(['Draft', 'Approved']).optional(),
 });
 
 export type CompletePOInput = z.infer<typeof completePOSchema>;
+
+// ============================================
+// PROPERTY VALIDATION SCHEMAS
+// ============================================
+
+export const createPropertySchema = z.object({
+  clientId: uuidSchema,
+  propertyName: sanitizedTextSchema(200).min(1, 'Property name is required'),
+  propertyAddress: sanitizedTextSchema(300).optional(),
+  city: sanitizedTextSchema(100).optional(),
+  state: z.string().max(2).optional(),
+  zip: z.string().max(10).optional(),
+  notes: sanitizedTextSchema(1000).optional(),
+});
+
+export type CreatePropertyInput = z.infer<typeof createPropertySchema>;
 
 // ============================================
 // EXPORT TYPE DEFINITIONS

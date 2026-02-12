@@ -124,10 +124,15 @@ model po_headers {
   qb_bill_id                                   String?           @db.VarChar(50)
   qb_sync_status                               qb_sync_status?   @default(PENDING)
   client_id                                    String?           @db.Uuid
+  property_id                                  String?           @db.Uuid
+  receipt_image_url                            String?           @db.VarChar(500)
+  receipt_ocr_data                             Json?
+  receipt_uploaded_at                          DateTime?         @db.Timestamptz(6)
   qb_synced_at                                 DateTime?         @db.Timestamptz(6)
   po_approvals                                 po_approvals[]
   users_po_headers_approved_by_user_idTousers  users?            @relation("po_headers_approved_by_user_idTousers", fields: [approved_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   clients                                      clients?          @relation(fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  properties                                   properties?       @relation(fields: [property_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   divisions                                    divisions         @relation(fields: [division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   division_leaders                             division_leaders? @relation(fields: [division_leader_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   projects                                     projects          @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -138,6 +143,7 @@ model po_headers {
   vendor_invoices                              vendor_invoices[]
 
   @@index([client_id], map: "idx_po_headers_client")
+  @@index([property_id])
   @@index([created_at], map: "idx_po_headers_created")
   @@index([division_id], map: "idx_po_headers_division")
   @@index([po_leader_code], map: "idx_po_headers_leader_code")
@@ -180,6 +186,7 @@ model projects {
   project_code        String          @unique @db.VarChar(15)
   project_name        String          @db.VarChar(200)
   customer_id         String?         @db.Uuid
+  property_id         String?         @db.Uuid
   property_address    String?         @db.VarChar(300)
   district_code       String?         @db.VarChar(2)
   district_name       String?         @db.VarChar(100)
@@ -197,6 +204,7 @@ model projects {
   updated_at          DateTime?       @default(now()) @db.Timestamptz(6)
   po_headers          po_headers[]
   clients             clients?        @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  properties          properties?     @relation(fields: [property_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   divisions           divisions?      @relation(fields: [primary_division_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   work_orders         work_orders[]
   vendor_invoices     vendor_invoices[]
@@ -204,6 +212,7 @@ model projects {
 
   @@index([project_code], map: "idx_projects_code")
   @@index([primary_division_id], map: "idx_projects_division")
+  @@index([property_id])
   @@index([status], map: "idx_projects_status")
 }
 
@@ -411,10 +420,33 @@ model clients {
   po_headers        po_headers[]
   customer_invoices customer_invoices[]
   projects          projects[]
+  properties        properties[]
 
   @@index([client_name], map: "idx_clients_name")
   @@index([category], map: "idx_clients_category")
   @@index([is_active], map: "idx_clients_active")
+}
+
+/// Properties owned by clients — physical locations that contain projects
+model properties {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  client_id        String    @db.Uuid
+  property_name    String    @db.VarChar(200)
+  property_address String?   @db.VarChar(300)
+  city             String?   @db.VarChar(100)
+  state            String?   @db.VarChar(2)
+  zip              String?   @db.VarChar(10)
+  notes            String?
+  is_active        Boolean   @default(true)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+
+  clients    clients      @relation(fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projects   projects[]
+  po_headers po_headers[]
+
+  @@index([client_id])
+  @@index([is_active])
 }
 
 /// QuickBooks OAuth token storage for API integration

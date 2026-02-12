@@ -9,6 +9,8 @@ interface POGeneratedConfirmationProps {
   divisionName: string;
   projectName: string;
   workOrderNumber: string;
+  clientName?: string;
+  propertyName?: string;
 }
 
 export default function POGeneratedConfirmation({
@@ -17,6 +19,8 @@ export default function POGeneratedConfirmation({
   divisionName,
   projectName,
   workOrderNumber,
+  clientName,
+  propertyName,
 }: POGeneratedConfirmationProps) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
@@ -27,7 +31,6 @@ export default function POGeneratedConfirmation({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for older browsers
       const textarea = document.createElement('textarea');
       textarea.value = poNumber;
       document.body.appendChild(textarea);
@@ -84,6 +87,18 @@ export default function POGeneratedConfirmation({
 
       {/* Summary card */}
       <div className="w-full max-w-sm bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+        {clientName && (
+          <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+            <span className="text-sm text-slate-500">Client</span>
+            <span className="text-sm font-medium text-slate-900 text-right max-w-[200px] truncate">{clientName}</span>
+          </div>
+        )}
+        {propertyName && (
+          <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+            <span className="text-sm text-slate-500">Property</span>
+            <span className="text-sm font-medium text-slate-900 text-right max-w-[200px] truncate">{propertyName}</span>
+          </div>
+        )}
         <div className="flex justify-between items-center border-b border-slate-100 pb-2">
           <span className="text-sm text-slate-500">Division</span>
           <span className="text-sm font-medium text-slate-900">{divisionName}</span>

@@ -25,7 +25,7 @@ const postHandler = async (request: NextRequest) => {
       );
     }
 
-    const { projectId, divisionId, workOrderId, createWorkOrder, notesInternal } = parsed.data;
+    const { projectId, divisionId, clientId, propertyId, workOrderId, createWorkOrder, notesInternal } = parsed.data;
 
     // Fetch division
     const division = await prisma.divisions.findUnique({
@@ -160,6 +160,8 @@ const postHandler = async (request: NextRequest) => {
         division_id: divisionId,
         project_id: projectId,
         work_order_id: workOrder.id,
+        client_id: clientId || null,
+        property_id: propertyId || null,
         vendor_id: null,
         cost_center_code: `${division.cost_center_prefix}${String(workOrderSequence).padStart(4, '0')}${String(purchaseSequence).padStart(2, '0')}`,
         status: 'Draft',

@@ -45,6 +45,7 @@ const getHandler = async (
           orderBy: { line_number: 'asc' },
         },
         clients: true,
+        properties: true,
         vendors: true,
         projects: true,
         divisions: true,
@@ -176,6 +177,13 @@ const putHandler = async (
 
       const finalStatus = newStatus || 'Draft';
 
+      // If approving, set approval fields
+      const approvalData: Record<string, unknown> = {};
+      if (finalStatus === 'Approved') {
+        approvalData.approved_by_user_id = session.user.id;
+        approvalData.approved_at = new Date();
+      }
+
       // Update PO with vendor, line items, and totals
       const completedPO = await prisma.po_headers.update({
         where: { id },
@@ -191,6 +199,7 @@ const putHandler = async (
           notes_vendor: parsed.data.notesVendor || null,
           status: finalStatus as any,
           updated_at: new Date(),
+          ...approvalData,
           po_line_items: {
             create: processedLineItems,
           },
@@ -205,10 +214,11 @@ const putHandler = async (
       });
 
       // Audit log
+      const auditAction = finalStatus === 'Approved' ? 'Approved' : 'Created';
       await prisma.po_approvals.create({
         data: {
           po_id: id,
-          action: finalStatus === 'Submitted' ? 'Submitted' : 'Created',
+          action: auditAction,
           actor_user_id: session.user.id,
           status_before: 'Draft',
           status_after: finalStatus,
