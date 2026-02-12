@@ -71,6 +71,7 @@ interface PurchaseOrder {
   authorized_by: string | null;
   vendor_id: string | null;
   total_amount: string | number;
+  subtotal_amount: string | number;
   priority: string;
   status: string;
   project_id: string | null;
@@ -181,11 +182,11 @@ function ViewPurchaseOrder() {
         audit_log: (data.po_approvals || []).map((a: any) => ({
           id: a.id,
           action: a.action,
-          timestamp: a.created_at,
+          timestamp: a.timestamp,
           notes: a.notes,
           status_before: a.status_before,
           status_after: a.status_after,
-          created_by: a.actor_user?.first_name ? `${a.actor_user.first_name} ${a.actor_user.last_name}` : null,
+          created_by: (a.users || a.actor_user)?.first_name ? `${(a.users || a.actor_user).first_name} ${(a.users || a.actor_user).last_name}` : null,
           authorized_by: null,
         })),
         client: data.clients ? {
@@ -523,7 +524,7 @@ function ViewPurchaseOrder() {
                 )}
                 <div>
                   <dt className="text-sm font-medium text-gray-600">Subtotal</dt>
-                  <dd className="text-sm text-gray-900">${Number(po.total_amount).toFixed(2)}</dd>
+                  <dd className="text-sm text-gray-900">${Number(po.subtotal_amount).toFixed(2)}</dd>
                 </div>
                 {po.is_taxable && (
                   <div>
@@ -861,7 +862,7 @@ function ViewPurchaseOrder() {
                     <div>
                       <p className="text-sm font-medium text-gray-900">{entry.action}</p>
                       <p className="text-xs text-gray-600">
-                        by {entry.created_by || 'System'} at {new Date(entry.timestamp).toLocaleString()}
+                        by {entry.created_by || 'System'} at {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'N/A'}
                       </p>
                       {entry.notes && (
                         <p className="text-xs text-gray-600 mt-1">{entry.notes}</p>
