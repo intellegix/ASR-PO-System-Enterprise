@@ -16,7 +16,7 @@ const getPendingApprovals = async (userRole: string, userDivisionId: string | nu
 
   // Build WHERE clause based on user permissions
   let whereClause: any = {
-    status: { in: ['Draft', 'Submitted'] },
+    status: 'Submitted',
     deleted_at: null,
   };
 
@@ -267,8 +267,8 @@ const getHandler = async (request: NextRequest) => {
     // Update summary for filtered results
     const filteredSummary = {
       ...pendingData.summary,
-      total: filteredItems.length,
-      totalValue: filteredItems.reduce((sum, po) => sum + po.amount, 0),
+      total: pendingData.summary.total,
+      totalValue: pendingData.summary.totalValue,
     };
 
     const response = {

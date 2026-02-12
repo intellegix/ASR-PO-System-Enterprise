@@ -53,7 +53,7 @@ const getHandler = async (request: NextRequest) => {
 
     // Check permissions - audit trail requires elevated access
     if (!hasPermission(user.role as any, 'report:view') ||
-        !['MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'].includes(user.role)) {
+        !['MAJORITY_OWNER', 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'DIVISION_LEADER', 'ACCOUNTING'].includes(user.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 

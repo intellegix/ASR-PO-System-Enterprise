@@ -45,7 +45,7 @@ export default function AuditPage() {
   const userRole = user?.role || 'OPERATIONS_MANAGER';
 
   // Check if user has access to audit trail
-  const canViewAudit = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'DIVISION_LEADER', 'ACCOUNTING'].includes(userRole);
+  const canViewAudit = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'].includes(userRole);
 
   if (!isAuthenticated) {
     return (

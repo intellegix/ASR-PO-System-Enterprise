@@ -227,7 +227,7 @@ export default function KPIMetrics({ divisionId, timeframe = 'current_month', cl
           </p>
           {kpis.metrics.totalCount > 0 && (
             <p className="text-xs text-slate-500 mt-1">
-              Avg: ${avgPOValue.toLocaleString()}
+              Avg: ${avgPOValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </p>
           )}
         </div>
@@ -239,7 +239,7 @@ export default function KPIMetrics({ divisionId, timeframe = 'current_month', cl
             {kpis.metrics.totalCount === 0 ? '$0' :
               `$${avgPOValue >= 10000
                 ? `${(avgPOValue / 1000).toFixed(0)}k`
-                : avgPOValue.toLocaleString()
+                : avgPOValue.toLocaleString(undefined, { maximumFractionDigits: 2 })
               }`
             }
           </p>

@@ -42,7 +42,7 @@ const getHandler = async (request: NextRequest) => {
       total_amount: undefined as { lte: number } | undefined,
     };
 
-    if (userRole === 'MAJORITY_OWNER') {
+    if (userRole === 'MAJORITY_OWNER' || userRole === 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS') {
       // See all pending POs - use base where object as is
     } else if (userRole === 'DIVISION_LEADER') {
       // See only own division's POs under threshold
