@@ -5,7 +5,7 @@ import { withRateLimit } from '@/lib/validation/middleware';
 import log, { auditLog } from '@/lib/logging/logger';
 import prisma from '@/lib/db';
 import { fetchActiveProjects } from '@/lib/raken/client';
-import { findClarkRepForJob } from '@/lib/raken/clark-reps';
+import { findClarkRepForJobFromDB } from '@/lib/raken/clark-reps';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +40,7 @@ const postHandler = async (request: NextRequest): Promise<NextResponse> => {
 
     for (const rp of rakenProjects) {
       try {
-        const clarkMatch = findClarkRepForJob(rp.number);
+        const clarkMatch = await findClarkRepForJobFromDB(rp.number);
 
         // Try to find existing project by raken_uuid first, then by project_code
         let existing = await prisma.projects.findFirst({

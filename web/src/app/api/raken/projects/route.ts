@@ -5,7 +5,7 @@ import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 import prisma from '@/lib/db';
 import { fetchActiveProjects } from '@/lib/raken/client';
-import { findClarkRepForJob } from '@/lib/raken/clark-reps';
+import { findClarkRepForJobFromDB } from '@/lib/raken/clark-reps';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,11 +44,11 @@ const getHandler = async (request: NextRequest): Promise<NextResponse> => {
     const live = searchParams.get('live') === 'true';
 
     if (live) {
-      // Fetch directly from Raken API and enrich with Clark rep data
+      // Fetch directly from Raken API and enrich with DB-backed Clark rep data
       const rakenProjects = await fetchActiveProjects();
-      const grouped = groupProjects(
-        rakenProjects.map((rp) => {
-          const match = findClarkRepForJob(rp.number);
+      const enriched = await Promise.all(
+        rakenProjects.map(async (rp) => {
+          const match = await findClarkRepForJobFromDB(rp.number);
           return {
             id: null,
             code: rp.number,
@@ -61,6 +61,7 @@ const getHandler = async (request: NextRequest): Promise<NextResponse> => {
           };
         })
       );
+      const grouped = groupProjects(enriched);
       return NextResponse.json({ source: 'live', data: grouped });
     }
 
