@@ -90,6 +90,29 @@ PO status flow: `Draft → Submitted → Approved → Issued → Received → In
 
 All PO actions are logged to `po_approvals` for audit trail.
 
+### Two-Phase PO Creation Workflow
+
+PO creation is split into two phases to match the real-world workflow (generating PO numbers on the phone):
+
+**Phase 1 — Quick PO Generation** (`/po/create` → `POST /api/po/quick`):
+- 3 steps: Pick Division → Pick Project → Pick/Create Work Order
+- Creates a Draft PO with `vendor_id: null`, `total_amount: 0`
+- Returns PO number immediately (new format: `01CP0012-1`, no vendor suffix)
+- PO number format: `{leaderId}{divisionCode}{woNum}-{purchaseSequence}`
+
+**Phase 2 — Complete PO Details** (`/po/view?id=X` → `PUT /api/po/{id}`):
+- When viewing an incomplete Draft PO (no vendor), shows a completion form
+- User adds: vendor (searchable dropdown), line items (description, qty, price, GL account, taxable), notes
+- Can save as Draft or submit for approval
+- PUT handler detects `vendorId` + `lineItems` in body with null `vendor_id` on current PO → runs completion logic
+
+**Key files**:
+- `src/app/api/po/quick/route.ts` — Quick PO endpoint (Phase 1)
+- `src/app/po/create/page.tsx` — 3-step Quick PO UI
+- `src/components/po/DivisionPicker.tsx`, `ProjectPicker.tsx`, `WorkOrderPicker.tsx`, `POGeneratedConfirmation.tsx`
+- `src/app/po/view/page.tsx` — Phase 2 completion form (when `vendor_id` is null)
+- `src/lib/po-number.ts` — v2 format (no vendor suffix), backward-compatible parser for v1 format
+
 ## CI Pipeline (`.github/workflows/ci.yml`)
 
 Runs on push to `master` and PRs against `master`. Node 20 (pinned via `.nvmrc`).

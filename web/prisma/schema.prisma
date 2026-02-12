@@ -98,9 +98,9 @@ model po_headers {
   division_id                                  String            @db.Uuid
   project_id                                   String            @db.Uuid
   work_order_id                                String?           @db.Uuid
-  vendor_id                                    String            @db.Uuid
+  vendor_id                                    String?           @db.Uuid
   po_leader_code                               String?           @db.VarChar(2)
-  po_gl_code                                   String?           @db.VarChar(2)
+  po_gl_code                                   String?           @db.VarChar(3)
   po_work_order_num                            Int?
   po_vendor_code                               String?           @db.VarChar(6)
   cost_center_code                             String?           @db.VarChar(15)
@@ -132,7 +132,7 @@ model po_headers {
   division_leaders                             division_leaders? @relation(fields: [division_leader_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   projects                                     projects          @relation(fields: [project_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   users_po_headers_requested_by_user_idTousers users?            @relation("po_headers_requested_by_user_idTousers", fields: [requested_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  vendors                                      vendors           @relation(fields: [vendor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  vendors                                      vendors?          @relation(fields: [vendor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   work_orders                                  work_orders?      @relation(fields: [work_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   po_line_items                                po_line_items[]
   vendor_invoices                              vendor_invoices[]

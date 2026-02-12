@@ -82,4 +82,67 @@ const deleteHandler = async (
   }
 };
 
+const patchHandler = async (
+  request: NextRequest,
+  context?: any
+) => {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const user = await prisma.users.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+
+    if (!user || !ADMIN_ROLES.includes(user.role || '')) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
+    const { id } = await (context as { params: Promise<{ id: string }> }).params;
+    if (!UUID_REGEX.test(id)) {
+      return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const { primaryDivisionId } = body;
+
+    if (primaryDivisionId && !UUID_REGEX.test(primaryDivisionId)) {
+      return NextResponse.json({ error: 'Invalid division ID' }, { status: 400 });
+    }
+
+    const project = await prisma.projects.update({
+      where: { id },
+      data: {
+        primary_division_id: primaryDivisionId || null,
+        updated_at: new Date(),
+      },
+      select: {
+        id: true,
+        project_code: true,
+        project_name: true,
+        primary_division_id: true,
+      },
+    });
+
+    log.info('Project division updated', {
+      userId: session.user.id,
+      projectId: id,
+      primaryDivisionId,
+    });
+
+    return NextResponse.json(project);
+  } catch (error) {
+    log.error('Failed to update project', {
+      error: error instanceof Error ? error.message : String(error),
+      userId: session.user.id,
+    });
+
+    return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
+  }
+};
+
 export const DELETE = withRateLimit(10, 60 * 1000)(deleteHandler);
+export const PATCH = withRateLimit(20, 60 * 1000)(patchHandler);

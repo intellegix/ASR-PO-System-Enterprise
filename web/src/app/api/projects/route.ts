@@ -32,8 +32,16 @@ const getHandler = async (request: NextRequest) => {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const divisionId = searchParams.get('divisionId');
+
+    const where: Record<string, unknown> = { status: 'Active' };
+    if (divisionId) {
+      where.primary_division_id = divisionId;
+    }
+
     const projects = await prisma.projects.findMany({
-      where: { status: 'Active' },
+      where,
       orderBy: { project_name: 'asc' },
       select: {
         id: true,
@@ -44,6 +52,7 @@ const getHandler = async (request: NextRequest) => {
         clark_rep: true,
         raken_uuid: true,
         last_synced_at: true,
+        primary_division_id: true,
       },
     });
 

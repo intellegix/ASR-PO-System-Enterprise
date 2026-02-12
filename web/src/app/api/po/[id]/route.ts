@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { withRateLimit } from '@/lib/validation/middleware';
+import { completePOSchema } from '@/lib/validation/schemas';
+import log from '@/lib/logging/logger';
 import prisma from '@/lib/db';
 // Force dynamic rendering for API route
 export const dynamic = 'force-dynamic';
@@ -115,6 +117,118 @@ const putHandler = async (
       termsCode,
     } = body;
 
+    // Check if this is a "complete PO" request (adding vendor + line items to an incomplete draft)
+    if (body.vendorId && body.lineItems && !currentPO.vendor_id) {
+      const parsed = completePOSchema.safeParse(body);
+      if (!parsed.success) {
+        return NextResponse.json(
+          { error: 'Validation failed', details: parsed.error.issues },
+          { status: 400 }
+        );
+      }
+
+      const { vendorId, lineItems, status: newStatus } = parsed.data;
+
+      // Validate vendor exists
+      const vendor = await prisma.vendors.findUnique({
+        where: { id: vendorId },
+      });
+      if (!vendor) {
+        return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
+      }
+
+      // Look up GL accounts
+      const glAccountIds = [...new Set(lineItems.map((item) => item.glAccountId))];
+      const glAccounts = await prisma.gl_account_mappings.findMany({
+        where: { id: { in: glAccountIds } },
+        select: { id: true, gl_code_short: true, gl_account_number: true, gl_account_name: true },
+      });
+      const glAccountMap = new Map(glAccounts.map((gl) => [gl.id, gl]));
+
+      // Calculate totals
+      const TAX_RATE = 0.0775;
+      let subtotal = 0;
+
+      const processedLineItems = lineItems.map((item, index) => {
+        const lineSubtotal = item.quantity * item.unitPrice;
+        subtotal += lineSubtotal;
+        const glAccount = glAccountMap.get(item.glAccountId);
+        return {
+          line_number: index + 1,
+          item_description: item.itemDescription,
+          quantity: item.quantity,
+          unit_of_measure: item.unitOfMeasure,
+          unit_price: item.unitPrice,
+          line_subtotal: lineSubtotal,
+          gl_account_code: glAccount?.gl_code_short || null,
+          gl_account_number: glAccount?.gl_account_number || null,
+          gl_account_name: glAccount?.gl_account_name || null,
+          is_taxable: item.isTaxable ?? true,
+          status: 'Pending' as const,
+        };
+      });
+
+      const taxableAmount = processedLineItems
+        .filter((item) => item.is_taxable)
+        .reduce((sum, item) => sum + item.line_subtotal, 0);
+      const taxAmount = taxableAmount * TAX_RATE;
+      const totalAmount = subtotal + taxAmount;
+
+      const finalStatus = newStatus || 'Draft';
+
+      // Update PO with vendor, line items, and totals
+      const completedPO = await prisma.po_headers.update({
+        where: { id },
+        data: {
+          vendor_id: vendorId,
+          po_vendor_code: vendor.vendor_code,
+          subtotal_amount: subtotal,
+          tax_amount: taxAmount,
+          total_amount: totalAmount,
+          terms_code: parsed.data.termsCode || vendor.payment_terms_default || 'Net30',
+          required_by_date: parsed.data.requiredByDate ? new Date(parsed.data.requiredByDate) : null,
+          notes_internal: parsed.data.notesInternal || currentPO.notes_internal,
+          notes_vendor: parsed.data.notesVendor || null,
+          status: finalStatus as any,
+          updated_at: new Date(),
+          po_line_items: {
+            create: processedLineItems,
+          },
+        },
+        include: {
+          po_line_items: true,
+          vendors: true,
+          projects: true,
+          divisions: true,
+          work_orders: true,
+        },
+      });
+
+      // Audit log
+      await prisma.po_approvals.create({
+        data: {
+          po_id: id,
+          action: finalStatus === 'Submitted' ? 'Submitted' : 'Created',
+          actor_user_id: session.user.id,
+          status_before: 'Draft',
+          status_after: finalStatus,
+          notes: `PO completed: vendor ${vendor.vendor_name}, ${lineItems.length} line items, total $${totalAmount.toFixed(2)}`,
+        },
+      });
+
+      log.business('PO completed with vendor and line items', {
+        poId: id,
+        poNumber: currentPO.po_number,
+        vendorId,
+        totalAmount,
+        lineItemCount: lineItems.length,
+        userId: session.user.id,
+      });
+
+      return NextResponse.json(completedPO);
+    }
+
+    // Simple field update (existing behavior)
     const updatedPO = await prisma.po_headers.update({
       where: { id },
       data: {

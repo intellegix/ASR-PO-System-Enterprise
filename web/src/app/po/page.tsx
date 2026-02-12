@@ -12,6 +12,7 @@ interface PO {
   id: string;
   po_number: string;
   status: string;
+  vendor_id: string | null;
   total_amount: string | number;
   created_at: string;
   required_by_date: string | null;
@@ -135,7 +136,7 @@ export default function POListPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (statusFilter) params.set('status', statusFilter);
+      if (statusFilter && statusFilter !== 'Incomplete') params.set('status', statusFilter);
       if (divisionFilter) params.set('divisionId', divisionFilter);
       params.set('limit', '100');
 
@@ -165,6 +166,10 @@ export default function POListPage() {
 
   const filteredPOs = useMemo(() => {
     let result = [...pos];
+
+    if (statusFilter === 'Incomplete') {
+      result = result.filter((po) => po.status === 'Draft' && !po.vendor_id);
+    }
 
     if (debouncedSearch) {
       const lower = debouncedSearch.toLowerCase();
@@ -442,6 +447,7 @@ export default function POListPage() {
               >
                 <option value="">All Statuses</option>
                 <option value="Draft">Draft</option>
+                <option value="Incomplete">Incomplete (No Vendor)</option>
                 <option value="Submitted">Pending Approval</option>
                 <option value="Approved">Approved</option>
                 <option value="Issued">Issued</option>
@@ -608,7 +614,7 @@ export default function POListPage() {
                           className="px-4 py-3 text-sm text-slate-600"
                           onClick={() => router.push(`/po/view?id=${po.id}`)}
                         >
-                          {po.vendors?.vendor_name || '-'}
+                          {po.vendors?.vendor_name || (po.vendor_id ? '-' : <span className="text-yellow-600 italic">TBD</span>)}
                         </td>
                         <td
                           className="px-4 py-3 text-sm text-slate-600"
@@ -635,6 +641,11 @@ export default function POListPage() {
                           <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(po.status)}`}>
                             {getStatusLabel(po.status)}
                           </span>
+                          {po.status === 'Draft' && !po.vendor_id && (
+                            <span className="inline-flex ml-1 px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
+                              Incomplete
+                            </span>
+                          )}
                         </td>
                         <td
                           className="px-4 py-3 text-sm text-slate-500"
@@ -666,11 +677,18 @@ export default function POListPage() {
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <p className="font-mono font-medium text-slate-900">{po.po_number}</p>
-                            <p className="text-sm text-slate-500">{po.vendors?.vendor_name || '-'}</p>
+                            <p className="text-sm text-slate-500">{po.vendors?.vendor_name || (po.vendor_id ? '-' : <span className="text-yellow-600 italic">TBD</span>)}</p>
                           </div>
-                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(po.status)}`}>
-                            {getStatusLabel(po.status)}
-                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(po.status)}`}>
+                              {getStatusLabel(po.status)}
+                            </span>
+                            {po.status === 'Draft' && !po.vendor_id && (
+                              <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
+                                Incomplete
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-slate-500">{po.divisions?.division_name}</span>

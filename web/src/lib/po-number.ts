@@ -1,15 +1,17 @@
 /**
  * Smart PO Number Generator
  *
- * Format: [LeaderID][DivisionCode][WO#]-[PurchaseSeq][SupplierLast4]
+ * NEW Format (v2): [LeaderID][DivisionCode][WO#]-[PurchaseSeq]
+ * Example: 01CP0012-1
+ *
+ * OLD Format (v1): [LeaderID][DivisionCode][WO#]-[PurchaseSeq][SupplierLast4]
  * Example: 01CP2345-1bn23
  *
  * Components:
- * - 01 = Who (Division Leader ID: 01, 02, 03, 04, or OM for Operations Manager)
+ * - 01 = Who (Division Leader ID: 01, 02, 03, 04, 05, or OM for Operations Manager)
  * - CP = Division type (CP=CAPEX, RF=Roofing, SW=ServiceWork, CD1=Construction1, CD2=Construction2)
- * - 2345 = Work Order number (4 digits)
+ * - 0012 = Work Order number (4 digits)
  * - -1 = Purchase number within the WO (sequence, starts at 1)
- * - bn23 = Last 4 characters of supplier confirmation number
  */
 
 // Division codes mapping
@@ -32,55 +34,56 @@ export const LEADER_ID_MAP: Record<string, string> = {
 
 interface PONumberComponents {
   leaderId: string;        // e.g., "01", "02", "OM"
-  divisionCode: string;    // e.g., "CP", "RF", "GC"
-  workOrderNumber: number; // e.g., 2345
+  divisionCode: string;    // e.g., "CP", "RF", "CD1"
+  workOrderNumber: number; // e.g., 12
   purchaseSequence: number; // e.g., 1, 2, 3 (POs within same WO)
+}
+
+/** @deprecated Use PONumberComponents (without supplier) for new POs */
+interface LegacyPONumberComponents extends PONumberComponents {
   supplierConfirmLast4: string; // e.g., "bn23"
 }
 
 /**
- * Generate a smart PO number
- * @returns PO number string like "01CP2345-1bn23"
+ * Generate a smart PO number (v2 format, no vendor suffix)
+ * @returns PO number string like "01CP0012-1"
  */
 export function generatePONumber(components: PONumberComponents): string {
-  const {
-    leaderId,
-    divisionCode,
-    workOrderNumber,
-    purchaseSequence,
-    supplierConfirmLast4,
-  } = components;
-
-  // Format work order number as 4 digits (zero-padded)
+  const { leaderId, divisionCode, workOrderNumber, purchaseSequence } = components;
   const woNum = String(workOrderNumber).padStart(4, '0');
-
-  // Ensure supplier confirm is exactly 4 chars (lowercase)
-  const supplierCode = supplierConfirmLast4.toLowerCase().slice(-4).padStart(4, 'x');
-
-  return `${leaderId}${divisionCode}${woNum}-${purchaseSequence}${supplierCode}`;
+  return `${leaderId}${divisionCode}${woNum}-${purchaseSequence}`;
 }
 
 /**
- * Parse a PO number into its components
- * @param poNumber e.g., "01CP2345-1bn23"
+ * Parse a PO number into its components.
+ * Handles BOTH v2 (new: no supplier suffix) and v1 (old: with supplier suffix).
  */
 export function parsePONumber(poNumber: string): PONumberComponents | null {
-  // Regex: (leaderId)(divCode)(woNum)-(purchaseSeq)(supplierLast4)
-  // Example: 01CP2345-1bn23
-  const regex = /^(\d{2}|OM)([A-Z]{2})(\d{4})-(\d+)([a-z0-9]{4})$/i;
-  const match = poNumber.match(regex);
-
-  if (!match) {
-    return null;
+  // v2 format: (leaderId)(divCode 2-3 chars)(woNum 4 digits)-(purchaseSeq)
+  const v2Regex = /^(\d{2}|OM)([A-Z]{2,3})(\d{4})-(\d+)$/i;
+  const v2Match = poNumber.match(v2Regex);
+  if (v2Match) {
+    return {
+      leaderId: v2Match[1].toUpperCase(),
+      divisionCode: v2Match[2].toUpperCase(),
+      workOrderNumber: parseInt(v2Match[3], 10),
+      purchaseSequence: parseInt(v2Match[4], 10),
+    };
   }
 
-  return {
-    leaderId: match[1].toUpperCase(),
-    divisionCode: match[2].toUpperCase(),
-    workOrderNumber: parseInt(match[3], 10),
-    purchaseSequence: parseInt(match[4], 10),
-    supplierConfirmLast4: match[5].toLowerCase(),
-  };
+  // v1 format: (leaderId)(divCode 2 chars)(woNum 4 digits)-(purchaseSeq)(supplierLast4)
+  const v1Regex = /^(\d{2}|OM)([A-Z]{2})(\d{4})-(\d+)([a-z0-9]{4})$/i;
+  const v1Match = poNumber.match(v1Regex);
+  if (v1Match) {
+    return {
+      leaderId: v1Match[1].toUpperCase(),
+      divisionCode: v1Match[2].toUpperCase(),
+      workOrderNumber: parseInt(v1Match[3], 10),
+      purchaseSequence: parseInt(v1Match[4], 10),
+    };
+  }
+
+  return null;
 }
 
 /**
@@ -98,9 +101,8 @@ export function getLeaderIdFromCode(leaderCode: string): string {
 }
 
 /**
- * Generate a supplier confirmation code (last 4 chars)
- * In production, this would come from the vendor's confirmation number
- * For now, generate from vendor code + timestamp
+ * @deprecated Vendor suffix no longer used in PO numbers.
+ * Kept for backward compatibility with existing POs.
  */
 export function generateSupplierConfirmCode(vendorCode: string, timestamp?: Date): string {
   const date = timestamp || new Date();
@@ -135,24 +137,12 @@ export function decodePONumber(poNumber: string): string | null {
   const division = divisionNames[parsed.divisionCode] || 'Unknown Division';
   const leader = leaderNames[parsed.leaderId] || 'Unknown Leader';
 
-  return `${leader} | ${division} | WO-${parsed.workOrderNumber} | Purchase #${parsed.purchaseSequence} | Supplier: ...${parsed.supplierConfirmLast4}`;
+  return `${leader} | ${division} | WO-${parsed.workOrderNumber} | Purchase #${parsed.purchaseSequence}`;
 }
 
 /**
- * Validate a PO number format
+ * Validate a PO number format (accepts both v1 and v2)
  */
 export function isValidPONumber(poNumber: string): boolean {
   return parsePONumber(poNumber) !== null;
 }
-
-// Example usage:
-// const poNum = generatePONumber({
-//   leaderId: '01',
-//   divisionCode: 'CP',
-//   workOrderNumber: 2345,
-//   purchaseSequence: 1,
-//   supplierConfirmLast4: 'bn23',
-// });
-// console.log(poNum); // "01CP2345-1bn23"
-// console.log(decodePONumber(poNum));
-// "Owner 1 (CAPEX) | CAPEX | WO-2345 | Purchase #1 | Supplier: ...bn23"

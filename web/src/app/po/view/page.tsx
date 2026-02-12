@@ -7,6 +7,34 @@ import Link from 'next/link';
 import { PhoneLink } from '@/components/ui/PhoneLink';
 import AppLayout from '@/components/layout/AppLayout';
 
+// Interfaces for completion form
+interface Vendor {
+  id: string;
+  vendor_code: string;
+  vendor_name: string;
+  vendor_type: string;
+  payment_terms_default: string | null;
+}
+
+interface GLAccount {
+  id: string;
+  gl_code_short: string;
+  gl_account_number: string;
+  gl_account_name: string;
+  is_taxable_default: boolean;
+}
+
+interface NewLineItem {
+  id: string;
+  itemDescription: string;
+  quantity: number;
+  unitOfMeasure: string;
+  unitPrice: number;
+  glAccountId: string;
+  glAccountName?: string;
+  isTaxable: boolean;
+}
+
 interface LineItem {
   id: string;
   line_number: number;
@@ -85,6 +113,24 @@ function ViewPurchaseOrder() {
   const [po, setPo] = useState<PurchaseOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Phase 2 completion form state
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [glAccounts, setGLAccounts] = useState<GLAccount[]>([]);
+  const [completionVendorId, setCompletionVendorId] = useState('');
+  const [completionVendorSearch, setCompletionVendorSearch] = useState('');
+  const [completionLineItems, setCompletionLineItems] = useState<NewLineItem[]>([]);
+  const [completionNotes, setCompletionNotes] = useState('');
+  const [completionVendorNotes, setCompletionVendorNotes] = useState('');
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [newItemDesc, setNewItemDesc] = useState('');
+  const [newItemQty, setNewItemQty] = useState(1);
+  const [newItemUOM, setNewItemUOM] = useState('EA');
+  const [newItemPrice, setNewItemPrice] = useState(0);
+  const [newItemGLId, setNewItemGLId] = useState('');
+  const [newItemTaxable, setNewItemTaxable] = useState(true);
+  const [completionSubmitting, setCompletionSubmitting] = useState(false);
+  const [completionError, setCompletionError] = useState<string | null>(null);
 
   // Get ID from URL parameters instead of route parameters
   const id = searchParams.get('id');
@@ -167,6 +213,108 @@ function ViewPurchaseOrder() {
       setLoading(false);
     }
   };
+
+  // Fetch vendors and GL accounts if PO is incomplete draft
+  useEffect(() => {
+    if (po && po.status === 'Draft' && !po.vendor_id) {
+      const fetchCompletionData = async () => {
+        try {
+          const [vendorRes, glRes] = await Promise.all([
+            fetch('/api/vendors'),
+            fetch('/api/gl-accounts'),
+          ]);
+          if (vendorRes.ok) setVendors(await vendorRes.json());
+          if (glRes.ok) setGLAccounts(await glRes.json());
+        } catch (err) {
+          console.error('Error fetching completion data:', err);
+        }
+      };
+      fetchCompletionData();
+    }
+  }, [po]);
+
+  const isIncompleteDraft = po && po.status === 'Draft' && !po.vendor_id;
+
+  const addCompletionLineItem = () => {
+    if (!newItemDesc || !newItemGLId || newItemPrice <= 0) return;
+    const glAccount = glAccounts.find((g) => g.id === newItemGLId);
+    setCompletionLineItems([
+      ...completionLineItems,
+      {
+        id: Date.now().toString(),
+        itemDescription: newItemDesc,
+        quantity: newItemQty,
+        unitOfMeasure: newItemUOM,
+        unitPrice: newItemPrice,
+        glAccountId: newItemGLId,
+        glAccountName: glAccount?.gl_account_name,
+        isTaxable: newItemTaxable,
+      },
+    ]);
+    setShowAddItem(false);
+    setNewItemDesc('');
+    setNewItemQty(1);
+    setNewItemUOM('EA');
+    setNewItemPrice(0);
+    setNewItemGLId('');
+    setNewItemTaxable(true);
+  };
+
+  const removeCompletionLineItem = (itemId: string) => {
+    setCompletionLineItems(completionLineItems.filter((i) => i.id !== itemId));
+  };
+
+  const completionSubtotal = completionLineItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+  const completionTaxable = completionLineItems.filter((i) => i.isTaxable).reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+  const completionTax = completionTaxable * 0.0775;
+  const completionTotal = completionSubtotal + completionTax;
+
+  const handleCompletePO = async (status: 'Draft' | 'Submitted') => {
+    if (!id || !completionVendorId || completionLineItems.length === 0) return;
+    setCompletionSubmitting(true);
+    setCompletionError(null);
+
+    try {
+      const res = await fetch(`/api/po/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vendorId: completionVendorId,
+          lineItems: completionLineItems.map((item) => ({
+            itemDescription: item.itemDescription,
+            quantity: item.quantity,
+            unitOfMeasure: item.unitOfMeasure,
+            unitPrice: item.unitPrice,
+            glAccountId: item.glAccountId,
+            isTaxable: item.isTaxable,
+          })),
+          notesInternal: completionNotes || undefined,
+          notesVendor: completionVendorNotes || undefined,
+          status,
+        }),
+      });
+
+      if (res.ok) {
+        await fetchPurchaseOrder(id);
+        setCompletionLineItems([]);
+        setCompletionVendorId('');
+      } else {
+        const errData = await res.json();
+        setCompletionError(errData.error || 'Failed to complete PO');
+      }
+    } catch (err) {
+      console.error('Error completing PO:', err);
+      setCompletionError('Network error. Please try again.');
+    } finally {
+      setCompletionSubmitting(false);
+    }
+  };
+
+  const filteredVendors = vendors.filter((v) => {
+    if (!completionVendorSearch) return true;
+    const term = completionVendorSearch.toLowerCase();
+    return v.vendor_name.toLowerCase().includes(term) || v.vendor_code.toLowerCase().includes(term);
+  });
 
   // Handle approval/rejection actions
   const handleAction = async (action: 'approve' | 'reject', notes?: string) => {
@@ -398,6 +546,278 @@ function ViewPurchaseOrder() {
             </div>
           )}
         </div>
+
+        {/* Phase 2 Completion Form — Incomplete Draft */}
+        {isIncompleteDraft && (
+          <div className="bg-white rounded-lg shadow p-6 space-y-6">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <p className="text-sm font-medium text-amber-800">
+                  This PO needs vendor and line item details. Complete the form below.
+                </p>
+              </div>
+            </div>
+
+            {completionError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+                {completionError}
+              </div>
+            )}
+
+            {/* Vendor Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Vendor <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={completionVendorSearch}
+                onChange={(e) => {
+                  setCompletionVendorSearch(e.target.value);
+                  if (completionVendorId) setCompletionVendorId('');
+                }}
+                placeholder="Search vendors..."
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 mb-2"
+              />
+              {completionVendorSearch && !completionVendorId && (
+                <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-lg bg-white">
+                  {filteredVendors.length === 0 ? (
+                    <p className="p-3 text-sm text-slate-500">No vendors match</p>
+                  ) : (
+                    filteredVendors.map((v) => (
+                      <button
+                        key={v.id}
+                        onClick={() => {
+                          setCompletionVendorId(v.id);
+                          setCompletionVendorSearch(v.vendor_name);
+                        }}
+                        className="w-full text-left px-3 py-2 hover:bg-orange-50 transition text-sm border-b border-slate-100 last:border-b-0"
+                      >
+                        <span className="font-medium text-slate-900">{v.vendor_name}</span>
+                        <span className="text-slate-500 ml-2">({v.vendor_code})</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+              {completionVendorId && (
+                <p className="text-sm text-green-600 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Vendor selected
+                </p>
+              )}
+            </div>
+
+            {/* Line Items */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-sm font-medium text-gray-700">
+                  Line Items <span className="text-red-500">*</span>
+                </label>
+                {!showAddItem && (
+                  <button
+                    onClick={() => setShowAddItem(true)}
+                    className="inline-flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700 font-medium"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Item
+                  </button>
+                )}
+              </div>
+
+              {/* Existing items list */}
+              {completionLineItems.length > 0 && (
+                <div className="space-y-2 mb-4">
+                  {completionLineItems.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-900 truncate">{item.itemDescription}</p>
+                        <p className="text-xs text-slate-500">
+                          {item.quantity} {item.unitOfMeasure} x ${item.unitPrice.toFixed(2)} = ${(item.quantity * item.unitPrice).toFixed(2)}
+                          {item.glAccountName && <span className="ml-2 text-slate-400">| {item.glAccountName}</span>}
+                          {item.isTaxable && <span className="ml-2 text-amber-600">Taxable</span>}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => removeCompletionLineItem(item.id)}
+                        className="ml-2 text-red-400 hover:text-red-600 transition"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add item form */}
+              {showAddItem && (
+                <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Description *</label>
+                    <input
+                      type="text"
+                      value={newItemDesc}
+                      onChange={(e) => setNewItemDesc(e.target.value)}
+                      placeholder="e.g., Roofing shingles"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">Qty</label>
+                      <input
+                        type="number"
+                        value={newItemQty}
+                        onChange={(e) => setNewItemQty(Number(e.target.value))}
+                        min="0.01"
+                        step="0.01"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">UOM</label>
+                      <select
+                        value={newItemUOM}
+                        onChange={(e) => setNewItemUOM(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
+                      >
+                        <option value="EA">Each</option>
+                        <option value="LF">Linear Ft</option>
+                        <option value="SF">Sq Ft</option>
+                        <option value="HR">Hour</option>
+                        <option value="LOT">Lot</option>
+                        <option value="BX">Box</option>
+                        <option value="CS">Case</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">Unit Price *</label>
+                      <input
+                        type="number"
+                        value={newItemPrice || ''}
+                        onChange={(e) => setNewItemPrice(Number(e.target.value))}
+                        min="0.01"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">GL Account *</label>
+                      <select
+                        value={newItemGLId}
+                        onChange={(e) => setNewItemGLId(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
+                      >
+                        <option value="">Select...</option>
+                        {glAccounts.map((gl) => (
+                          <option key={gl.id} value={gl.id}>
+                            {gl.gl_code_short} - {gl.gl_account_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={newItemTaxable}
+                        onChange={(e) => setNewItemTaxable(e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500"
+                      />
+                      Taxable (7.75%)
+                    </label>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={() => { setShowAddItem(false); setNewItemDesc(''); setNewItemPrice(0); setNewItemGLId(''); }}
+                      className="px-4 py-2 text-sm border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={addCompletionLineItem}
+                      disabled={!newItemDesc || !newItemGLId || newItemPrice <= 0}
+                      className="px-4 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-medium transition"
+                    >
+                      Add Line Item
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Totals */}
+            {completionLineItems.length > 0 && (
+              <div className="bg-slate-50 rounded-lg p-4 space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-600">Subtotal</span>
+                  <span className="text-slate-900 font-medium">${completionSubtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-600">Tax (7.75%)</span>
+                  <span className="text-slate-900">${completionTax.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm font-bold border-t border-slate-200 pt-1">
+                  <span className="text-slate-900">Total</span>
+                  <span className="text-slate-900">${completionTotal.toFixed(2)}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Notes */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Internal Notes</label>
+                <textarea
+                  value={completionNotes}
+                  onChange={(e) => setCompletionNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Internal notes..."
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Vendor Notes</label>
+                <textarea
+                  value={completionVendorNotes}
+                  onChange={(e) => setCompletionVendorNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Notes for vendor..."
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <button
+                onClick={() => handleCompletePO('Draft')}
+                disabled={completionSubmitting || !completionVendorId || completionLineItems.length === 0}
+                className="flex-1 py-3 px-4 border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition disabled:opacity-50"
+              >
+                {completionSubmitting ? 'Saving...' : 'Save Draft'}
+              </button>
+              <button
+                onClick={() => handleCompletePO('Submitted')}
+                disabled={completionSubmitting || !completionVendorId || completionLineItems.length === 0}
+                className="flex-1 py-3 px-4 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition disabled:opacity-50"
+              >
+                {completionSubmitting ? 'Submitting...' : 'Submit for Approval'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Line Items */}
         {po.line_items && po.line_items.length > 0 && (

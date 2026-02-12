@@ -165,7 +165,7 @@ const generatePOSummaryReport = async (
           COALESCE(SUM(total_amount), 0)::float as total_amount,
           COUNT(*)::int as po_count
         FROM po_headers
-        WHERE division_id = ${division.id}
+        WHERE division_id = ${division.id}::uuid
           AND deleted_at IS NULL
           AND created_at >= ${twelveMonthsAgo}
           AND created_at <= ${endDate}

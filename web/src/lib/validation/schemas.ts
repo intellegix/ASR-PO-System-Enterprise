@@ -292,6 +292,41 @@ export const bulkUpdatePOStatusSchema = z.object({
 });
 
 // ============================================
+// QUICK PO (PHASE 1) — Just division, project, work order
+// ============================================
+
+export const quickCreatePOSchema = z.object({
+  projectId: uuidSchema,
+  divisionId: uuidSchema,
+  workOrderId: uuidSchema.nullable().optional(),
+  createWorkOrder: z.object({
+    title: sanitizedTextSchema(200).min(1, 'Work order title is required'),
+  }).optional(),
+  notesInternal: sanitizedTextSchema(1000).optional(),
+});
+
+export type QuickCreatePOInput = z.infer<typeof quickCreatePOSchema>;
+
+// ============================================
+// COMPLETE PO (PHASE 2) — Add vendor + line items to existing draft
+// ============================================
+
+export const completePOSchema = z.object({
+  vendorId: uuidSchema,
+  lineItems: z.array(poLineItemSchema).min(1, 'At least one line item is required').max(50, 'Too many line items (max 50)'),
+  notesInternal: sanitizedTextSchema(1000).optional(),
+  notesVendor: sanitizedTextSchema(1000).optional(),
+  requiredByDate: z.string().refine(
+    (val) => /^\d{4}-\d{2}-\d{2}(T.*)?$/.test(val),
+    'Invalid date format'
+  ).nullable().optional(),
+  termsCode: codeSchema(10).optional(),
+  status: z.enum(['Draft', 'Submitted']).optional(),
+});
+
+export type CompletePOInput = z.infer<typeof completePOSchema>;
+
+// ============================================
 // EXPORT TYPE DEFINITIONS
 // ============================================
 

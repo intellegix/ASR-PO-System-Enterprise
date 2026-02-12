@@ -190,6 +190,14 @@ const postHandler = withValidation(
     const TAX_RATE = 0.0775; // 7.75% tax rate
     let subtotal = 0;
 
+    // Look up GL accounts by ID so we can store code/number/name on line items
+    const glAccountIds = [...new Set(lineItems.map((item: { glAccountId: string }) => item.glAccountId))];
+    const glAccounts = await prisma.gl_account_mappings.findMany({
+      where: { id: { in: glAccountIds } },
+      select: { id: true, gl_code_short: true, gl_account_number: true, gl_account_name: true },
+    });
+    const glAccountMap = new Map(glAccounts.map(gl => [gl.id, gl]));
+
     const processedLineItems = lineItems.map((item: {
       itemDescription: string;
       quantity: number;
@@ -200,6 +208,7 @@ const postHandler = withValidation(
     }, index: number) => {
       const lineSubtotal = item.quantity * item.unitPrice;
       subtotal += lineSubtotal;
+      const glAccount = glAccountMap.get(item.glAccountId);
       return {
         line_number: index + 1,
         item_description: item.itemDescription,
@@ -207,7 +216,9 @@ const postHandler = withValidation(
         unit_of_measure: item.unitOfMeasure,
         unit_price: item.unitPrice,
         line_subtotal: lineSubtotal,
-        gl_account_id: item.glAccountId,
+        gl_account_code: glAccount?.gl_code_short || null,
+        gl_account_number: glAccount?.gl_account_number || null,
+        gl_account_name: glAccount?.gl_account_name || null,
         is_taxable: item.isTaxable ?? true,
         status: 'Pending' as any,
       };

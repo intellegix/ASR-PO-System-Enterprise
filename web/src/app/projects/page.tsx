@@ -6,6 +6,12 @@ import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
 
+interface Division {
+  id: string;
+  division_code: string;
+  division_name: string;
+}
+
 interface Project {
   id: string;
   project_code: string;
@@ -15,6 +21,7 @@ interface Project {
   clark_rep: string | null;
   raken_uuid: string | null;
   last_synced_at: string | null;
+  primary_division_id: string | null;
 }
 
 interface SyncResult {
@@ -35,6 +42,37 @@ export default function ProjectsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
 
   const isAdmin = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER'].includes(user?.role || '');
+
+  const { data: divisions = [] } = useQuery<Division[]>({
+    queryKey: ['divisions'],
+    queryFn: async () => {
+      const response = await fetch('/api/divisions');
+      if (!response.ok) throw new Error('Failed to fetch divisions');
+      return response.json();
+    },
+    enabled: isAuthenticated && isAdmin,
+  });
+
+  const divisionAssignMutation = useMutation({
+    mutationFn: async ({ projectId, divisionId }: { projectId: string; divisionId: string | null }) => {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ primaryDivisionId: divisionId }),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to assign division');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+    onError: (error: Error) => {
+      setSyncMessage({ type: 'error', text: error.message });
+    },
+  });
 
   const { data: projects = [], isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ['projects'],
@@ -242,6 +280,9 @@ export default function ProjectsPage() {
                     <tr>
                       <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Project Code</th>
                       <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Project Name</th>
+                      {isAdmin && (
+                        <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Division</th>
+                      )}
                       <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">District</th>
                       <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Clark Rep</th>
                       <th className="text-center px-4 py-3 text-sm font-medium text-slate-700">Raken Status</th>
@@ -260,6 +301,23 @@ export default function ProjectsPage() {
                         <td className="px-4 py-3 text-sm text-slate-600">
                           {project.project_name || '-'}
                         </td>
+                        {isAdmin && (
+                          <td className="px-4 py-3">
+                            <select
+                              value={project.primary_division_id || ''}
+                              onChange={(e) => divisionAssignMutation.mutate({
+                                projectId: project.id,
+                                divisionId: e.target.value || null,
+                              })}
+                              className="px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
+                            >
+                              <option value="">Unassigned</option>
+                              {divisions.map((d) => (
+                                <option key={d.id} value={d.id}>{d.division_name}</option>
+                              ))}
+                            </select>
+                          </td>
+                        )}
                         <td className="px-4 py-3 text-sm text-slate-600">
                           {project.district_name || '-'}
                         </td>
@@ -380,6 +438,24 @@ export default function ProjectsPage() {
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
+                      {isAdmin && (
+                        <div className="col-span-2 mb-1">
+                          <p className="text-slate-400 text-xs mb-1">Division</p>
+                          <select
+                            value={project.primary_division_id || ''}
+                            onChange={(e) => divisionAssignMutation.mutate({
+                              projectId: project.id,
+                              divisionId: e.target.value || null,
+                            })}
+                            className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-orange-500 bg-white"
+                          >
+                            <option value="">Unassigned</option>
+                            {divisions.map((d) => (
+                              <option key={d.id} value={d.id}>{d.division_name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                       <div>
                         <p className="text-slate-400 text-xs">District</p>
                         <p className="text-slate-600">{project.district_name || '-'}</p>
