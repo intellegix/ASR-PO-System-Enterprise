@@ -132,6 +132,11 @@ export default function CreatePOPage() {
     document.title = 'Create PO | ASR PO System';
   }, []);
 
+  // Scroll to top when step changes so content isn't hidden below the fold on mobile
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [step]);
+
   useEffect(() => {
     if (!isDirty) return;
     const handler = (e: BeforeUnloadEvent) => {
@@ -514,7 +519,7 @@ export default function CreatePOPage() {
               <div
                 className={`h-1 w-full rounded ${i + 1 <= step ? 'bg-orange-500' : 'bg-slate-200'}`}
               />
-              <span className={`text-[8px] sm:text-[10px] leading-tight hidden sm:block ${i + 1 <= step ? 'text-orange-600 font-medium' : 'text-slate-400'}`}>
+              <span className={`text-[8px] sm:text-[10px] leading-tight ${i + 1 <= step ? 'text-orange-600 font-medium' : 'text-slate-400'}`}>
                 {label}
               </span>
             </div>
