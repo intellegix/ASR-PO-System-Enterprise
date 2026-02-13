@@ -2,6 +2,7 @@ import { sendEmail } from './service';
 import { getPOEmailData } from './service';
 import prisma from '@/lib/db';
 import { COMPANY_INFO, APP_URL } from './config';
+import { normalizeRole } from '@/lib/auth/permissions';
 
 // Enhanced email templates for new lifecycle events
 const formatCurrency = (amount: number | string) => {
@@ -474,8 +475,8 @@ export async function sendDailyApprovalReminders(): Promise<void> {
     // Get pending POs for this approver
     let pendingPOs;
 
-    if (approver.role === 'MAJORITY_OWNER') {
-      // Can approve anything, show high-value items
+    if (normalizeRole(approver.role) === 'ADMIN') {
+      // Admins can approve anything, show high-value items
       pendingPOs = await prisma.po_headers.findMany({
         where: {
           status: { in: ['Submitted', 'Approved'] },

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Box, Button, TextField, Typography, Paper } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 
 interface WorkOrder {
   id: string;
@@ -25,95 +27,144 @@ export default function WorkOrderPicker({ workOrders, loading, onSelect }: WorkO
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold text-slate-800 mb-1">Pick or Create Work Order</h2>
-        <p className="text-sm text-slate-500">Select an existing work order or create a new one</p>
-      </div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
+          Pick or Create Work Order
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Select an existing work order or create a new one
+        </Typography>
+      </Box>
 
       {/* Create New WO */}
       {!showCreate ? (
-        <button
+        <Button
           onClick={() => setShowCreate(true)}
-          className="w-full flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-orange-300 rounded-xl text-orange-600 hover:bg-orange-50 transition"
+          variant="outlined"
+          startIcon={<AddIcon />}
+          sx={{
+            py: 1.5,
+            px: 2,
+            border: 2,
+            borderStyle: 'dashed',
+            borderColor: 'warning.light',
+            color: 'warning.main',
+            borderRadius: 3,
+            textTransform: 'none',
+            '&:hover': {
+              bgcolor: 'warning.lighter',
+              borderColor: 'warning.main'
+            }
+          }}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Create New Work Order</span>
-        </button>
+          Create New Work Order
+        </Button>
       ) : (
-        <div className="bg-white rounded-xl p-4 border border-slate-200 space-y-3">
-          <h3 className="font-medium text-slate-800">New Work Order</h3>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">
-              Title <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
+        <Paper sx={{ p: 2, border: 1, borderColor: 'grey.200', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+            New Work Order
+          </Typography>
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.secondary', mb: 0.5, display: 'block' }}>
+              Title <Box component="span" sx={{ color: 'error.main' }}>*</Box>
+            </Typography>
+            <TextField
+              fullWidth
               placeholder="e.g., Material purchase for Phase 2"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500"
+              size="small"
               autoFocus
             />
-          </div>
-          <div className="flex gap-2">
-            <button
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
               onClick={() => { setShowCreate(false); setNewTitle(''); }}
-              className="flex-1 py-2 px-4 border border-slate-300 rounded-lg text-slate-600"
+              variant="outlined"
+              sx={{ flex: 1, py: 1 }}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleCreate}
               disabled={!newTitle.trim()}
-              className="flex-1 py-2 px-4 bg-orange-500 text-white rounded-lg disabled:opacity-50 font-medium"
+              variant="contained"
+              color="warning"
+              sx={{ flex: 1, py: 1, fontWeight: 500 }}
             >
               Create & Generate PO
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Box>
+        </Paper>
       )}
 
       {/* Existing Work Orders */}
       {loading ? (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500"></div>
-        </div>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <Typography variant="body2" color="text.secondary">Loading...</Typography>
+        </Box>
       ) : workOrders.length > 0 ? (
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-slate-600">Existing Work Orders</p>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+            Existing Work Orders
+          </Typography>
           {workOrders.map((wo) => (
-            <button
+            <Button
               key={wo.id}
               onClick={() => onSelect(wo.id)}
-              className="w-full text-left p-4 rounded-xl border border-slate-200 bg-white hover:border-orange-300 hover:bg-orange-50/50 transition"
+              variant="outlined"
+              sx={{
+                justifyContent: 'flex-start',
+                textAlign: 'left',
+                p: 2,
+                borderRadius: 3,
+                borderColor: 'grey.300',
+                color: 'text.primary',
+                textTransform: 'none',
+                '&:hover': {
+                  borderColor: 'warning.main',
+                  bgcolor: 'warning.lighter'
+                }
+              }}
             >
-              <p className="font-mono text-sm text-slate-500">{wo.work_order_number}</p>
-              <p className="font-medium text-slate-900">{wo.title}</p>
-              {wo.primary_trade && (
-                <p className="text-sm text-slate-500">{wo.primary_trade}</p>
-              )}
-            </button>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>
+                  {wo.work_order_number}
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  {wo.title}
+                </Typography>
+                {wo.primary_trade && (
+                  <Typography variant="body2" color="text.secondary">
+                    {wo.primary_trade}
+                  </Typography>
+                )}
+              </Box>
+            </Button>
           ))}
-        </div>
+        </Box>
       ) : (
-        <div className="text-center py-6 bg-slate-50 rounded-xl border border-slate-200">
-          <p className="text-sm text-slate-500">No work orders for this project yet</p>
-          <p className="text-xs text-slate-400 mt-1">Create one above, or one will be auto-created</p>
-        </div>
+        <Paper sx={{ textAlign: 'center', py: 3, bgcolor: 'grey.50', border: 1, borderColor: 'grey.200' }}>
+          <Typography variant="body2" color="text.secondary">
+            No work orders for this project yet
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+            Create one above, or one will be auto-created
+          </Typography>
+        </Paper>
       )}
 
       {/* Skip / Auto-create option */}
-      <div className="pt-4 border-t border-slate-200">
-        <button
+      <Box sx={{ pt: 2, borderTop: 1, borderColor: 'grey.200' }}>
+        <Button
           onClick={() => onSelect(null)}
-          className="w-full py-3 px-4 text-slate-500 hover:text-slate-700 text-sm transition"
+          fullWidth
+          sx={{ py: 1.5, color: 'text.secondary', textTransform: 'none', '&:hover': { color: 'text.primary' } }}
         >
           Skip - Auto-create work order
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Box>
+    </Box>
   );
 }

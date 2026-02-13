@@ -5,6 +5,21 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
+import {
+  Box,
+  Typography,
+  TextField,
+  MenuItem,
+  Button,
+  Paper,
+  Alert,
+  Grid,
+  InputAdornment,
+  IconButton,
+  Divider,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface LineItem {
   description: string;
@@ -139,300 +154,310 @@ export default function CreateCustomerInvoicePage() {
 
   return (
     <AppLayout pageTitle="Create Customer Invoice">
-      <div className="max-w-4xl mx-auto">
+      <Box sx={{ maxWidth: 1024, mx: 'auto' }}>
         {/* Header */}
-        <div className="mb-6">
-          <p className="text-sm text-slate-500">Generate an invoice for a project customer</p>
-        </div>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="body2" color="text.secondary">Generate an invoice for a project customer</Typography>
+        </Box>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
         )}
 
-        <form onSubmit={(e) => handleSubmit(e, 'Draft')} className="space-y-6">
+        <Box component="form" onSubmit={(e) => handleSubmit(e, 'Draft')} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {/* Customer Details */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Customer Details</h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Project *</label>
-                  <select
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>Customer Details</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    select
+                    label="Project"
                     value={form.projectId}
                     onChange={(e) => setForm(prev => ({ ...prev, projectId: e.target.value }))}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
+                    fullWidth
                   >
-                    <option value="">Select project...</option>
+                    <MenuItem value="">Select project...</MenuItem>
                     {(Array.isArray(projects) ? projects : []).map((p: { id: string; project_code: string; project_name: string }) => (
-                      <option key={p.id} value={p.id}>{p.project_code} - {p.project_name}</option>
+                      <MenuItem key={p.id} value={p.id}>{p.project_code} - {p.project_name}</MenuItem>
                     ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Division</label>
-                  <select
+                  </TextField>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    select
+                    label="Division"
                     value={form.divisionId}
                     onChange={(e) => setForm(prev => ({ ...prev, divisionId: e.target.value }))}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    fullWidth
                   >
-                    <option value="">Select division...</option>
+                    <MenuItem value="">Select division...</MenuItem>
                     {(Array.isArray(divisions) ? divisions : []).map((d: { id: string; division_name: string }) => (
-                      <option key={d.id} value={d.id}>{d.division_name}</option>
+                      <MenuItem key={d.id} value={d.id}>{d.division_name}</MenuItem>
                     ))}
-                  </select>
-                </div>
-              </div>
+                  </TextField>
+                </Grid>
+              </Grid>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Client (from master list)</label>
-                <select
-                  value={form.clientId}
-                  onChange={(e) => {
-                    const clientId = e.target.value;
-                    setForm(prev => ({ ...prev, clientId }));
-                    if (clientId) {
-                      interface ClientData {
-                        id: string;
-                        client_name: string;
-                        contact_email?: string | null;
-                        address?: string | null;
-                        category?: string | null;
-                      }
-                      const client = (Array.isArray(clientsList) ? clientsList : []).find((c: ClientData) => c.id === clientId);
-                      if (client) {
-                        setForm(prev => ({
-                          ...prev,
-                          clientId,
-                          customerName: client.client_name,
-                          customerEmail: client.contact_email || prev.customerEmail,
-                          customerAddress: client.address || prev.customerAddress,
-                        }));
-                      }
+              <TextField
+                select
+                label="Client (from master list)"
+                value={form.clientId}
+                onChange={(e) => {
+                  const clientId = e.target.value;
+                  setForm(prev => ({ ...prev, clientId }));
+                  if (clientId) {
+                    interface ClientData {
+                      id: string;
+                      client_name: string;
+                      contact_email?: string | null;
+                      address?: string | null;
+                      category?: string | null;
                     }
-                  }}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Select client (optional)...</option>
-                  {(Array.isArray(clientsList) ? clientsList : []).map((c: { id: string; client_name: string; category?: string | null }) => (
-                    <option key={c.id} value={c.id}>{c.client_name} {c.category ? `(${c.category})` : ''}</option>
-                  ))}
-                </select>
-              </div>
+                    const client = (Array.isArray(clientsList) ? clientsList : []).find((c: ClientData) => c.id === clientId);
+                    if (client) {
+                      setForm(prev => ({
+                        ...prev,
+                        clientId,
+                        customerName: client.client_name,
+                        customerEmail: client.contact_email || prev.customerEmail,
+                        customerAddress: client.address || prev.customerAddress,
+                      }));
+                    }
+                  }
+                }}
+                fullWidth
+              >
+                <MenuItem value="">Select client (optional)...</MenuItem>
+                {(Array.isArray(clientsList) ? clientsList : []).map((c: { id: string; client_name: string; category?: string | null }) => (
+                  <MenuItem key={c.id} value={c.id}>{c.client_name} {c.category ? `(${c.category})` : ''}</MenuItem>
+                ))}
+              </TextField>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Customer Name *</label>
-                <input
-                  type="text"
-                  value={form.customerName}
-                  onChange={(e) => setForm(prev => ({ ...prev, customerName: e.target.value }))}
-                  placeholder="Customer or company name"
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
+              <TextField
+                label="Customer Name"
+                value={form.customerName}
+                onChange={(e) => setForm(prev => ({ ...prev, customerName: e.target.value }))}
+                placeholder="Customer or company name"
+                required
+                fullWidth
+              />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Customer Email</label>
-                  <input
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
                     type="email"
+                    label="Customer Email"
                     value={form.customerEmail}
                     onChange={(e) => setForm(prev => ({ ...prev, customerEmail: e.target.value }))}
                     placeholder="customer@example.com"
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    fullWidth
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Payment Terms</label>
-                  <select
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    select
+                    label="Payment Terms"
                     value={form.terms}
                     onChange={(e) => setForm(prev => ({ ...prev, terms: e.target.value }))}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    fullWidth
                   >
-                    <option value="Net10">Net 10</option>
-                    <option value="Net15">Net 15</option>
-                    <option value="Net30">Net 30</option>
-                    <option value="Net45">Net 45</option>
-                    <option value="Net60">Net 60</option>
-                    <option value="DueOnReceipt">Due on Receipt</option>
-                  </select>
-                </div>
-              </div>
+                    <MenuItem value="Net10">Net 10</MenuItem>
+                    <MenuItem value="Net15">Net 15</MenuItem>
+                    <MenuItem value="Net30">Net 30</MenuItem>
+                    <MenuItem value="Net45">Net 45</MenuItem>
+                    <MenuItem value="Net60">Net 60</MenuItem>
+                    <MenuItem value="DueOnReceipt">Due on Receipt</MenuItem>
+                  </TextField>
+                </Grid>
+              </Grid>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Customer Address</label>
-                <textarea
-                  value={form.customerAddress}
-                  onChange={(e) => setForm(prev => ({ ...prev, customerAddress: e.target.value }))}
-                  rows={2}
-                  placeholder="Street, City, State, ZIP"
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+              <TextField
+                label="Customer Address"
+                value={form.customerAddress}
+                onChange={(e) => setForm(prev => ({ ...prev, customerAddress: e.target.value }))}
+                multiline
+                rows={2}
+                placeholder="Street, City, State, ZIP"
+                fullWidth
+              />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
-                  <input
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
                     type="date"
+                    label="Due Date"
                     value={form.dateDue}
                     onChange={(e) => {
                       dueDateManuallyEdited.current = true;
                       setForm(prev => ({ ...prev, dateDue: e.target.value }));
                     }}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
                   />
-                </div>
-              </div>
-            </div>
-          </div>
+                </Grid>
+              </Grid>
+            </Box>
+          </Paper>
 
           {/* Line Items */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-slate-900">Line Items</h2>
-              <button
-                type="button"
+          <Paper sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h6">Line Items</Typography>
+              <Button
+                startIcon={<AddIcon />}
                 onClick={addLineItem}
-                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                size="small"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
                 Add Line
-              </button>
-            </div>
+              </Button>
+            </Box>
 
-            <div className="space-y-3">
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               {/* Header */}
-              <div className="grid grid-cols-12 gap-3 text-xs font-medium text-slate-500 uppercase tracking-wider">
-                <div className="col-span-5">Description</div>
-                <div className="col-span-2">Qty</div>
-                <div className="col-span-2">Unit Price</div>
-                <div className="col-span-2">Amount</div>
-                <div className="col-span-1"></div>
-              </div>
+              <Grid container spacing={1.5}>
+                <Grid size={{ xs: 12, sm: 5 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase' }}>Description</Typography>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 2 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase' }}>Qty</Typography>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 2 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase' }}>Unit Price</Typography>
+                </Grid>
+                <Grid size={{ xs: 10, sm: 2 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase' }}>Amount</Typography>
+                </Grid>
+                <Grid size={{ xs: 2, sm: 1 }}></Grid>
+              </Grid>
 
               {lineItems.map((item, index) => (
-                <div key={index} className="grid grid-cols-12 gap-3 items-center">
-                  <div className="col-span-5">
-                    <input
-                      type="text"
+                <Grid container spacing={1.5} key={index} alignItems="center">
+                  <Grid size={{ xs: 12, sm: 5 }}>
+                    <TextField
                       value={item.description}
                       onChange={(e) => updateLineItem(index, 'description', e.target.value)}
                       placeholder="Description of work/materials"
-                      className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      size="small"
+                      fullWidth
                     />
-                  </div>
-                  <div className="col-span-2">
-                    <input
+                  </Grid>
+                  <Grid size={{ xs: 6, sm: 2 }}>
+                    <TextField
                       type="number"
-                      step="0.01"
-                      min="0"
                       value={item.quantity || ''}
                       onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)}
-                      className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      inputProps={{ step: '0.01', min: '0' }}
+                      size="small"
+                      fullWidth
                     />
-                  </div>
-                  <div className="col-span-2">
-                    <div className="relative">
-                      <span className="absolute left-3 top-2 text-slate-400 text-sm">$</span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={item.unitPrice || ''}
-                        onChange={(e) => updateLineItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                        className="w-full border border-slate-300 rounded-lg pl-7 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-sm font-medium text-slate-700 px-3 py-2">
+                  </Grid>
+                  <Grid size={{ xs: 6, sm: 2 }}>
+                    <TextField
+                      type="number"
+                      value={item.unitPrice || ''}
+                      onChange={(e) => updateLineItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                      }}
+                      inputProps={{ step: '0.01', min: '0' }}
+                      size="small"
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 10, sm: 2 }}>
+                    <Typography sx={{ fontWeight: 500, py: 1 }}>
                       ${(item.quantity * item.unitPrice).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                  <div className="col-span-1">
+                    </Typography>
+                  </Grid>
+                  <Grid size={{ xs: 2, sm: 1 }}>
                     {lineItems.length > 1 && (
-                      <button
-                        type="button"
+                      <IconButton
                         onClick={() => removeLineItem(index)}
-                        className="text-slate-400 hover:text-red-500 transition"
+                        size="small"
+                        color="error"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
                     )}
-                  </div>
-                </div>
+                  </Grid>
+                </Grid>
               ))}
-            </div>
+            </Box>
 
             {/* Totals */}
-            <div className="mt-6 border-t border-slate-200 pt-4 space-y-2">
-              <div className="flex justify-end gap-8">
-                <span className="text-sm text-slate-500">Subtotal</span>
-                <span className="text-sm font-medium text-slate-700 w-28 text-right">
-                  ${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-end gap-8">
-                <span className="text-sm text-slate-500">Tax (7.75%)</span>
-                <span className="text-sm font-medium text-slate-700 w-28 text-right">
-                  ${taxAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-end gap-8 pt-2 border-t border-slate-200">
-                <span className="text-sm font-semibold text-slate-900">Total</span>
-                <span className="text-sm font-bold text-slate-900 w-28 text-right">
-                  ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
-          </div>
+            <Box sx={{ mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: { xs: '100%', sm: 300 } }}>
+                  <Typography variant="body2" color="text.secondary">Subtotal</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    ${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: { xs: '100%', sm: 300 } }}>
+                  <Typography variant="body2" color="text.secondary">Tax (7.75%)</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    ${taxAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </Typography>
+                </Box>
+                <Divider sx={{ width: { xs: '100%', sm: 300 } }} />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: { xs: '100%', sm: 300 } }}>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>Total</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                    ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Paper>
 
           {/* Notes */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Notes</h2>
-            <textarea
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>Notes</Typography>
+            <TextField
               value={form.notes}
               onChange={(e) => setForm(prev => ({ ...prev, notes: e.target.value }))}
+              multiline
               rows={3}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Additional notes for the invoice..."
+              fullWidth
             />
-          </div>
+          </Paper>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3">
-            <Link
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+            <Button
+              component={Link}
               href="/invoices"
-              className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition"
+              variant="outlined"
+              color="inherit"
             >
               Cancel
-            </Link>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="contained"
+              color="inherit"
               disabled={isSubmitting}
-              className="px-6 py-2 text-sm font-medium text-white bg-slate-600 rounded-lg hover:bg-slate-700 transition disabled:opacity-50"
             >
               {isSubmitting ? 'Saving...' : 'Save as Draft'}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               disabled={isSubmitting}
               onClick={(e) => handleSubmit(e as React.FormEvent, 'Sent')}
-              className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+              variant="contained"
+              color="primary"
             >
               {isSubmitting ? 'Saving...' : 'Save & Mark as Sent'}
-            </button>
-          </div>
-        </form>
-      </div>
+            </Button>
+          </Box>
+        </Box>
+      </Box>
     </AppLayout>
   );
 }

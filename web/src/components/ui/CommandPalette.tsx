@@ -2,6 +2,25 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  Dialog,
+  Box,
+  TextField,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Typography,
+  CircularProgress,
+  Chip,
+  Divider,
+  InputAdornment,
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  Add as AddIcon,
+  CheckCircle as CheckCircleIcon,
+} from '@mui/icons-material';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -216,173 +235,303 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     [allItems, search, selectedIndex, navigateTo, onClose]
   );
 
-  if (!isOpen) return null;
-
   const hasSearch = search.trim().length > 0;
   const showNoResults = hasSearch && !loading && allItems.length === 0;
 
   let flatIndex = 0;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
-      onClick={onClose}
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          overflow: 'hidden',
+          mt: '15vh',
+        },
+      }}
+      onKeyDown={handleKeyDown}
     >
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: 1, borderColor: 'divider', px: 2, py: 1.5 }}>
+        <SearchIcon sx={{ fontSize: 20, flexShrink: 0, color: 'primary.main' }} />
+        <TextField
+          inputRef={inputRef}
+          type="text"
+          placeholder="Search POs, vendors, projects..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          fullWidth
+          variant="standard"
+          InputProps={{
+            disableUnderline: true,
+            sx: { fontSize: '0.875rem' },
+            endAdornment: (
+              <InputAdornment position="end" sx={{ display: { xs: 'none', sm: 'flex' } }}>
+                <Typography
+                  component="kbd"
+                  sx={{
+                    fontSize: '0.625rem',
+                    fontWeight: 500,
+                    color: 'text.disabled',
+                    bgcolor: 'grey.50',
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 0.5,
+                    px: 0.75,
+                    py: 0.25,
+                  }}
+                >
+                  ESC
+                </Typography>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
 
-      <div
-        className="relative z-10 w-full max-w-lg rounded-xl bg-white shadow-2xl border border-slate-200 overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={handleKeyDown}
-      >
-        <div className="flex items-center gap-3 border-b border-slate-200 px-4 py-3">
-          <svg
-            className="h-5 w-5 shrink-0 text-orange-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-          <input
-            ref={inputRef}
-            type="text"
-            className="flex-1 bg-transparent text-sm text-slate-900 placeholder-slate-400 outline-none"
-            placeholder="Search POs, vendors, projects..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <kbd className="hidden sm:inline-flex items-center rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-medium text-slate-400">
-            ESC
-          </kbd>
-        </div>
+      <Box sx={{ maxHeight: 320, overflowY: 'auto' }}>
+        {loading && (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 4 }}>
+            <CircularProgress size={20} />
+          </Box>
+        )}
 
-        <div className="max-h-80 overflow-y-auto">
-          {loading && (
-            <div className="flex items-center justify-center py-8">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
-            </div>
-          )}
-
-          {!hasSearch && !loading && (
-            <div className="p-2">
-              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Quick Actions
-              </div>
-              {QUICK_ACTIONS.map((action, idx) => (
-                <button
-                  key={action.id}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
-                    selectedIndex === idx
-                      ? 'bg-orange-50 border border-orange-200'
-                      : 'border border-transparent hover:bg-slate-50'
-                  }`}
+        {!hasSearch && !loading && (
+          <List sx={{ p: 1 }}>
+            <Box sx={{ px: 1.5, py: 1, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'text.secondary' }}>
+              Quick Actions
+            </Box>
+            {QUICK_ACTIONS.map((action, idx) => (
+              <ListItem key={action.id} disablePadding>
+                <ListItemButton
+                  selected={selectedIndex === idx}
                   onClick={() => navigateTo(action.href)}
                   onMouseEnter={() => setSelectedIndex(idx)}
+                  sx={{
+                    borderRadius: 2,
+                    gap: 1.5,
+                    ...(selectedIndex === idx && {
+                      bgcolor: 'primary.lighter',
+                      border: 1,
+                      borderColor: 'primary.light',
+                    }),
+                  }}
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 32,
+                      height: 32,
+                      flexShrink: 0,
+                      borderRadius: 2,
+                      bgcolor: 'primary.lighter',
+                      color: 'primary.main',
+                    }}
+                  >
                     {action.id === 'action-new-po' ? (
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
+                      <AddIcon sx={{ fontSize: 16 }} />
                     ) : (
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <CheckCircleIcon sx={{ fontSize: 16 }} />
                     )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-slate-900">{action.label}</div>
-                    <div className="text-xs text-slate-500">{action.sublabel}</div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+                  </Box>
+                  <ListItemText
+                    primary={action.label}
+                    secondary={action.sublabel}
+                    primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: 500 }}
+                    secondaryTypographyProps={{ fontSize: '0.75rem' }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        )}
 
-          {hasSearch && !loading && groups.map((group) => (
-            <div key={group.title} className="p-2">
-              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                {group.title}
-              </div>
-              {group.items.map((item) => {
-                const currentIndex = flatIndex++;
-                return (
-                  <button
-                    key={item.id}
-                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
-                      selectedIndex === currentIndex
-                        ? 'bg-orange-50 border border-orange-200'
-                        : 'border border-transparent hover:bg-slate-50'
-                    }`}
+        {hasSearch && !loading && groups.map((group) => (
+          <List key={group.title} sx={{ p: 1 }}>
+            <Box sx={{ px: 1.5, py: 1, fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, color: 'text.secondary' }}>
+              {group.title}
+            </Box>
+            {group.items.map((item) => {
+              const currentIndex = flatIndex++;
+              return (
+                <ListItem key={item.id} disablePadding>
+                  <ListItemButton
+                    selected={selectedIndex === currentIndex}
                     onClick={() => navigateTo(item.href)}
                     onMouseEnter={() => setSelectedIndex(currentIndex)}
+                    sx={{
+                      borderRadius: 2,
+                      gap: 1.5,
+                      ...(selectedIndex === currentIndex && {
+                        bgcolor: 'primary.lighter',
+                        border: 1,
+                        borderColor: 'primary.light',
+                      }),
+                    }}
                   >
-                    <div
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+                    <Chip
+                      label={
                         item.type === 'po'
-                          ? 'bg-orange-100 text-orange-600'
+                          ? 'PO'
                           : item.type === 'vendor'
-                          ? 'bg-blue-100 text-blue-600'
-                          : 'bg-emerald-100 text-emerald-600'
-                      }`}
-                    >
-                      {item.type === 'po' ? 'PO' : item.type === 'vendor' ? 'V' : 'P'}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium text-slate-900">{item.label}</div>
-                      <div className="truncate text-xs text-slate-500">{item.sublabel}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+                          ? 'V'
+                          : 'P'
+                      }
+                      size="small"
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                        flexShrink: 0,
+                        bgcolor:
+                          item.type === 'po'
+                            ? 'primary.lighter'
+                            : item.type === 'vendor'
+                            ? 'info.lighter'
+                            : 'success.lighter',
+                        color:
+                          item.type === 'po'
+                            ? 'primary.main'
+                            : item.type === 'vendor'
+                            ? 'info.main'
+                            : 'success.main',
+                      }}
+                    />
+                    <ListItemText
+                      primary={item.label}
+                      secondary={item.sublabel}
+                      primaryTypographyProps={{
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        noWrap: true,
+                      }}
+                      secondaryTypographyProps={{ fontSize: '0.75rem', noWrap: true }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              );
+            })}
+          </List>
+        ))}
 
-          {showNoResults && (
-            <div className="flex flex-col items-center justify-center py-10 px-4">
-              <svg
-                className="mb-3 h-10 w-10 text-slate-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <p className="text-sm font-medium text-slate-600">No results found</p>
-              <p className="mt-1 text-xs text-slate-400">
-                Try a different search term
-              </p>
-            </div>
-          )}
-        </div>
+        {showNoResults && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              py: 5,
+              px: 2,
+            }}
+          >
+            <SearchIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1.5 }} />
+            <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+              No results found
+            </Typography>
+            <Typography variant="caption" sx={{ mt: 0.5, color: 'text.disabled' }}>
+              Try a different search term
+            </Typography>
+          </Box>
+        )}
+      </Box>
 
-        <div className="flex items-center justify-center gap-4 border-t border-slate-200 bg-slate-50 px-4 py-2.5">
-          <span className="text-[11px] text-slate-400">
-            <kbd className="rounded border border-slate-300 bg-white px-1 py-0.5 font-mono text-[10px]">&uarr;</kbd>
-            <kbd className="ml-0.5 rounded border border-slate-300 bg-white px-1 py-0.5 font-mono text-[10px]">&darr;</kbd>
-            <span className="ml-1">to navigate</span>
-          </span>
-          <span className="text-[11px] text-slate-400">
-            <kbd className="rounded border border-slate-300 bg-white px-1.5 py-0.5 font-mono text-[10px]">Enter</kbd>
-            <span className="ml-1">to select</span>
-          </span>
-          <span className="text-[11px] text-slate-400">
-            <kbd className="rounded border border-slate-300 bg-white px-1.5 py-0.5 font-mono text-[10px]">Esc</kbd>
-            <span className="ml-1">to close</span>
-          </span>
-        </div>
-      </div>
-    </div>
+      <Divider />
+
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 2,
+          bgcolor: 'grey.50',
+          px: 2,
+          py: 1.25,
+        }}
+      >
+        <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.6875rem' }}>
+          <Typography
+            component="kbd"
+            sx={{
+              bgcolor: 'background.paper',
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: 0.5,
+              px: 0.5,
+              py: 0.25,
+              fontFamily: 'monospace',
+              fontSize: '0.625rem',
+            }}
+          >
+            &uarr;
+          </Typography>
+          <Typography
+            component="kbd"
+            sx={{
+              ml: 0.25,
+              bgcolor: 'background.paper',
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: 0.5,
+              px: 0.5,
+              py: 0.25,
+              fontFamily: 'monospace',
+              fontSize: '0.625rem',
+            }}
+          >
+            &darr;
+          </Typography>
+          <Typography component="span" sx={{ ml: 0.5 }}>
+            to navigate
+          </Typography>
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.6875rem' }}>
+          <Typography
+            component="kbd"
+            sx={{
+              bgcolor: 'background.paper',
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: 0.5,
+              px: 0.75,
+              py: 0.25,
+              fontFamily: 'monospace',
+              fontSize: '0.625rem',
+            }}
+          >
+            Enter
+          </Typography>
+          <Typography component="span" sx={{ ml: 0.5 }}>
+            to select
+          </Typography>
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.6875rem' }}>
+          <Typography
+            component="kbd"
+            sx={{
+              bgcolor: 'background.paper',
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: 0.5,
+              px: 0.75,
+              py: 0.25,
+              fontFamily: 'monospace',
+              fontSize: '0.625rem',
+            }}
+          >
+            Esc
+          </Typography>
+          <Typography component="span" sx={{ ml: 0.5 }}>
+            to close
+          </Typography>
+        </Typography>
+      </Box>
+    </Dialog>
   );
 }

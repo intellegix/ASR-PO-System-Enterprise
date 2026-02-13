@@ -3,6 +3,18 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import {
+  Box,
+  Typography,
+  Paper,
+  Button,
+  Grid,
+  Alert,
+} from '@mui/material';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 interface KPIData {
   timeframe: {
@@ -37,34 +49,13 @@ interface KPIMetricsProps {
 }
 
 const TrendIcon = ({ isPositive, isNeutral }: { isPositive: boolean; isNeutral: boolean }) => {
-  if (isNeutral) {
-    return (
-      <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
-      </svg>
-    );
-  }
-
+  if (isNeutral) return <TrendingFlatIcon sx={{ width: 16, height: 16, color: 'text.secondary' }} />;
   return isPositive ? (
-    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17l9.2-9.2M17 17V7H7" />
-    </svg>
+    <TrendingUpIcon sx={{ width: 16, height: 16, color: 'success.main' }} />
   ) : (
-    <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 7l-9.2 9.2M7 7v10h10" />
-    </svg>
+    <TrendingDownIcon sx={{ width: 16, height: 16, color: 'error.main' }} />
   );
 };
-
-interface IconProps {
-  className?: string;
-}
-
-const AlertIcon = ({ className = "w-4 h-4" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 18.5c-.77.833.192 2.5 1.732 2.5z" />
-  </svg>
-);
 
 export default function KPIMetrics({ divisionId, timeframe = 'current_month', className = '' }: KPIMetricsProps) {
   const [refreshInterval, _setRefreshInterval] = useState<number | false>(5 * 60 * 1000); // 5 minutes
@@ -101,35 +92,37 @@ export default function KPIMetrics({ divisionId, timeframe = 'current_month', cl
 
   if (isLoading) {
     return (
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${className}`}>
+      <Grid container spacing={2} className={className}>
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white rounded-xl p-5 shadow-sm animate-pulse">
-            <div className="h-4 bg-slate-200 rounded mb-3"></div>
-            <div className="h-8 bg-slate-200 rounded mb-2"></div>
-            <div className="h-3 bg-slate-200 rounded w-2/3"></div>
-          </div>
+          <Grid key={i} size={{ xs: 12, sm: 6, lg: 3 }}>
+            <Paper sx={{ p: 2.5 }}>
+              <Box sx={{ height: 16, bgcolor: 'grey.200', borderRadius: 1, mb: 1.5, animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <Box sx={{ height: 32, bgcolor: 'grey.200', borderRadius: 1, mb: 1, animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <Box sx={{ height: 12, bgcolor: 'grey.200', borderRadius: 1, width: '66%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            </Paper>
+          </Grid>
         ))}
-      </div>
+      </Grid>
     );
   }
 
   if (error) {
     return (
-      <div className={`bg-red-50 border border-red-200 rounded-xl p-4 ${className}`}>
-        <div className="flex items-center gap-2 text-red-800">
-          <AlertIcon />
-          <span className="font-medium">Failed to load KPI data</span>
-        </div>
-        <p className="text-red-600 text-sm mt-1">
+      <Alert
+        severity="error"
+        className={className}
+        action={
+          <Button onClick={handleRefresh} size="small" color="inherit">
+            Try Again
+          </Button>
+        }
+        icon={<WarningAmberIcon />}
+      >
+        <Typography variant="body2" fontWeight={500}>Failed to load KPI data</Typography>
+        <Typography variant="caption">
           {error instanceof Error ? error.message : 'Unknown error occurred'}
-        </p>
-        <button
-          onClick={handleRefresh}
-          className="mt-2 text-sm bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded transition"
-        >
-          Try Again
-        </button>
-      </div>
+        </Typography>
+      </Alert>
     );
   }
 
@@ -142,152 +135,179 @@ export default function KPIMetrics({ divisionId, timeframe = 'current_month', cl
   const hasAlerts = kpis.alerts.highValuePending > 0 || kpis.alerts.approvalBottlenecks > 0;
 
   return (
-    <div className={className}>
+    <Box className={className}>
       {/* Header with timeframe and refresh */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-lg font-semibold text-slate-900">
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box>
+          <Typography variant="h6" fontWeight={600}>
             {kpis.scope.divisionName || 'Company-wide'} Metrics
-          </h3>
-          <p className="text-sm text-slate-500">{kpis.timeframe.label}</p>
-        </div>
-        <button
-          onClick={handleRefresh}
-          className="text-sm text-orange-600 hover:text-orange-700 font-medium transition"
-        >
+          </Typography>
+          <Typography variant="body2" color="text.secondary">{kpis.timeframe.label}</Typography>
+        </Box>
+        <Button variant="text" size="small" onClick={handleRefresh}>
           Refresh
-        </button>
-      </div>
+        </Button>
+      </Box>
 
       {/* Alerts banner */}
       {hasAlerts && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-          <div className="flex items-center gap-2">
-            <AlertIcon />
-            <span className="text-amber-800 font-medium text-sm">Attention Required</span>
-          </div>
-          <div className="text-amber-700 text-sm mt-1 space-y-1">
+        <Alert severity="warning" sx={{ mb: 2 }} icon={<WarningAmberIcon />}>
+          <Typography variant="body2" fontWeight={500}>Attention Required</Typography>
+          <Box component="ul" sx={{ m: 0, pl: 2 }}>
             {kpis.alerts.highValuePending > 0 && (
-              <div>{kpis.alerts.highValuePending} high-value POs pending approval ($25K+)</div>
+              <Typography component="li" variant="body2">
+                {kpis.alerts.highValuePending} high-value POs pending approval ($25K+)
+              </Typography>
             )}
             {kpis.alerts.approvalBottlenecks > 0 && (
-              <div>{kpis.alerts.approvalBottlenecks} POs pending {'>'} 24 hours</div>
+              <Typography component="li" variant="body2">
+                {kpis.alerts.approvalBottlenecks} POs pending {'>'} 24 hours
+              </Typography>
             )}
-          </div>
-        </div>
+          </Box>
+        </Alert>
       )}
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <Grid container spacing={2}>
         {/* Pending Approval */}
-        <Link
-          href="/approvals"
-          className="bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition cursor-pointer group"
-        >
-          <p className="text-sm text-slate-500 mb-1">Pending Approval</p>
-          <p className="text-2xl font-bold text-slate-900">{kpis.metrics.pendingCount}</p>
-          <div className="flex items-center gap-1 mt-1">
-            <span className={`text-xs font-medium ${hasAlerts ? 'text-amber-600' : 'text-slate-500'}`}>
-              ${(kpis.metrics.pendingAmount / 1000).toFixed(0)}k value
-            </span>
-            {hasAlerts && <AlertIcon />}
-          </div>
-        </Link>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Paper
+            component={Link}
+            href="/approvals"
+            sx={{
+              p: 2.5,
+              textDecoration: 'none',
+              cursor: 'pointer',
+              transition: 'box-shadow 0.2s',
+              '&:hover': { boxShadow: 3 },
+            }}
+          >
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Pending Approval</Typography>
+            <Typography variant="h4" fontWeight="bold">{kpis.metrics.pendingCount}</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+              <Typography variant="caption" fontWeight={500} color={hasAlerts ? 'warning.main' : 'text.secondary'}>
+                ${(kpis.metrics.pendingAmount / 1000).toFixed(0)}k value
+              </Typography>
+              {hasAlerts && <WarningAmberIcon sx={{ width: 14, height: 14, color: 'warning.main' }} />}
+            </Box>
+          </Paper>
+        </Grid>
 
         {/* Total POs */}
-        <div className="bg-white rounded-xl p-5 shadow-sm">
-          <p className="text-sm text-slate-500 mb-1">Total POs</p>
-          <p className="text-2xl font-bold text-slate-900">{kpis.metrics.totalCount || 0}</p>
-          {kpis.metrics.totalCount > 0 && (
-            <div className="flex items-center gap-1 mt-1">
-              <TrendIcon
-                isPositive={pendingRate < 20}
-                isNeutral={pendingRate >= 20 && pendingRate <= 30}
-              />
-              <span className={`text-xs font-medium ${
-                pendingRate < 20 ? 'text-green-600' :
-                pendingRate <= 30 ? 'text-slate-500' : 'text-red-600'
-              }`}>
-                {pendingRate.toFixed(0)}% pending
-              </span>
-            </div>
-          )}
-        </div>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Paper sx={{ p: 2.5 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Total POs</Typography>
+            <Typography variant="h4" fontWeight="bold">{kpis.metrics.totalCount || 0}</Typography>
+            {kpis.metrics.totalCount > 0 && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                <TrendIcon
+                  isPositive={pendingRate < 20}
+                  isNeutral={pendingRate >= 20 && pendingRate <= 30}
+                />
+                <Typography
+                  variant="caption"
+                  fontWeight={500}
+                  color={
+                    pendingRate < 20 ? 'success.main' :
+                    pendingRate <= 30 ? 'text.secondary' : 'error.main'
+                  }
+                >
+                  {pendingRate.toFixed(0)}% pending
+                </Typography>
+              </Box>
+            )}
+          </Paper>
+        </Grid>
 
         {/* Total Spend */}
-        <div className="bg-white rounded-xl p-5 shadow-sm">
-          <p className="text-sm text-slate-500 mb-1">{kpis.timeframe.label} Spend</p>
-          <p className="text-2xl font-bold text-slate-900">
-            {kpis.metrics.totalSpend === 0 ? '$0' :
-              `$${kpis.metrics.totalSpend >= 1000000
-                ? `${(kpis.metrics.totalSpend / 1000000).toFixed(1)}M`
-                : `${(kpis.metrics.totalSpend / 1000).toFixed(0)}k`
-              }`
-            }
-          </p>
-          {kpis.metrics.totalCount > 0 && (
-            <p className="text-xs text-slate-500 mt-1">
-              Avg: ${avgPOValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-            </p>
-          )}
-        </div>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Paper sx={{ p: 2.5 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>{kpis.timeframe.label} Spend</Typography>
+            <Typography variant="h4" fontWeight="bold">
+              {kpis.metrics.totalSpend === 0 ? '$0' :
+                `$${kpis.metrics.totalSpend >= 1000000
+                  ? `${(kpis.metrics.totalSpend / 1000000).toFixed(1)}M`
+                  : `${(kpis.metrics.totalSpend / 1000).toFixed(0)}k`
+                }`
+              }
+            </Typography>
+            {kpis.metrics.totalCount > 0 && (
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                Avg: ${avgPOValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+              </Typography>
+            )}
+          </Paper>
+        </Grid>
 
         {/* Average PO Value */}
-        <div className="bg-white rounded-xl p-5 shadow-sm">
-          <p className="text-sm text-slate-500 mb-1">Avg PO Value</p>
-          <p className="text-2xl font-bold text-slate-900">
-            {kpis.metrics.totalCount === 0 ? '$0' :
-              `$${avgPOValue >= 10000
-                ? `${(avgPOValue / 1000).toFixed(0)}k`
-                : avgPOValue.toLocaleString(undefined, { maximumFractionDigits: 2 })
-              }`
-            }
-          </p>
-          {kpis.metrics.totalCount > 0 && (
-            <div className="flex items-center gap-1 mt-1">
-              <TrendIcon
-                isPositive={avgPOValue > 5000}
-                isNeutral={avgPOValue >= 1000 && avgPOValue <= 5000}
-              />
-              <span className={`text-xs font-medium ${
-                avgPOValue > 5000 ? 'text-green-600' :
-                avgPOValue >= 1000 ? 'text-slate-500' : 'text-orange-600'
-              }`}>
-                Active
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Paper sx={{ p: 2.5 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Avg PO Value</Typography>
+            <Typography variant="h4" fontWeight="bold">
+              {kpis.metrics.totalCount === 0 ? '$0' :
+                `$${avgPOValue >= 10000
+                  ? `${(avgPOValue / 1000).toFixed(0)}k`
+                  : avgPOValue.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                }`
+              }
+            </Typography>
+            {kpis.metrics.totalCount > 0 && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                <TrendIcon
+                  isPositive={avgPOValue > 5000}
+                  isNeutral={avgPOValue >= 1000 && avgPOValue <= 5000}
+                />
+                <Typography
+                  variant="caption"
+                  fontWeight={500}
+                  color={
+                    avgPOValue > 5000 ? 'success.main' :
+                    avgPOValue >= 1000 ? 'text.secondary' : 'warning.main'
+                  }
+                >
+                  Active
+                </Typography>
+              </Box>
+            )}
+          </Paper>
+        </Grid>
+      </Grid>
 
       {/* Status Breakdown */}
       {Object.keys(kpis.status).length > 0 && (
-        <div className="mt-4 bg-slate-50 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-slate-700 mb-3">PO Status Breakdown</h4>
-          <div className="flex flex-wrap gap-3">
+        <Paper sx={{ mt: 2, bgcolor: 'grey.50', p: 2 }}>
+          <Typography variant="body2" fontWeight={500} sx={{ mb: 1.5 }}>PO Status Breakdown</Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
             {Object.entries(kpis.status).map(([status, count]) => (
-              <div key={status} className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${
-                  status === 'Draft' ? 'bg-gray-400' :
-                  status === 'Submitted' ? 'bg-amber-400' :
-                  status === 'Approved' ? 'bg-green-400' :
-                  status === 'Issued' ? 'bg-blue-400' :
-                  status === 'Received' ? 'bg-purple-400' :
-                  'bg-slate-400'
-                }`} />
-                <span className="text-sm text-slate-600">
-                  {status}: <span className="font-medium">{count}</span>
-                </span>
-              </div>
+              <Box key={status} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box
+                  sx={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    bgcolor:
+                      status === 'Draft' ? 'grey.400' :
+                      status === 'Submitted' ? 'warning.main' :
+                      status === 'Approved' ? 'success.main' :
+                      status === 'Issued' ? 'info.main' :
+                      status === 'Received' ? 'secondary.main' :
+                      'grey.400',
+                  }}
+                />
+                <Typography variant="body2">
+                  {status}: <Typography component="span" fontWeight={500}>{count}</Typography>
+                </Typography>
+              </Box>
             ))}
-          </div>
-        </div>
+          </Box>
+        </Paper>
       )}
 
       {/* Last updated */}
-      <div className="mt-3 text-xs text-slate-400 text-right">
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'right', mt: 1.5 }}>
         Last updated: {new Date(data.lastUpdated).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'medium' })}
-      </div>
-    </div>
+      </Typography>
+    </Box>
   );
 }

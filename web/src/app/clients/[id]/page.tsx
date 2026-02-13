@@ -5,6 +5,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Card,
+  CardContent,
+  Grid,
+  Chip,
+  CircularProgress,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 
 interface Property {
   id: string;
@@ -97,9 +109,9 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
   if (authLoading || loading) {
     return (
       <AppLayout pageTitle="Client">
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-        </div>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
+          <CircularProgress sx={{ color: 'warning.main' }} />
+        </Box>
       </AppLayout>
     );
   }
@@ -112,154 +124,204 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
   if (error || !client) {
     return (
       <AppLayout pageTitle="Client">
-        <div className="max-w-4xl mx-auto text-center py-12">
-          <p className="text-red-600 mb-4">{error || 'Client not found'}</p>
-          <Link href="/clients" className="text-orange-600 hover:text-orange-700">Back to Clients</Link>
-        </div>
+        <Box sx={{ maxWidth: '1024px', mx: 'auto', textAlign: 'center', py: 6 }}>
+          <Typography color="error" sx={{ mb: 2 }}>
+            {error || 'Client not found'}
+          </Typography>
+          <Link href="/clients" style={{ color: '#ff6f00', textDecoration: 'none' }}>
+            <Typography sx={{ '&:hover': { textDecoration: 'underline' } }}>
+              Back to Clients
+            </Typography>
+          </Link>
+        </Box>
       </AppLayout>
     );
   }
 
   return (
     <AppLayout pageTitle={client.client_name}>
-      <div className="max-w-5xl mx-auto space-y-6">
+      <Box sx={{ maxWidth: '1200px', mx: 'auto', '& > *:not(:last-child)': { mb: 3 } }}>
         {/* Breadcrumb */}
-        <nav className="text-sm text-slate-500">
-          <Link href="/clients" className="hover:text-orange-600">Clients</Link>
-          <span className="mx-2">/</span>
-          <span className="text-slate-900 font-medium">{client.client_name}</span>
-        </nav>
+        <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+          <Link href="/clients" style={{ color: 'inherit', textDecoration: 'none' }}>
+            <Box component="span" sx={{ '&:hover': { color: 'warning.main' } }}>
+              Clients
+            </Box>
+          </Link>
+          <Box component="span" sx={{ mx: 1 }}>/</Box>
+          <Box component="span" sx={{ color: 'text.primary', fontWeight: 'medium' }}>
+            {client.client_name}
+          </Box>
+        </Box>
 
         {/* Client info header */}
-        <div className="bg-white rounded-lg border border-slate-200 p-6">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">{client.client_name}</h1>
-              <p className="text-sm text-slate-500 font-mono">{client.client_code}</p>
-              {client.parent_entity && (
-                <p className="text-sm text-slate-600 mt-1">{client.parent_entity}</p>
-              )}
-            </div>
-            <div className="flex gap-4 text-sm">
-              {client.category && (
-                <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full">{client.category}</span>
-              )}
-              <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full">{client._count.projects} projects</span>
-              <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full">{client._count.po_headers} POs</span>
-            </div>
-          </div>
+        <Card sx={{ border: 1, borderColor: 'divider' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'flex-start' }, justifyContent: 'space-between', gap: 2 }}>
+              <Box>
+                <Typography variant="h4" fontWeight="bold" color="text.primary">
+                  {client.client_name}
+                </Typography>
+                <Typography variant="body2" sx={{ fontFamily: 'monospace' }} color="text.secondary">
+                  {client.client_code}
+                </Typography>
+                {client.parent_entity && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                    {client.parent_entity}
+                  </Typography>
+                )}
+              </Box>
+              <Box sx={{ display: 'flex', gap: 2, fontSize: '0.875rem' }}>
+                {client.category && (
+                  <Chip label={client.category} sx={{ bgcolor: 'grey.100' }} />
+                )}
+                <Chip label={`${client._count.projects} projects`} color="primary" variant="outlined" />
+                <Chip label={`${client._count.po_headers} POs`} color="success" variant="outlined" />
+              </Box>
+            </Box>
 
-          {(client.contact_name || client.contact_email || client.contact_phone) && (
-            <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-              {client.contact_name && (
-                <div>
-                  <span className="text-slate-500">Contact:</span>
-                  <span className="ml-2 text-slate-900">{client.contact_name}</span>
-                </div>
-              )}
-              {client.contact_email && (
-                <div>
-                  <span className="text-slate-500">Email:</span>
-                  <span className="ml-2 text-slate-900">{client.contact_email}</span>
-                </div>
-              )}
-              {client.contact_phone && (
-                <div>
-                  <span className="text-slate-500">Phone:</span>
-                  <span className="ml-2 text-slate-900">{client.contact_phone}</span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+            {(client.contact_name || client.contact_email || client.contact_phone) && (
+              <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'grey.100' }}>
+                <Grid container spacing={1.5} sx={{ fontSize: '0.875rem' }}>
+                  {client.contact_name && (
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography component="span" color="text.secondary">Contact:</Typography>
+                      <Typography component="span" sx={{ ml: 1 }} color="text.primary">{client.contact_name}</Typography>
+                    </Grid>
+                  )}
+                  {client.contact_email && (
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography component="span" color="text.secondary">Email:</Typography>
+                      <Typography component="span" sx={{ ml: 1 }} color="text.primary">{client.contact_email}</Typography>
+                    </Grid>
+                  )}
+                  {client.contact_phone && (
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <Typography component="span" color="text.secondary">Phone:</Typography>
+                      <Typography component="span" sx={{ ml: 1 }} color="text.primary">{client.contact_phone}</Typography>
+                    </Grid>
+                  )}
+                </Grid>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Properties section */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6" fontWeight="semibold" color="text.primary">
               Properties ({client.properties.length})
-            </h2>
-            <button
+            </Typography>
+            <Button
               onClick={() => setShowAddProperty(true)}
-              className="inline-flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700 font-medium"
+              startIcon={<AddIcon />}
+              size="small"
+              sx={{ textTransform: 'none', fontWeight: 'medium' }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
               Add Property
-            </button>
-          </div>
+            </Button>
+          </Box>
 
           {/* Add property form */}
           {showAddProperty && (
-            <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4 space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Property Name *</label>
-                <input
-                  type="text"
-                  value={newPropName}
-                  onChange={(e) => setNewPropName(e.target.value)}
-                  placeholder="e.g., Main Office Building"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Address</label>
-                <input
-                  type="text"
-                  value={newPropAddress}
-                  onChange={(e) => setNewPropAddress(e.target.value)}
-                  placeholder="e.g., 123 Main St, San Diego, CA"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { setShowAddProperty(false); setNewPropName(''); setNewPropAddress(''); }}
-                  className="px-4 py-2 text-sm border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddProperty}
-                  disabled={!newPropName.trim() || addingProperty}
-                  className="px-4 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-medium"
-                >
-                  {addingProperty ? 'Adding...' : 'Add Property'}
-                </button>
-              </div>
-            </div>
+            <Card sx={{ border: 1, borderColor: 'divider', p: 2, mb: 2 }}>
+              <Box sx={{ '& > *:not(:last-child)': { mb: 1.5 } }}>
+                <Box>
+                  <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 0.5 }}>
+                    Property Name *
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    value={newPropName}
+                    onChange={(e) => setNewPropName(e.target.value)}
+                    placeholder="e.g., Main Office Building"
+                  />
+                </Box>
+                <Box>
+                  <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 0.5 }}>
+                    Address
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    value={newPropAddress}
+                    onChange={(e) => setNewPropAddress(e.target.value)}
+                    placeholder="e.g., 123 Main St, San Diego, CA"
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    onClick={() => {
+                      setShowAddProperty(false);
+                      setNewPropName('');
+                      setNewPropAddress('');
+                    }}
+                    variant="outlined"
+                    size="small"
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleAddProperty}
+                    disabled={!newPropName.trim() || addingProperty}
+                    variant="contained"
+                    size="small"
+                    sx={{ textTransform: 'none', bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' } }}
+                  >
+                    {addingProperty ? 'Adding...' : 'Add Property'}
+                  </Button>
+                </Box>
+              </Box>
+            </Card>
           )}
 
           {/* Property cards */}
           {client.properties.length === 0 ? (
-            <div className="bg-white rounded-lg border border-slate-200 p-8 text-center">
-              <p className="text-slate-500">No properties yet. Add one to get started.</p>
-            </div>
+            <Card sx={{ border: 1, borderColor: 'divider', p: 4, textAlign: 'center' }}>
+              <Typography color="text.secondary">No properties yet. Add one to get started.</Typography>
+            </Card>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Grid container spacing={2}>
               {client.properties.map((prop) => (
-                <Link
-                  key={prop.id}
-                  href={`/clients/${client.id}/properties/${prop.id}`}
-                  className="bg-white rounded-lg border border-slate-200 p-4 hover:border-orange-300 hover:shadow-sm transition"
-                >
-                  <h3 className="font-medium text-slate-900">{prop.property_name}</h3>
-                  {prop.property_address && (
-                    <p className="text-sm text-slate-500 mt-1">{prop.property_address}</p>
-                  )}
-                  {(prop.city || prop.state) && (
-                    <p className="text-sm text-slate-500">
-                      {[prop.city, prop.state, prop.zip].filter(Boolean).join(', ')}
-                    </p>
-                  )}
-                  <p className="text-xs text-slate-400 mt-2">{prop._count.projects} projects</p>
-                </Link>
+                <Grid key={prop.id} size={{ xs: 12, sm: 6, lg: 4 }}>
+                  <Link href={`/clients/${client.id}/properties/${prop.id}`} style={{ textDecoration: 'none' }}>
+                    <Card
+                      sx={{
+                        border: 1,
+                        borderColor: 'divider',
+                        p: 2,
+                        '&:hover': { borderColor: 'warning.light', boxShadow: 1 },
+                        transition: 'all 0.2s',
+                        height: '100%',
+                      }}
+                    >
+                      <Typography fontWeight="medium" color="text.primary">
+                        {prop.property_name}
+                      </Typography>
+                      {prop.property_address && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                          {prop.property_address}
+                        </Typography>
+                      )}
+                      {(prop.city || prop.state) && (
+                        <Typography variant="body2" color="text.secondary">
+                          {[prop.city, prop.state, prop.zip].filter(Boolean).join(', ')}
+                        </Typography>
+                      )}
+                      <Typography variant="caption" color="text.disabled" sx={{ mt: 1, display: 'block' }}>
+                        {prop._count.projects} projects
+                      </Typography>
+                    </Card>
+                  </Link>
+                </Grid>
               ))}
-            </div>
+            </Grid>
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
     </AppLayout>
   );
 }

@@ -10,6 +10,19 @@ import PropertyPicker from '@/components/po/PropertyPicker';
 import ProjectPicker from '@/components/po/ProjectPicker';
 import WorkOrderPicker from '@/components/po/WorkOrderPicker';
 import POGeneratedConfirmation from '@/components/po/POGeneratedConfirmation';
+import {
+  Box,
+  IconButton,
+  Typography,
+  Alert,
+  CircularProgress,
+  Backdrop,
+  Paper,
+  Stepper,
+  Step,
+  StepLabel,
+} from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 interface Division {
   id: string;
@@ -88,7 +101,6 @@ export default function CreatePOPage() {
 
   const [result, setResult] = useState<QuickPOResult | null>(null);
 
-  // Track whether client/property steps were skipped
   const [clientSkipped, setClientSkipped] = useState(false);
 
   useEffect(() => {
@@ -99,7 +111,6 @@ export default function CreatePOPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
 
-  // Fetch divisions on mount
   useEffect(() => {
     const fetchDivisions = async () => {
       try {
@@ -114,7 +125,6 @@ export default function CreatePOPage() {
     fetchDivisions();
   }, []);
 
-  // Auto-select user's division
   useEffect(() => {
     if (_user?.divisionId && divisions.length > 0 && !selectedDivision) {
       const userDiv = divisions.find((d) => d.id === _user.divisionId);
@@ -155,12 +165,10 @@ export default function CreatePOPage() {
     setProjectsLoading(true);
     try {
       if (propertyId) {
-        // Fetch projects for this property
         const res = await fetch(`/api/projects?propertyId=${propertyId}`);
         const propProjects: Project[] = res.ok ? await res.json() : [];
         setProjects(propProjects);
       } else {
-        // Old behavior: fetch by division + unassigned
         const [divRes, allRes] = await Promise.all([
           fetch(`/api/projects?divisionId=${divisionId}`),
           fetch('/api/projects'),
@@ -190,7 +198,6 @@ export default function CreatePOPage() {
     }
   };
 
-  // Step 1: Division selected
   const handleDivisionSelect = (div: Division) => {
     setSelectedDivision(div);
     setSelectedClient(null);
@@ -205,7 +212,6 @@ export default function CreatePOPage() {
     fetchClients();
   };
 
-  // Step 2: Client selected
   const handleClientSelect = (client: Client) => {
     setSelectedClient(client);
     setSelectedProperty(null);
@@ -218,7 +224,6 @@ export default function CreatePOPage() {
     fetchProperties(client.id);
   };
 
-  // Step 2: Client skipped → jump to Project step
   const handleClientSkip = () => {
     setSelectedClient(null);
     setSelectedProperty(null);
@@ -227,7 +232,6 @@ export default function CreatePOPage() {
     if (selectedDivision) fetchProjects(selectedDivision.id);
   };
 
-  // Step 3: Property selected
   const handlePropertySelect = (property: Property) => {
     setSelectedProperty(property);
     setSelectedProject(null);
@@ -236,14 +240,12 @@ export default function CreatePOPage() {
     if (selectedDivision) fetchProjects(selectedDivision.id, property.id);
   };
 
-  // Step 3: Property skipped → go to project with client but no property filter
   const handlePropertySkip = () => {
     setSelectedProperty(null);
     setStep(4);
     if (selectedDivision) fetchProjects(selectedDivision.id);
   };
 
-  // Step 3: Add new property inline
   const handleAddProperty = async (name: string, address: string) => {
     if (!selectedClient) return;
     const res = await fetch('/api/properties', {
@@ -257,7 +259,6 @@ export default function CreatePOPage() {
     });
     if (res.ok) {
       const newProp = await res.json();
-      // Auto-select the new property
       handlePropertySelect({
         id: newProp.id,
         property_name: newProp.property_name,
@@ -269,7 +270,6 @@ export default function CreatePOPage() {
     }
   };
 
-  // Step 4: Project selected
   const handleProjectSelect = (project: Project) => {
     setSelectedProject(project);
     setWorkOrders([]);
@@ -277,7 +277,6 @@ export default function CreatePOPage() {
     fetchWorkOrders(project.id);
   };
 
-  // Step 5: Work order selection → generate PO
   const handleWorkOrderSelect = async (workOrderId: string | null, createTitle?: string) => {
     if (!selectedDivision || !selectedProject) return;
     setSubmitting(true);
@@ -320,12 +319,10 @@ export default function CreatePOPage() {
     }
   };
 
-  // Handle back navigation with skip awareness
   const handleBack = () => {
     if (step === 1) {
       router.back();
     } else if (step === 4 && clientSkipped) {
-      // Skipped client → go back to client step
       setClientSkipped(false);
       setStep(2);
     } else {
@@ -336,61 +333,65 @@ export default function CreatePOPage() {
   if (loading) {
     return (
       <AppLayout pageTitle="Quick PO">
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-        </div>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
+          <CircularProgress color="primary" />
+        </Box>
       </AppLayout>
     );
   }
 
-
   return (
     <AppLayout pageTitle="Quick PO">
-      {/* Header with progress */}
+      {/* Header with MUI Stepper */}
       {step <= TOTAL_STEPS && (
-        <header className="sticky top-0 z-30 bg-white border-b border-slate-200 -mx-4 lg:-mx-8 -mt-4 lg:-mt-8">
-          <div className="flex items-center justify-between px-4 py-4">
-            <button onClick={handleBack} className="text-slate-600">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="font-semibold text-slate-900">Quick PO</h1>
-            <div className="w-5" />
-          </div>
-          <div className="flex px-4 pb-3 gap-1">
-            {STEP_LABELS.map((label, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div className={`h-1.5 w-full rounded-full ${i + 1 <= step ? 'bg-orange-500' : 'bg-slate-200'}`} />
-                <span className={`text-[10px] leading-tight ${i + 1 <= step ? 'text-orange-600 font-medium' : 'text-slate-400'}`}>
-                  {label}
-                </span>
-              </div>
+        <Paper
+          sx={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 30,
+            mx: { xs: -2, lg: -4 },
+            mt: { xs: -2, lg: -4 },
+            borderRadius: 0,
+            borderBottom: 1,
+            borderColor: 'divider',
+            px: 2,
+            pt: 1,
+            pb: 2,
+          }}
+          elevation={0}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <IconButton onClick={handleBack} size="small">
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Quick PO</Typography>
+            <Box sx={{ width: 40 }} />
+          </Box>
+          <Stepper activeStep={step - 1} alternativeLabel>
+            {STEP_LABELS.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
             ))}
-          </div>
-        </header>
+          </Stepper>
+        </Paper>
       )}
 
-      <main className="p-4 pb-32">
+      <Box sx={{ p: 2, pb: 16 }}>
         {/* Error banner */}
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
             {error}
-          </div>
+          </Alert>
         )}
 
         {/* Submitting overlay */}
-        {submitting && (
-          <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
-            <div className="bg-white rounded-xl p-6 flex flex-col items-center gap-3 shadow-xl">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-              <p className="text-slate-700 font-medium">Generating PO...</p>
-            </div>
-          </div>
-        )}
+        <Backdrop open={submitting} sx={{ zIndex: 50, color: '#fff' }}>
+          <Paper sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, borderRadius: 3 }}>
+            <CircularProgress color="primary" />
+            <Typography sx={{ fontWeight: 500 }}>Generating PO...</Typography>
+          </Paper>
+        </Backdrop>
 
         {/* Step 1: Division */}
         {step === 1 && (
@@ -454,7 +455,7 @@ export default function CreatePOPage() {
             propertyName={selectedProperty?.property_name}
           />
         )}
-      </main>
+      </Box>
     </AppLayout>
   );
 }

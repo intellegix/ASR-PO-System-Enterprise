@@ -3,12 +3,26 @@
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Alert,
+  TextField,
+  Typography,
+  Grid,
+  Chip,
+} from '@mui/material';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, backendAvailable, isLoading: authLoading } = useAuth();
-  const [identifier, setIdentifier] = useState(''); // Can be username or email
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,11 +35,10 @@ function LoginForm() {
     setError('');
 
     try {
-      // Use the unified auth context which handles both demo and backend auth
       const result = await login(identifier, password, backendAvailable);
 
       if (result.success) {
-        console.log('✅ Login successful, redirecting to dashboard...');
+        console.log('Login successful, redirecting to dashboard...');
         router.push(callbackUrl);
         router.refresh();
       } else {
@@ -39,218 +52,189 @@ function LoginForm() {
     }
   };
 
+  const setCredentials = (email: string, pw: string) => {
+    setIdentifier(email);
+    setPassword(pw);
+  };
+
+  const demoAccounts = [
+    { label: 'O1: CAPEX', email: 'owner1@allsurfaceroofing.com', highlight: true },
+    { label: 'O2: Service Work', email: 'owner2@allsurfaceroofing.com' },
+    { label: 'O3: Roofing', email: 'owner3@allsurfaceroofing.com' },
+    { label: 'O4: Gen Contract', email: 'owner4@allsurfaceroofing.com' },
+    { label: 'O5: Sub Mgmt', email: 'owner5@allsurfaceroofing.com' },
+    { label: 'O6: Specialty', email: 'owner6@allsurfaceroofing.com' },
+    { label: 'Ops Manager', email: 'opsmgr@allsurfaceroofing.com' },
+    { label: 'Accounting', email: 'accounting@allsurfaceroofing.com' },
+  ];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4">
-      <div className="w-full max-w-md">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
+        px: 2,
+      }}
+    >
+      <Box sx={{ width: '100%', maxWidth: 420 }}>
         {/* Logo/Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-500 rounded-xl mb-4">
-            <svg
-              className="w-10 h-10 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Box
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 64,
+              height: 64,
+              bgcolor: 'primary.main',
+              borderRadius: 3,
+              mb: 2,
+            }}
+          >
+            <DescriptionOutlinedIcon sx={{ fontSize: 40, color: 'white' }} />
+          </Box>
+          <Typography variant="h4" sx={{ color: 'white', fontWeight: 700 }}>
+            ASR PO System
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#94a3b8', mt: 0.5 }}>
+            All Surface Roofing & Waterproofing
+          </Typography>
+          <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+            <Box
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                bgcolor: backendAvailable ? '#22c55e' : '#eab308',
+              }}
+            />
+            <Typography
+              variant="caption"
+              sx={{ color: backendAvailable ? '#4ade80' : '#facc15' }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-white">ASR PO System</h1>
-          <p className="text-slate-400 mt-1">All Surface Roofing & Waterproofing</p>
-          <div className="mt-2 flex items-center justify-center space-x-2 text-sm">
-            <div className={`w-2 h-2 rounded-full ${backendAvailable ? 'bg-green-500' : 'bg-yellow-500'}`} />
-            <span className={backendAvailable ? 'text-green-400' : 'text-yellow-400'}>
               {backendAvailable ? 'Backend Connected' : 'Demo Mode Available'}
-            </span>
-          </div>
-        </div>
+            </Typography>
+          </Box>
+        </Box>
 
         {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <h2 className="text-xl font-semibold text-slate-800 mb-6">Sign In</h2>
+        <Card sx={{ borderRadius: 4, boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.25)' }}>
+          <CardContent sx={{ p: 4 }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary', mb: 3 }}>
+              Sign In
+            </Typography>
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label htmlFor="identifier" className="block text-sm font-medium text-slate-700 mb-1">
-                Username or Email
-              </label>
-              <input
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              <TextField
                 id="identifier"
-                type="text"
+                label="Username or Email"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition text-slate-800 placeholder-slate-400"
+                fullWidth
                 placeholder="owner1 or owner1@allsurfaceroofing.com"
+                autoComplete="username"
               />
-            </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
-                Password
-              </label>
-              <input
+              <TextField
                 id="password"
+                label="Password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition text-slate-800 placeholder-slate-400"
+                fullWidth
                 placeholder="Enter your password"
+                autoComplete="current-password"
               />
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading || authLoading}
-              className="w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-            >
-              {loading || authLoading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={loading || authLoading}
+                sx={{ py: 1.5, fontSize: '1rem' }}
+              >
+                {loading || authLoading ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={20} color="inherit" />
+                    Signing in...
+                  </Box>
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+
+              <Button
+                type="button"
+                variant="contained"
+                color="info"
+                fullWidth
+                startIcon={<AdminPanelSettingsIcon />}
+                onClick={() => setCredentials('intellegix', 'Devops$@2026')}
+                sx={{ py: 1 }}
+              >
+                Admin Login (Austin Kidwell)
+              </Button>
+            </Box>
+
+            {/* Demo credentials */}
+            <Box sx={{ mt: 3, pt: 3, borderTop: 1, borderColor: 'divider' }}>
+              <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: 'text.secondary', mb: 1.5 }}>
+                Demo Accounts (password: demo123) - Click or type username only
+              </Typography>
+              <Grid container spacing={1}>
+                {demoAccounts.map((account) => (
+                  <Grid key={account.email} size={{ xs: 6 }}>
+                    <Chip
+                      label={account.label}
+                      onClick={() => setCredentials(account.email, 'demo123')}
+                      variant={account.highlight ? 'filled' : 'outlined'}
+                      color={account.highlight ? 'primary' : 'default'}
+                      sx={{
+                        width: '100%',
+                        cursor: 'pointer',
+                        '&:hover': { bgcolor: account.highlight ? 'primary.light' : 'action.hover' },
+                      }}
+                      size="small"
                     />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Signing in...
-                </>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-
-            {/* Admin Quick Login */}
-            <button
-              type="button"
-              onClick={() => {
-                setIdentifier('intellegix');
-                setPassword('Devops$@2026');
-              }}
-              className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition"
-            >
-              🔧 Admin Login (Austin Kidwell)
-            </button>
-          </form>
-
-          {/* Demo credentials */}
-          <div className="mt-6 pt-6 border-t border-slate-200">
-            <p className="text-sm text-slate-500 text-center mb-3">Demo Accounts (password: demo123) - Click or type username only</p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('owner1@allsurfaceroofing.com');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-orange-50 hover:bg-orange-100 rounded text-slate-700 transition border border-orange-200"
-              >
-                O1: CAPEX
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('owner2@allsurfaceroofing.com');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
-              >
-                O2: Service Work
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('owner3@allsurfaceroofing.com');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
-              >
-                O3: Roofing
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('owner4@allsurfaceroofing.com');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
-              >
-                O4: Gen Contract
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('owner5@allsurfaceroofing.com');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
-              >
-                O5: Sub Mgmt
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('owner6@allsurfaceroofing.com');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
-              >
-                O6: Specialty
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('opsmgr@allsurfaceroofing.com');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
-              >
-                Ops Manager
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('accounting@allsurfaceroofing.com');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
-              >
-                Accounting
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    </Box>
   );
 }
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="text-white">Loading...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <Box
+          sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
+          }}
+        >
+          <CircularProgress sx={{ color: 'white' }} />
+        </Box>
+      }
+    >
       <LoginForm />
     </Suspense>
   );

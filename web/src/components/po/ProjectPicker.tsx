@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Box, Button, TextField, Typography, Paper, CircularProgress } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 
 interface Project {
   id: string;
@@ -30,52 +32,73 @@ export default function ProjectPicker({ projects, loading, onSelect }: ProjectPi
   });
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold text-slate-800 mb-1">Pick Project</h2>
-        <p className="text-sm text-slate-500">Which project is this purchase for?</p>
-      </div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
+          Pick Project
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Which project is this purchase for?
+        </Typography>
+      </Box>
 
-      <input
-        type="text"
+      <TextField
+        fullWidth
         placeholder="Search projects..."
         aria-label="Search projects"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+        size="small"
       />
 
       {loading ? (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500"></div>
-        </div>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress size={24} color="warning" />
+        </Box>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-200">
-          <svg className="mx-auto h-10 w-10 text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <p className="text-slate-600 font-medium">No projects found</p>
-          <p className="text-sm text-slate-500 mt-1">
+        <Paper sx={{ textAlign: 'center', py: 4, bgcolor: 'grey.50', border: 1, borderColor: 'grey.200' }}>
+          <SearchIcon sx={{ width: 40, height: 40, color: 'text.disabled', mb: 1.5 }} />
+          <Typography variant="body1" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+            No projects found
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
             {search ? 'Try a different search term' : 'No projects for this division'}
-          </p>
-        </div>
+          </Typography>
+        </Paper>
       ) : (
-        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: 400, overflowY: 'auto' }}>
           {filtered.map((project) => (
-            <button
+            <Button
               key={project.id}
               onClick={() => onSelect(project)}
-              className="w-full text-left p-4 rounded-xl border border-slate-200 bg-white hover:border-orange-300 hover:bg-orange-50/50 transition"
+              variant="outlined"
+              sx={{
+                justifyContent: 'flex-start',
+                textAlign: 'left',
+                p: 2,
+                borderRadius: 3,
+                borderColor: 'grey.300',
+                color: 'text.primary',
+                textTransform: 'none',
+                '&:hover': {
+                  borderColor: 'warning.main',
+                  bgcolor: 'warning.lighter'
+                }
+              }}
             >
-              <p className="font-medium text-slate-900">{project.project_name}</p>
-              <p className="text-sm text-slate-500">
-                {project.project_code}
-                {project.district_name ? ` \u2022 ${project.district_name}` : ''}
-              </p>
-            </button>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  {project.project_name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {project.project_code}
+                  {project.district_name ? ` • ${project.district_name}` : ''}
+                </Typography>
+              </Box>
+            </Button>
           ))}
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 }

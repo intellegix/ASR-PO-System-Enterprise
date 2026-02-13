@@ -1,44 +1,42 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-
-// Icons
-interface IconProps {
-  className?: string;
-}
-
-const ArrowLeftIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-  </svg>
-);
-
-const ClockIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
-
-
-const AlertTriangleIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.992-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-  </svg>
-);
-
-const DownloadIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
-
-const RefreshIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-  </svg>
-);
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  Paper,
+  Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  LinearProgress,
+  CircularProgress,
+  Alert,
+  Checkbox,
+  FormControlLabel,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Divider,
+  Card,
+  CardContent,
+  Chip,
+} from '@mui/material';
+import {
+  ArrowBack as ArrowBackIcon,
+  AccessTime as ClockIcon,
+  Warning as AlertTriangleIcon,
+  Download as DownloadIcon,
+  Refresh as RefreshIcon,
+  AttachMoney as MoneyIcon,
+} from '@mui/icons-material';
 
 interface ApprovalBottleneck {
   poId: string;
@@ -130,7 +128,7 @@ export default function ApprovalBottleneckPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
-    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days ago
+    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
     divisionId: '',
     approverId: '',
@@ -139,7 +137,7 @@ export default function ApprovalBottleneckPage() {
     priority: '',
     stage: '',
   });
-  const [autoRefresh, setAutoRefresh] = useState(true); // Auto-refresh for real-time data
+  const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   const fetchData = useCallback(async () => {
@@ -164,7 +162,6 @@ export default function ApprovalBottleneckPage() {
 
       const result = await response.json();
 
-      // Normalize API response to match component interface
       const normalized: ApprovalBottleneckData = {
         summary: {
           totalBottlenecks: result.summary?.totalPendingPOs ?? result.summary?.totalBottlenecks ?? 0,
@@ -257,14 +254,9 @@ export default function ApprovalBottleneckPage() {
   const exportToPDF = async () => {
     try {
       const params = new URLSearchParams();
-      if (filters.startDate) params.set('startDate', filters.startDate);
-      if (filters.endDate) params.set('endDate', filters.endDate);
-      if (filters.divisionId) params.set('divisionId', filters.divisionId);
-      if (filters.approverId) params.set('approverId', filters.approverId);
-      if (filters.minDays) params.set('minDays', filters.minDays);
-      if (filters.minAmount) params.set('minAmount', filters.minAmount);
-      if (filters.priority) params.set('priority', filters.priority);
-      if (filters.stage) params.set('stage', filters.stage);
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.set(key, value);
+      });
       params.set('format', 'pdf');
 
       const response = await fetch(`/api/reports/approval-bottleneck?${params}`);
@@ -286,14 +278,9 @@ export default function ApprovalBottleneckPage() {
   const exportToExcel = async () => {
     try {
       const params = new URLSearchParams();
-      if (filters.startDate) params.set('startDate', filters.startDate);
-      if (filters.endDate) params.set('endDate', filters.endDate);
-      if (filters.divisionId) params.set('divisionId', filters.divisionId);
-      if (filters.approverId) params.set('approverId', filters.approverId);
-      if (filters.minDays) params.set('minDays', filters.minDays);
-      if (filters.minAmount) params.set('minAmount', filters.minAmount);
-      if (filters.priority) params.set('priority', filters.priority);
-      if (filters.stage) params.set('stage', filters.stage);
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.set(key, value);
+      });
       params.set('format', 'excel');
 
       const response = await fetch(`/api/reports/approval-bottleneck?${params}`);
@@ -314,16 +301,14 @@ export default function ApprovalBottleneckPage() {
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchData]);
 
   useEffect(() => {
     if (autoRefresh) {
-      const interval = setInterval(fetchData, 2 * 60 * 1000); // 2 minutes for real-time updates
+      const interval = setInterval(fetchData, 2 * 60 * 1000);
       return () => clearInterval(interval);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoRefresh]);
+  }, [autoRefresh, fetchData]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -338,614 +323,611 @@ export default function ApprovalBottleneckPage() {
     return `${Math.floor(days)} days`;
   };
 
-  const getPriorityBadgeColor = (priority: string) => {
+  const getPriorityColor = (priority: string): 'error' | 'warning' | 'success' | 'default' => {
     switch (priority) {
-      case 'critical': return 'bg-red-100 text-red-800 border-red-200';
-      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default: return 'bg-green-100 text-green-800 border-green-200';
+      case 'critical': return 'error';
+      case 'high': return 'warning';
+      case 'medium': return 'default';
+      default: return 'success';
     }
   };
 
   const getWorkloadColor = (workload: string) => {
     switch (workload) {
-      case 'overloaded': return 'text-red-600';
-      case 'heavy': return 'text-orange-600';
-      case 'moderate': return 'text-yellow-600';
-      default: return 'text-green-600';
+      case 'overloaded': return 'error.main';
+      case 'heavy': return 'warning.main';
+      case 'moderate': return 'info.main';
+      default: return 'success.main';
     }
   };
 
   const getEfficiencyColor = (efficiency: string) => {
     switch (efficiency) {
-      case 'critical': return 'text-red-600';
-      case 'poor': return 'text-orange-600';
-      case 'good': return 'text-yellow-600';
-      default: return 'text-green-600';
+      case 'critical': return 'error.main';
+      case 'poor': return 'warning.main';
+      case 'good': return 'info.main';
+      default: return 'success.main';
     }
   };
 
   const getPerformanceScore = (score: number) => {
-    if (score >= 90) return { text: 'Excellent', color: 'text-green-600' };
-    if (score >= 80) return { text: 'Good', color: 'text-yellow-600' };
-    if (score >= 70) return { text: 'Fair', color: 'text-orange-600' };
-    return { text: 'Poor', color: 'text-red-600' };
+    if (score >= 90) return { text: 'Excellent', color: 'success.main' };
+    if (score >= 80) return { text: 'Good', color: 'info.main' };
+    if (score >= 70) return { text: 'Fair', color: 'warning.main' };
+    return { text: 'Poor', color: 'error.main' };
   };
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <ClockIcon className="mx-auto h-12 w-12 text-slate-400 mb-4" />
-          <p className="text-slate-600">Please sign in to view approval bottleneck reports.</p>
-        </div>
-      </div>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Box sx={{ textAlign: 'center' }}>
+          <ClockIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
+          <Typography color="text.secondary">Please sign in to view approval bottleneck reports.</Typography>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Link
+      <Paper sx={{ borderBottom: 1, borderColor: 'divider', borderRadius: 0 }}>
+        <Box sx={{ maxWidth: 1280, mx: 'auto', px: { xs: 2, sm: 3, lg: 4 } }}>
+          <Box sx={{ py: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Button
                   href="/reports"
-                  className="flex items-center space-x-2 text-slate-600 hover:text-orange-600 transition-colors"
+                  startIcon={<ArrowBackIcon />}
+                  sx={{ color: 'text.secondary' }}
                 >
-                  <ArrowLeftIcon />
-                  <span>Back to Reports</span>
-                </Link>
-                <div className="h-6 w-px bg-slate-300" />
-                <div className="flex items-center space-x-3">
-                  <ClockIcon className="w-6 h-6 text-orange-600" />
-                  <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Approval Bottleneck Analysis</h1>
-                    <p className="text-slate-600">Workflow efficiency and approval delays</p>
-                  </div>
-                </div>
-              </div>
+                  Back to Reports
+                </Button>
+                <Divider orientation="vertical" flexItem />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <ClockIcon sx={{ color: 'warning.main' }} />
+                  <Box>
+                    <Typography variant="h5" fontWeight={700}>Approval Bottleneck Analysis</Typography>
+                    <Typography variant="body2" color="text.secondary">Workflow efficiency and approval delays</Typography>
+                  </Box>
+                </Box>
+              </Box>
 
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <p className="text-sm text-slate-500">Last updated: {lastRefresh.toLocaleTimeString()}</p>
-                  <p className="text-xs text-slate-400">Welcome, {user?.name?.split(' ')[0]}</p>
-                </div>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" color="text.secondary">Last updated: {lastRefresh.toLocaleTimeString()}</Typography>
+                  <Typography variant="caption" color="text.disabled">Welcome, {user?.name?.split(' ')[0]}</Typography>
+                </Box>
 
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={autoRefresh}
-                    onChange={(e) => setAutoRefresh(e.target.checked)}
-                    className="rounded border-slate-300 text-orange-600 focus:ring-orange-500"
-                  />
-                  <span className="text-sm text-slate-600">Auto-refresh</span>
-                </label>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={autoRefresh}
+                      onChange={(e) => setAutoRefresh(e.target.checked)}
+                    />
+                  }
+                  label={<Typography variant="body2">Auto-refresh</Typography>}
+                />
 
-                <button
+                <Button
                   onClick={fetchData}
                   disabled={loading}
-                  className="flex items-center space-x-2 px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                  variant="contained"
+                  startIcon={loading ? <CircularProgress size={16} /> : <RefreshIcon />}
                 >
-                  <RefreshIcon className={loading ? 'w-5 h-5 animate-spin' : 'w-5 h-5'} />
-                  <span>Refresh</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+                  Refresh
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </Paper>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Box sx={{ maxWidth: 1280, mx: 'auto', px: { xs: 2, sm: 3, lg: 4 }, py: 4 }}>
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Report Filters</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Start Date</label>
-              <input
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h6" fontWeight={600} mb={2}>Report Filters</Typography>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6, lg: 1.5 }}>
+              <TextField
+                label="Start Date"
                 type="date"
+                fullWidth
                 value={filters.startDate}
                 onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                InputLabelProps={{ shrink: true }}
               />
-            </div>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">End Date</label>
-              <input
+            <Grid size={{ xs: 12, md: 6, lg: 1.5 }}>
+              <TextField
+                label="End Date"
                 type="date"
+                fullWidth
                 value={filters.endDate}
                 onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                InputLabelProps={{ shrink: true }}
               />
-            </div>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Division</label>
-              <select
-                value={filters.divisionId}
-                onChange={(e) => setFilters(prev => ({ ...prev, divisionId: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value="">All Divisions</option>
-                {/* Division options would be populated from API */}
-              </select>
-            </div>
+            <Grid size={{ xs: 12, md: 6, lg: 1.5 }}>
+              <FormControl fullWidth>
+                <InputLabel>Division</InputLabel>
+                <Select
+                  value={filters.divisionId}
+                  label="Division"
+                  onChange={(e) => setFilters(prev => ({ ...prev, divisionId: e.target.value }))}
+                >
+                  <MenuItem value="">All Divisions</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Approver</label>
-              <select
-                value={filters.approverId}
-                onChange={(e) => setFilters(prev => ({ ...prev, approverId: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value="">All Approvers</option>
-                {/* Approver options would be populated from API */}
-              </select>
-            </div>
+            <Grid size={{ xs: 12, md: 6, lg: 1.5 }}>
+              <FormControl fullWidth>
+                <InputLabel>Approver</InputLabel>
+                <Select
+                  value={filters.approverId}
+                  label="Approver"
+                  onChange={(e) => setFilters(prev => ({ ...prev, approverId: e.target.value }))}
+                >
+                  <MenuItem value="">All Approvers</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Min Days</label>
-              <select
-                value={filters.minDays}
-                onChange={(e) => setFilters(prev => ({ ...prev, minDays: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value="">Any Time</option>
-                <option value="1">1+ days</option>
-                <option value="2">2+ days</option>
-                <option value="7">7+ days</option>
-                <option value="14">14+ days</option>
-              </select>
-            </div>
+            <Grid size={{ xs: 12, md: 6, lg: 1.5 }}>
+              <FormControl fullWidth>
+                <InputLabel>Min Days</InputLabel>
+                <Select
+                  value={filters.minDays}
+                  label="Min Days"
+                  onChange={(e) => setFilters(prev => ({ ...prev, minDays: e.target.value }))}
+                >
+                  <MenuItem value="">Any Time</MenuItem>
+                  <MenuItem value="1">1+ days</MenuItem>
+                  <MenuItem value="2">2+ days</MenuItem>
+                  <MenuItem value="7">7+ days</MenuItem>
+                  <MenuItem value="14">14+ days</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Min Amount</label>
-              <input
+            <Grid size={{ xs: 12, md: 6, lg: 1.5 }}>
+              <TextField
+                label="Min Amount"
                 type="number"
+                fullWidth
                 placeholder="0"
                 value={filters.minAmount}
                 onChange={(e) => setFilters(prev => ({ ...prev, minAmount: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
-            </div>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Priority</label>
-              <select
-                value={filters.priority}
-                onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value="">All Priorities</option>
-                <option value="critical">Critical</option>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
-            </div>
+            <Grid size={{ xs: 12, md: 6, lg: 1.5 }}>
+              <FormControl fullWidth>
+                <InputLabel>Priority</InputLabel>
+                <Select
+                  value={filters.priority}
+                  label="Priority"
+                  onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
+                >
+                  <MenuItem value="">All Priorities</MenuItem>
+                  <MenuItem value="critical">Critical</MenuItem>
+                  <MenuItem value="high">High</MenuItem>
+                  <MenuItem value="medium">Medium</MenuItem>
+                  <MenuItem value="low">Low</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Stage</label>
-              <select
-                value={filters.stage}
-                onChange={(e) => setFilters(prev => ({ ...prev, stage: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value="">All Stages</option>
-                <option value="Division Leader Review">Division Leader Review</option>
-                <option value="Accounting Review">Accounting Review</option>
-                <option value="Final Approval">Final Approval</option>
-              </select>
-            </div>
-          </div>
-        </div>
+            <Grid size={{ xs: 12, md: 6, lg: 1.5 }}>
+              <FormControl fullWidth>
+                <InputLabel>Stage</InputLabel>
+                <Select
+                  value={filters.stage}
+                  label="Stage"
+                  onChange={(e) => setFilters(prev => ({ ...prev, stage: e.target.value }))}
+                >
+                  <MenuItem value="">All Stages</MenuItem>
+                  <MenuItem value="Division Leader Review">Division Leader Review</MenuItem>
+                  <MenuItem value="Accounting Review">Accounting Review</MenuItem>
+                  <MenuItem value="Final Approval">Final Approval</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </Paper>
 
         {/* Export Options */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Export Options</h3>
-              <p className="text-sm text-slate-600">Download approval bottleneck analysis in various formats</p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <button
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography variant="h6" fontWeight={600} mb={0.5}>Export Options</Typography>
+              <Typography variant="body2" color="text.secondary">Download approval bottleneck analysis in various formats</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1.5 }}>
+              <Button
                 onClick={exportToExcel}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                variant="contained"
+                color="success"
+                startIcon={<DownloadIcon />}
               >
-                <DownloadIcon />
-                <span>Excel</span>
-              </button>
-              <button
+                Excel
+              </Button>
+              <Button
                 onClick={exportToPDF}
-                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                variant="contained"
+                color="error"
+                startIcon={<DownloadIcon />}
               >
-                <DownloadIcon />
-                <span>PDF</span>
-              </button>
-            </div>
-          </div>
-        </div>
+                PDF
+              </Button>
+            </Box>
+          </Box>
+        </Paper>
 
         {/* Loading State */}
         {loading && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-            <p className="text-slate-600">Loading approval bottleneck data...</p>
-          </div>
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <CircularProgress sx={{ mb: 2 }} />
+            <Typography color="text.secondary">Loading approval bottleneck data...</Typography>
+          </Paper>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6 mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-medium text-red-900">Error loading data</h3>
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            </div>
-          </div>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" fontWeight={600}>Error loading data</Typography>
+            <Typography variant="body2">{error}</Typography>
+          </Alert>
         )}
 
         {/* Data Display */}
         {data && !loading && (
           <>
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Total Bottlenecks</p>
-                    <p className="text-2xl font-bold text-slate-900">{data.summary.totalBottlenecks}</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {data.summary.criticalBottlenecks} critical
-                    </p>
-                  </div>
-                  <div className="p-3 bg-red-100 rounded-lg">
-                    <AlertTriangleIcon className="w-5 h-5 text-red-600" />
-                  </div>
-                </div>
-              </div>
+            <Grid container spacing={3} mb={4}>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">Total Bottlenecks</Typography>
+                        <Typography variant="h5" fontWeight={700}>{data.summary.totalBottlenecks}</Typography>
+                        <Typography variant="caption" color="text.secondary" mt={0.5}>
+                          {data.summary.criticalBottlenecks} critical
+                        </Typography>
+                      </Box>
+                      <Box sx={{ p: 1.5, bgcolor: 'error.lighter', borderRadius: 2 }}>
+                        <AlertTriangleIcon sx={{ color: 'error.main' }} />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Avg Approval Time</p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {formatDays(data.summary.averageApprovalTime)}
-                    </p>
-                  </div>
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <ClockIcon className="w-6 h-6 text-blue-600" />
-                  </div>
-                </div>
-              </div>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">Avg Approval Time</Typography>
+                        <Typography variant="h5" fontWeight={700}>
+                          {formatDays(data.summary.averageApprovalTime)}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ p: 1.5, bgcolor: 'primary.lighter', borderRadius: 2 }}>
+                        <ClockIcon sx={{ color: 'primary.main' }} />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">POs Over 48hrs</p>
-                    <p className="text-2xl font-bold text-slate-900">{data.summary.posOver48Hours}</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {data.summary.posOver7Days} over 7 days
-                    </p>
-                  </div>
-                  <div className="p-3 bg-yellow-100 rounded-lg">
-                    <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.992-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">POs Over 48hrs</Typography>
+                        <Typography variant="h5" fontWeight={700}>{data.summary.posOver48Hours}</Typography>
+                        <Typography variant="caption" color="text.secondary" mt={0.5}>
+                          {data.summary.posOver7Days} over 7 days
+                        </Typography>
+                      </Box>
+                      <Box sx={{ p: 1.5, bgcolor: 'warning.lighter', borderRadius: 2 }}>
+                        <AlertTriangleIcon sx={{ color: 'warning.main' }} />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Value Stuck</p>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {formatCurrency(data.summary.totalValueStuck)}
-                    </p>
-                  </div>
-                  <div className="p-3 bg-green-100 rounded-lg">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">Value Stuck</Typography>
+                        <Typography variant="h5" fontWeight={700}>
+                          {formatCurrency(data.summary.totalValueStuck)}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ p: 1.5, bgcolor: 'success.lighter', borderRadius: 2 }}>
+                        <MoneyIcon sx={{ color: 'success.main' }} />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
 
             {/* Current Bottlenecks Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-              <h3 className="text-lg font-semibold text-slate-900 mb-6">Current Approval Bottlenecks</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead>
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        PO Details
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Amount
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Current Stage
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Days Pending
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Approver
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Priority
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Bottleneck Reason
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
+            <Paper sx={{ mb: 4 }}>
+              <Box sx={{ p: 3 }}>
+                <Typography variant="h6" fontWeight={600} mb={3}>Current Approval Bottlenecks</Typography>
+              </Box>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>PO Details</TableCell>
+                      <TableCell>Amount</TableCell>
+                      <TableCell>Current Stage</TableCell>
+                      <TableCell>Days Pending</TableCell>
+                      <TableCell>Approver</TableCell>
+                      <TableCell>Priority</TableCell>
+                      <TableCell>Bottleneck Reason</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
                     {data.bottlenecks.slice(0, 10).map((bottleneck) => (
-                      <tr key={bottleneck.poId} className="hover:bg-slate-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <p className="text-sm font-medium text-slate-900">{bottleneck.poNumber}</p>
-                            <p className="text-xs text-slate-500">{bottleneck.vendorName}</p>
-                            <p className="text-xs text-slate-400">{bottleneck.divisionName}</p>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">{formatCurrency(bottleneck.totalAmount)}</div>
-                          <div className="text-xs text-slate-500">
-                            Impact: {bottleneck.impactScore}/100
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">{bottleneck.currentStage}</div>
-                          <div className="text-xs text-slate-500">
-                            Since: {new Date(bottleneck.pendingSince).toLocaleDateString()}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-slate-900">
-                            {formatDays(bottleneck.totalDaysPending)}
-                          </div>
-                          <div className="text-xs text-slate-500">
-                            In stage: {formatDays(bottleneck.daysInStage)}
-                          </div>
-                          {bottleneck.escalationLevel > 0 && (
-                            <div className="text-xs text-red-600 mt-1">
-                              Escalation Level {bottleneck.escalationLevel}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">{bottleneck.approverName}</div>
-                          <div className="text-xs text-slate-500">{bottleneck.approverEmail}</div>
-                          {bottleneck.lastContactDate && (
-                            <div className="text-xs text-slate-400 mt-1">
-                              Last contact: {new Date(bottleneck.lastContactDate).toLocaleDateString()}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPriorityBadgeColor(bottleneck.priority)}`}>
-                            {bottleneck.priority.charAt(0).toUpperCase() + bottleneck.priority.slice(1)}
-                          </span>
-                          <div className="text-xs text-slate-500 mt-1">
+                      <TableRow key={bottleneck.poId} hover>
+                        <TableCell>
+                          <Box>
+                            <Typography variant="body2" fontWeight={500}>{bottleneck.poNumber}</Typography>
+                            <Typography variant="caption" color="text.secondary">{bottleneck.vendorName}</Typography>
+                            <Typography variant="caption" display="block" color="text.disabled">{bottleneck.divisionName}</Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box>
+                            <Typography variant="body2">{formatCurrency(bottleneck.totalAmount)}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Impact: {bottleneck.impactScore}/100
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box>
+                            <Typography variant="body2">{bottleneck.currentStage}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Since: {new Date(bottleneck.pendingSince).toLocaleDateString()}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box>
+                            <Typography variant="body2" fontWeight={500}>
+                              {formatDays(bottleneck.totalDaysPending)}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              In stage: {formatDays(bottleneck.daysInStage)}
+                            </Typography>
+                            {bottleneck.escalationLevel > 0 && (
+                              <Typography variant="caption" display="block" color="error.main" mt={0.5}>
+                                Escalation Level {bottleneck.escalationLevel}
+                              </Typography>
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box>
+                            <Typography variant="body2">{bottleneck.approverName}</Typography>
+                            <Typography variant="caption" color="text.secondary">{bottleneck.approverEmail}</Typography>
+                            {bottleneck.lastContactDate && (
+                              <Typography variant="caption" display="block" color="text.disabled" mt={0.5}>
+                                Last contact: {new Date(bottleneck.lastContactDate).toLocaleDateString()}
+                              </Typography>
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={bottleneck.priority.charAt(0).toUpperCase() + bottleneck.priority.slice(1)}
+                            color={getPriorityColor(bottleneck.priority)}
+                            size="small"
+                          />
+                          <Typography variant="caption" display="block" color="text.secondary" mt={0.5}>
                             ETA: {new Date(bottleneck.estimatedResolutionDate).toLocaleDateString()}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-slate-900 max-w-xs truncate">
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
                             {bottleneck.bottleneckReason}
-                          </div>
-                        </td>
-                      </tr>
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
 
             {/* Approver Performance */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-              <h3 className="text-lg font-semibold text-slate-900 mb-6">Approver Performance Analysis</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead>
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Approver
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Pending POs
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Avg Approval Time
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Longest Pending
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Performance Score
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Workload
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Recommendations
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
+            <Paper sx={{ mb: 4 }}>
+              <Box sx={{ p: 3 }}>
+                <Typography variant="h6" fontWeight={600} mb={3}>Approver Performance Analysis</Typography>
+              </Box>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Approver</TableCell>
+                      <TableCell>Pending POs</TableCell>
+                      <TableCell>Avg Approval Time</TableCell>
+                      <TableCell>Longest Pending</TableCell>
+                      <TableCell>Performance Score</TableCell>
+                      <TableCell>Workload</TableCell>
+                      <TableCell>Recommendations</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
                     {data.approverPerformance.slice(0, 8).map((approver) => {
                       const performance = getPerformanceScore(approver.performanceScore);
                       return (
-                        <tr key={approver.approverId} className="hover:bg-slate-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div>
-                              <p className="text-sm font-medium text-slate-900">{approver.approverName}</p>
-                              <p className="text-xs text-slate-500">{approver.role}</p>
-                              <p className="text-xs text-slate-400">{approver.divisionName}</p>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-slate-900">
+                        <TableRow key={approver.approverId} hover>
+                          <TableCell>
+                            <Box>
+                              <Typography variant="body2" fontWeight={500}>{approver.approverName}</Typography>
+                              <Typography variant="caption" color="text.secondary">{approver.role}</Typography>
+                              <Typography variant="caption" display="block" color="text.disabled">{approver.divisionName}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight={500}>
                               {approver.totalPendingPOs}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-slate-900">
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
                               {formatDays(approver.averageApprovalTime)}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className={`text-sm font-medium ${approver.longestPendingDays > 7 ? 'text-red-600' : 'text-slate-900'}`}>
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight={500} color={approver.longestPendingDays > 7 ? 'error.main' : 'text.primary'}>
                               {formatDays(approver.longestPendingDays)}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex flex-col">
-                              <span className={`text-sm font-medium ${performance.color}`}>
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Box>
+                              <Typography variant="body2" fontWeight={500} color={performance.color}>
                                 {approver.performanceScore}
-                              </span>
-                              <span className={`text-xs ${performance.color}`}>
+                              </Typography>
+                              <Typography variant="caption" color={performance.color}>
                                 {performance.text}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className={`text-sm font-medium ${getWorkloadColor(approver.workload)}`}>
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight={500} color={getWorkloadColor(approver.workload)}>
                               {approver.workload.charAt(0).toUpperCase() + approver.workload.slice(1)}
-                            </div>
-                            <div className="text-xs text-slate-500">
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
                               Bottlenecks: {approver.bottleneckFrequency}%
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="max-w-xs">
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ maxWidth: 250 }}>
                               {approver.recommendations.slice(0, 2).map((rec, index) => (
-                                <div key={index} className="text-xs text-slate-600 mb-1">
+                                <Typography key={index} variant="caption" display="block" color="text.secondary" mb={0.5}>
                                   • {rec}
-                                </div>
+                                </Typography>
                               ))}
                               {approver.recommendations.length > 2 && (
-                                <div className="text-xs text-slate-400">
+                                <Typography variant="caption" color="text.disabled">
                                   +{approver.recommendations.length - 2} more
-                                </div>
+                                </Typography>
                               )}
-                            </div>
-                          </td>
-                        </tr>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
 
-            {/* Workflow Stage Analysis */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 className="text-lg font-semibold text-slate-900 mb-6">Workflow Stage Analysis</h3>
-                <div className="space-y-4">
-                  {data.stageAnalysis.map((stage, index) => (
-                    <div key={index} className="border-b border-slate-200 pb-4 last:border-b-0 last:pb-0">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h4 className="font-medium text-slate-900">{stage.stage}</h4>
-                          <p className="text-sm text-slate-500">{stage.posInStage} POs currently</p>
-                        </div>
-                        <div className="text-right">
-                          <p className={`font-semibold ${getEfficiencyColor(stage.efficiency)}`}>
-                            {stage.efficiency.charAt(0).toUpperCase() + stage.efficiency.slice(1)}
-                          </p>
-                          <p className="text-sm text-slate-600">{stage.completionRate}% completion</p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <span className="text-slate-500">Avg:</span>
-                          <span className="font-medium ml-2">{formatDays(stage.averageTime)}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500">Median:</span>
-                          <span className="font-medium ml-2">{formatDays(stage.medianTime)}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500">Max:</span>
-                          <span className="font-medium ml-2">{formatDays(stage.maxTime)}</span>
-                        </div>
-                      </div>
-                      <div className="mt-3">
-                        <div className="text-xs text-slate-500 mb-1">
-                          Bottleneck Frequency: {stage.bottleneckFrequency}%
-                        </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full transition-all duration-300 ${
-                              stage.bottleneckFrequency > 30 ? 'bg-red-600' :
-                              stage.bottleneckFrequency > 15 ? 'bg-yellow-600' : 'bg-green-600'
-                            }`}
-                            style={{ width: `${stage.bottleneckFrequency}%` }}
+            {/* Workflow Stage Analysis & Recommendations */}
+            <Grid container spacing={4} mb={4}>
+              <Grid size={{ xs: 12, lg: 6 }}>
+                <Paper sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight={600} mb={3}>Workflow Stage Analysis</Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {data.stageAnalysis.map((stage, index) => (
+                      <Box key={index} sx={{ pb: 2, borderBottom: index < data.stageAnalysis.length - 1 ? 1 : 0, borderColor: 'divider' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                          <Box>
+                            <Typography variant="subtitle1" fontWeight={500}>{stage.stage}</Typography>
+                            <Typography variant="body2" color="text.secondary">{stage.posInStage} POs currently</Typography>
+                          </Box>
+                          <Box sx={{ textAlign: 'right' }}>
+                            <Typography variant="subtitle1" fontWeight={600} color={getEfficiencyColor(stage.efficiency)}>
+                              {stage.efficiency.charAt(0).toUpperCase() + stage.efficiency.slice(1)}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">{stage.completionRate}% completion</Typography>
+                          </Box>
+                        </Box>
+                        <Grid container spacing={2} mb={1.5}>
+                          <Grid size={{ xs: 4 }}>
+                            <Typography variant="caption" color="text.secondary">Avg:</Typography>
+                            <Typography variant="body2" fontWeight={500} ml={1}>{formatDays(stage.averageTime)}</Typography>
+                          </Grid>
+                          <Grid size={{ xs: 4 }}>
+                            <Typography variant="caption" color="text.secondary">Median:</Typography>
+                            <Typography variant="body2" fontWeight={500} ml={1}>{formatDays(stage.medianTime)}</Typography>
+                          </Grid>
+                          <Grid size={{ xs: 4 }}>
+                            <Typography variant="caption" color="text.secondary">Max:</Typography>
+                            <Typography variant="body2" fontWeight={500} ml={1}>{formatDays(stage.maxTime)}</Typography>
+                          </Grid>
+                        </Grid>
+                        <Box mt={1.5}>
+                          <Typography variant="caption" color="text.secondary" mb={0.5}>
+                            Bottleneck Frequency: {stage.bottleneckFrequency}%
+                          </Typography>
+                          <LinearProgress
+                            variant="determinate"
+                            value={Math.min(100, stage.bottleneckFrequency)}
+                            color={stage.bottleneckFrequency > 30 ? 'error' : stage.bottleneckFrequency > 15 ? 'warning' : 'success'}
+                            sx={{ height: 8, borderRadius: 1 }}
                           />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                </Paper>
+              </Grid>
 
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 className="text-lg font-semibold text-slate-900 mb-6">Process Improvement Recommendations</h3>
-                <div className="space-y-4">
-                  {data.recommendations.slice(0, 6).map((rec, index) => (
-                    <div key={index} className={`p-4 rounded-lg border-l-4 ${
-                      rec.priority === 'high' ? 'border-red-500 bg-red-50' :
-                      rec.priority === 'medium' ? 'border-yellow-500 bg-yellow-50' :
-                      'border-green-500 bg-green-50'
-                    }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-slate-900">{rec.category}</h4>
-                        <div className="flex items-center space-x-2">
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            rec.priority === 'high' ? 'bg-red-100 text-red-800' :
-                            rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-green-100 text-green-800'
-                          }`}>
-                            {rec.priority.charAt(0).toUpperCase() + rec.priority.slice(1)}
-                          </span>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            rec.effort === 'high' ? 'bg-slate-100 text-slate-800' :
-                            rec.effort === 'medium' ? 'bg-blue-100 text-blue-800' :
-                            'bg-green-100 text-green-800'
-                          }`}>
-                            {rec.effort} effort
-                          </span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-slate-700 mb-2">{rec.action}</p>
-                      <p className="text-xs text-slate-600">
-                        <strong>Expected Impact:</strong> {rec.expectedImpact}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+              <Grid size={{ xs: 12, lg: 6 }}>
+                <Paper sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight={600} mb={3}>Process Improvement Recommendations</Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {data.recommendations.slice(0, 6).map((rec, index) => (
+                      <Alert
+                        key={index}
+                        severity={rec.priority === 'high' ? 'error' : rec.priority === 'medium' ? 'warning' : 'success'}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="subtitle2" fontWeight={500}>{rec.category}</Typography>
+                          <Box sx={{ display: 'flex', gap: 1 }}>
+                            <Chip
+                              label={rec.priority.charAt(0).toUpperCase() + rec.priority.slice(1)}
+                              size="small"
+                              color={rec.priority === 'high' ? 'error' : rec.priority === 'medium' ? 'warning' : 'success'}
+                            />
+                            <Chip
+                              label={`${rec.effort} effort`}
+                              size="small"
+                              variant="outlined"
+                            />
+                          </Box>
+                        </Box>
+                        <Typography variant="body2" mb={1}>{rec.action}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          <strong>Expected Impact:</strong> {rec.expectedImpact}
+                        </Typography>
+                      </Alert>
+                    ))}
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
           </>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

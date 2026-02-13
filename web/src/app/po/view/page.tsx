@@ -7,6 +7,41 @@ import Link from 'next/link';
 import { PhoneLink } from '@/components/ui/PhoneLink';
 import AppLayout from '@/components/layout/AppLayout';
 import ReceiptScanner from '@/components/po/ReceiptScanner';
+import { PONumberDisplay, PONumberLegend } from '@/components/mui';
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Checkbox,
+  Chip,
+  CircularProgress,
+  Divider,
+  FormControlLabel,
+  Grid,
+  IconButton,
+  MenuItem,
+  Paper,
+  Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PrintIcon from '@mui/icons-material/Print';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import SaveIcon from '@mui/icons-material/Save';
 
 // Interfaces for completion form
 interface Vendor {
@@ -107,6 +142,19 @@ interface PurchaseOrder {
     division_name: string;
   } | null;
 }
+
+const STATUS_CHIP_COLORS: Record<string, 'success' | 'warning' | 'error' | 'default' | 'info'> = {
+  approved: 'success',
+  pending: 'warning',
+  rejected: 'error',
+  draft: 'default',
+  submitted: 'warning',
+  issued: 'info',
+  received: 'info',
+  invoiced: 'info',
+  paid: 'success',
+  cancelled: 'default',
+};
 
 function ViewPurchaseOrder() {
   const router = useRouter();
@@ -408,579 +456,577 @@ function ViewPurchaseOrder() {
       await fetchPurchaseOrder(id);
     } catch (error) {
       console.error('Error processing action:', error);
-      alert('Failed to process action. Please try again.');
     }
   };
 
+  // Loading skeleton
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AppLayout pageTitle="Loading...">
+        <Box sx={{ maxWidth: 960, mx: 'auto' }}>
+          <Card>
+            <CardContent>
+              <Skeleton variant="text" width="40%" height={40} sx={{ mb: 2 }} />
+              <Skeleton variant="text" width="60%" height={24} sx={{ mb: 1 }} />
+              <Skeleton variant="text" width="50%" height={24} sx={{ mb: 1 }} />
+              <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 1 }} />
+            </CardContent>
+          </Card>
+        </Box>
+      </AppLayout>
     );
   }
 
+  // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Error Loading Purchase Order</h2>
-              <p className="text-red-600 mb-4">{error}</p>
-              <button
-                onClick={() => id && fetchPurchaseOrder(id)}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
+      <AppLayout pageTitle="Error">
+        <Box sx={{ maxWidth: 960, mx: 'auto' }}>
+          <Card>
+            <CardContent sx={{ textAlign: 'center', py: 6 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Error Loading Purchase Order</Typography>
+              <Alert severity="error" sx={{ mb: 3, mx: 'auto', maxWidth: 500 }}>{error}</Alert>
+              <Button variant="contained" onClick={() => id && fetchPurchaseOrder(id)}>
                 Retry
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+              </Button>
+            </CardContent>
+          </Card>
+        </Box>
+      </AppLayout>
     );
   }
 
+  // No ID
   if (!id) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Invalid Purchase Order</h2>
-              <p className="text-gray-600 mb-4">No purchase order ID provided</p>
-              <Link href="/po" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+      <AppLayout pageTitle="Invalid PO">
+        <Box sx={{ maxWidth: 960, mx: 'auto' }}>
+          <Card>
+            <CardContent sx={{ textAlign: 'center', py: 6 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Invalid Purchase Order</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>No purchase order ID provided</Typography>
+              <Button component={Link} href="/po" variant="contained">
                 Back to Purchase Orders
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
+              </Button>
+            </CardContent>
+          </Card>
+        </Box>
+      </AppLayout>
     );
   }
 
+  // Not found
   if (!po) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Purchase Order Not Found</h2>
-              <p className="text-gray-600 mb-4">The requested purchase order could not be found</p>
-              <Link href="/po" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+      <AppLayout pageTitle="Not Found">
+        <Box sx={{ maxWidth: 960, mx: 'auto' }}>
+          <Card>
+            <CardContent sx={{ textAlign: 'center', py: 6 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Purchase Order Not Found</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>The requested purchase order could not be found</Typography>
+              <Button component={Link} href="/po" variant="contained">
                 Back to Purchase Orders
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
+              </Button>
+            </CardContent>
+          </Card>
+        </Box>
+      </AppLayout>
     );
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
+  const statusColor = STATUS_CHIP_COLORS[po.status.toLowerCase()] || 'default';
   const canApprove = session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER';
   const isPending = po.status.toLowerCase() === 'pending';
 
+  const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
+    <Box sx={{ mb: 1.5 }}>
+      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>{label}</Typography>
+      <Typography variant="body2">{value}</Typography>
+    </Box>
+  );
+
   return (
     <AppLayout pageTitle={`PO ${po.po_number}`}>
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Purchase Order #{po.po_number}</h1>
-              <p className="text-gray-600">{po.description}</p>
-            </div>
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(po.status)}`}>
-              {po.status.charAt(0).toUpperCase() + po.status.slice(1)}
-            </span>
-          </div>
-
-          {/* Action buttons for managers/admins */}
-          {canApprove && isPending && (
-            <div className="flex space-x-4 mb-6">
-              <button
-                onClick={() => handleAction('approve')}
-                className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
-              >
-                Approve
-              </button>
-              <button
-                onClick={() => {
-                  const notes = prompt('Rejection reason (optional):');
-                  handleAction('reject', notes || undefined);
-                }}
-                className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
-              >
-                Reject
-              </button>
-            </div>
-          )}
-
-          {/* Purchase Order Details Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Order Information</h3>
-              <dl className="space-y-2">
-                <div>
-                  <dt className="text-sm font-medium text-gray-600">Requested By</dt>
-                  <dd className="text-sm text-gray-900">{po.requested_by}</dd>
-                </div>
-                {po.authorized_by && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-600">Authorized By</dt>
-                    <dd className="text-sm text-gray-900">{po.authorized_by}</dd>
-                  </div>
+      <Box sx={{ maxWidth: 960, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {/* Header Card */}
+        <Card>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                  Purchase Order #<PONumberDisplay poNumber={po.po_number} size="large" /> <PONumberLegend />
+                </Typography>
+                {po.description && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{po.description}</Typography>
                 )}
+              </Box>
+              <Chip
+                label={po.status.charAt(0).toUpperCase() + po.status.slice(1)}
+                color={statusColor}
+                sx={{ fontWeight: 600 }}
+              />
+            </Box>
+
+            {/* Action buttons for managers/admins */}
+            {canApprove && isPending && (
+              <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  startIcon={<CheckCircleOutlineIcon />}
+                  onClick={() => handleAction('approve')}
+                >
+                  Approve
+                </Button>
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<CancelOutlinedIcon />}
+                  onClick={() => {
+                    const notes = prompt('Rejection reason (optional):');
+                    handleAction('reject', notes || undefined);
+                  }}
+                >
+                  Reject
+                </Button>
+              </Box>
+            )}
+
+            {/* Purchase Order Details Grid */}
+            <Grid container spacing={4}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>Order Information</Typography>
+                <DetailRow label="Requested By" value={po.requested_by} />
+                {po.authorized_by && <DetailRow label="Authorized By" value={po.authorized_by} />}
                 {po.client && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-600">Client</dt>
-                    <dd className="text-sm text-gray-900">{po.client.client_name}{po.client.category ? ` (${po.client.category})` : ''}</dd>
-                  </div>
+                  <DetailRow
+                    label="Client"
+                    value={`${po.client.client_name}${po.client.category ? ` (${po.client.category})` : ''}`}
+                  />
                 )}
-                <div>
-                  <dt className="text-sm font-medium text-gray-600">Division</dt>
-                  <dd className="text-sm text-gray-900">{po.division?.division_name || 'N/A'}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-600">Project</dt>
-                  <dd className="text-sm text-gray-900">{po.project?.project_name || 'N/A'}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-600">Priority</dt>
-                  <dd className="text-sm text-gray-900">{po.priority}</dd>
-                </div>
-              </dl>
-            </div>
+                <DetailRow label="Division" value={po.division?.division_name || 'N/A'} />
+                <DetailRow label="Project" value={po.project?.project_name || 'N/A'} />
+                {po.priority && <DetailRow label="Priority" value={po.priority} />}
+              </Grid>
 
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Vendor & Financial</h3>
-              <dl className="space-y-2">
-                <div>
-                  <dt className="text-sm font-medium text-gray-600">Vendor</dt>
-                  <dd className="text-sm text-gray-900">{po.vendor?.name || 'TBD'}</dd>
-                </div>
-                {po.vendor?.contact_person && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-600">Contact</dt>
-                    <dd className="text-sm text-gray-900">{po.vendor.contact_person}</dd>
-                  </div>
-                )}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>Vendor & Financial</Typography>
+                <DetailRow label="Vendor" value={po.vendor?.name || 'TBD'} />
+                {po.vendor?.contact_person && <DetailRow label="Contact" value={po.vendor.contact_person} />}
                 {po.vendor?.phone && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-600">Phone</dt>
-                    <dd className="text-sm text-gray-900">
-                      <PhoneLink phone={po.vendor.phone} />
-                    </dd>
-                  </div>
+                  <DetailRow label="Phone" value={<PhoneLink phone={po.vendor.phone} />} />
                 )}
-                <div>
-                  <dt className="text-sm font-medium text-gray-600">Subtotal</dt>
-                  <dd className="text-sm text-gray-900">${Number(po.subtotal_amount).toFixed(2)}</dd>
-                </div>
+                <DetailRow label="Subtotal" value={`$${Number(po.subtotal_amount).toFixed(2)}`} />
                 {po.is_taxable && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-600">Tax</dt>
-                    <dd className="text-sm text-gray-900">${Number(po.tax_amount).toFixed(2)}</dd>
-                  </div>
+                  <DetailRow label="Tax" value={`$${Number(po.tax_amount).toFixed(2)}`} />
                 )}
-                <div>
-                  <dt className="text-sm font-medium text-gray-600 font-bold">Total</dt>
-                  <dd className="text-sm text-gray-900 font-bold">${Number(po.total_with_tax).toFixed(2)}</dd>
-                </div>
-              </dl>
-            </div>
-          </div>
+                <Box sx={{ mb: 1.5 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Total</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>${Number(po.total_with_tax).toFixed(2)}</Typography>
+                </Box>
+              </Grid>
+            </Grid>
 
-          {po.notes && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Notes</h3>
-              <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">{po.notes}</p>
-            </div>
-          )}
-        </div>
+            {po.notes && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Notes</Typography>
+                <Paper variant="outlined" sx={{ p: 2 }}>
+                  <Typography variant="body2" color="text.secondary">{po.notes}</Typography>
+                </Paper>
+              </>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Phase 2 Completion Form — Incomplete Draft */}
         {isIncompleteDraft && (
-          <div className="bg-white rounded-lg shadow p-6 space-y-6">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-                <p className="text-sm font-medium text-amber-800">
-                  This PO needs vendor and line item details. Complete the form below.
-                </p>
-              </div>
-            </div>
+          <Card>
+            <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Alert severity="warning" icon={<WarningAmberIcon />}>
+                This PO needs vendor and line item details. Complete the form below.
+              </Alert>
 
-            {/* Receipt Scanner */}
-            {id && (
-              <ReceiptScanner poId={id} onScanComplete={handleScanComplete} />
-            )}
-
-            {/* Receipt scanned banner */}
-            {receiptScanned && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
-                <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <p className="text-sm text-green-700">Receipt scanned — review and edit the details below</p>
-              </div>
-            )}
-
-            {completionError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
-                {completionError}
-              </div>
-            )}
-
-            {/* Vendor Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Vendor <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={completionVendorSearch}
-                onChange={(e) => {
-                  setCompletionVendorSearch(e.target.value);
-                  if (completionVendorId) setCompletionVendorId('');
-                }}
-                placeholder="Search vendors..."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 mb-2"
-              />
-              {completionVendorSearch && !completionVendorId && (
-                <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-lg bg-white">
-                  {filteredVendors.length === 0 ? (
-                    <p className="p-3 text-sm text-slate-500">No vendors match</p>
-                  ) : (
-                    filteredVendors.map((v) => (
-                      <button
-                        key={v.id}
-                        onClick={() => {
-                          setCompletionVendorId(v.id);
-                          setCompletionVendorSearch(v.vendor_name);
-                        }}
-                        className="w-full text-left px-3 py-2 hover:bg-orange-50 transition text-sm border-b border-slate-100 last:border-b-0"
-                      >
-                        <span className="font-medium text-slate-900">{v.vendor_name}</span>
-                        <span className="text-slate-500 ml-2">({v.vendor_code})</span>
-                      </button>
-                    ))
-                  )}
-                </div>
+              {/* Receipt Scanner */}
+              {id && (
+                <ReceiptScanner poId={id} onScanComplete={handleScanComplete} />
               )}
-              {completionVendorId && (
-                <p className="text-sm text-green-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Vendor selected
-                </p>
-              )}
-            </div>
 
-            {/* Line Items */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <label className="text-sm font-medium text-gray-700">
-                  Line Items <span className="text-red-500">*</span>
-                </label>
-                {!showAddItem && (
-                  <button
-                    onClick={() => setShowAddItem(true)}
-                    className="inline-flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700 font-medium"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add Item
-                  </button>
+              {/* Receipt scanned banner */}
+              {receiptScanned && (
+                <Alert severity="success" icon={<CheckCircleIcon />}>
+                  Receipt scanned — review and edit the details below
+                </Alert>
+              )}
+
+              {completionError && (
+                <Alert severity="error">{completionError}</Alert>
+              )}
+
+              {/* Vendor Selection */}
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                  Vendor <Typography component="span" color="error.main">*</Typography>
+                </Typography>
+                <TextField
+                  value={completionVendorSearch}
+                  onChange={(e) => {
+                    setCompletionVendorSearch(e.target.value);
+                    if (completionVendorId) setCompletionVendorId('');
+                  }}
+                  placeholder="Search vendors..."
+                  size="small"
+                  fullWidth
+                  sx={{ mb: 1 }}
+                />
+                {completionVendorSearch && !completionVendorId && (
+                  <Paper variant="outlined" sx={{ maxHeight: 192, overflow: 'auto' }}>
+                    {filteredVendors.length === 0 ? (
+                      <Typography variant="body2" color="text.secondary" sx={{ p: 1.5 }}>No vendors match</Typography>
+                    ) : (
+                      filteredVendors.map((v) => (
+                        <Box
+                          key={v.id}
+                          onClick={() => {
+                            setCompletionVendorId(v.id);
+                            setCompletionVendorSearch(v.vendor_name);
+                          }}
+                          sx={{
+                            px: 1.5,
+                            py: 1,
+                            cursor: 'pointer',
+                            '&:hover': { bgcolor: 'action.hover' },
+                            borderBottom: 1,
+                            borderColor: 'divider',
+                            '&:last-child': { borderBottom: 0 },
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {v.vendor_name}
+                            <Typography component="span" color="text.secondary" sx={{ ml: 1 }}>
+                              ({v.vendor_code})
+                            </Typography>
+                          </Typography>
+                        </Box>
+                      ))
+                    )}
+                  </Paper>
                 )}
-              </div>
+                {completionVendorId && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                    <CheckCircleIcon sx={{ fontSize: 16, color: 'success.main' }} />
+                    <Typography variant="caption" color="success.main">Vendor selected</Typography>
+                  </Box>
+                )}
+              </Box>
 
-              {/* Existing items list */}
-              {completionLineItems.length > 0 && (
-                <div className="space-y-2 mb-4">
-                  {completionLineItems.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-900 truncate">{item.itemDescription}</p>
-                        <p className="text-xs text-slate-500">
-                          {item.quantity} {item.unitOfMeasure} x ${item.unitPrice.toFixed(2)} = ${(item.quantity * item.unitPrice).toFixed(2)}
-                          {item.glAccountName && <span className="ml-2 text-slate-400">| {item.glAccountName}</span>}
-                          {item.isTaxable && <span className="ml-2 text-amber-600">Taxable</span>}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => removeCompletionLineItem(item.id)}
-                        className="ml-2 text-red-400 hover:text-red-600 transition"
+              {/* Line Items */}
+              <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    Line Items <Typography component="span" color="error.main">*</Typography>
+                  </Typography>
+                  {!showAddItem && (
+                    <Button onClick={() => setShowAddItem(true)} size="small" startIcon={<AddIcon />}>
+                      Add Item
+                    </Button>
+                  )}
+                </Box>
+
+                {/* Existing items list */}
+                {completionLineItems.length > 0 && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+                    {completionLineItems.map((item) => (
+                      <Paper
+                        key={item.id}
+                        variant="outlined"
+                        sx={{ p: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }} noWrap>{item.itemDescription}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {item.quantity} {item.unitOfMeasure} x ${item.unitPrice.toFixed(2)} = ${(item.quantity * item.unitPrice).toFixed(2)}
+                            {item.glAccountName && (
+                              <Typography component="span" sx={{ ml: 1, color: 'text.disabled' }}>| {item.glAccountName}</Typography>
+                            )}
+                            {item.isTaxable && (
+                              <Typography component="span" sx={{ ml: 1, color: 'warning.dark' }}>Taxable</Typography>
+                            )}
+                          </Typography>
+                        </Box>
+                        <IconButton size="small" color="error" onClick={() => removeCompletionLineItem(item.id)}>
+                          <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
+                      </Paper>
+                    ))}
+                  </Box>
+                )}
 
-              {/* Add item form */}
-              {showAddItem && (
-                <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 space-y-3">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Description *</label>
-                    <input
-                      type="text"
+                {/* Add item form */}
+                {showAddItem && (
+                  <Paper variant="outlined" sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <TextField
+                      label="Description *"
                       value={newItemDesc}
                       onChange={(e) => setNewItemDesc(e.target.value)}
                       placeholder="e.g., Roofing shingles"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
+                      size="small"
+                      fullWidth
                     />
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-slate-600 mb-1">Qty</label>
-                      <input
-                        type="number"
-                        value={newItemQty}
-                        onChange={(e) => setNewItemQty(Number(e.target.value))}
-                        min="0.01"
-                        step="0.01"
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-slate-600 mb-1">UOM</label>
-                      <select
-                        value={newItemUOM}
-                        onChange={(e) => setNewItemUOM(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 6, sm: 3 }}>
+                        <TextField
+                          label="Qty"
+                          type="number"
+                          value={newItemQty}
+                          onChange={(e) => setNewItemQty(Number(e.target.value))}
+                          size="small"
+                          fullWidth
+                          slotProps={{ htmlInput: { min: 0.01, step: 0.01 } }}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 6, sm: 3 }}>
+                        <TextField
+                          label="UOM"
+                          value={newItemUOM}
+                          onChange={(e) => setNewItemUOM(e.target.value)}
+                          select
+                          size="small"
+                          fullWidth
+                        >
+                          <MenuItem value="EA">Each</MenuItem>
+                          <MenuItem value="LF">Linear Ft</MenuItem>
+                          <MenuItem value="SF">Sq Ft</MenuItem>
+                          <MenuItem value="HR">Hour</MenuItem>
+                          <MenuItem value="LOT">Lot</MenuItem>
+                          <MenuItem value="BX">Box</MenuItem>
+                          <MenuItem value="CS">Case</MenuItem>
+                        </TextField>
+                      </Grid>
+                      <Grid size={{ xs: 6, sm: 3 }}>
+                        <TextField
+                          label="Unit Price *"
+                          type="number"
+                          value={newItemPrice || ''}
+                          onChange={(e) => setNewItemPrice(Number(e.target.value))}
+                          placeholder="0.00"
+                          size="small"
+                          fullWidth
+                          slotProps={{ htmlInput: { min: 0.01, step: 0.01 } }}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 6, sm: 3 }}>
+                        <TextField
+                          label="GL Account *"
+                          value={newItemGLId}
+                          onChange={(e) => setNewItemGLId(e.target.value)}
+                          select
+                          size="small"
+                          fullWidth
+                        >
+                          <MenuItem value="">Select...</MenuItem>
+                          {glAccounts.map((gl) => (
+                            <MenuItem key={gl.id} value={gl.id}>
+                              {gl.gl_code_short} - {gl.gl_account_name}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </Grid>
+                    </Grid>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={newItemTaxable}
+                          onChange={(e) => setNewItemTaxable(e.target.checked)}
+                          size="small"
+                        />
+                      }
+                      label={<Typography variant="body2">Taxable (7.75%)</Typography>}
+                    />
+                    <Box sx={{ display: 'flex', gap: 1.5 }}>
+                      <Button
+                        variant="outlined"
+                        color="secondary"
+                        size="small"
+                        onClick={() => { setShowAddItem(false); setNewItemDesc(''); setNewItemPrice(0); setNewItemGLId(''); }}
                       >
-                        <option value="EA">Each</option>
-                        <option value="LF">Linear Ft</option>
-                        <option value="SF">Sq Ft</option>
-                        <option value="HR">Hour</option>
-                        <option value="LOT">Lot</option>
-                        <option value="BX">Box</option>
-                        <option value="CS">Case</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-slate-600 mb-1">Unit Price *</label>
-                      <input
-                        type="number"
-                        value={newItemPrice || ''}
-                        onChange={(e) => setNewItemPrice(Number(e.target.value))}
-                        min="0.01"
-                        step="0.01"
-                        placeholder="0.00"
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-slate-600 mb-1">GL Account *</label>
-                      <select
-                        value={newItemGLId}
-                        onChange={(e) => setNewItemGLId(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={addCompletionLineItem}
+                        disabled={!newItemDesc || !newItemGLId || newItemPrice <= 0}
                       >
-                        <option value="">Select...</option>
-                        {glAccounts.map((gl) => (
-                          <option key={gl.id} value={gl.id}>
-                            {gl.gl_code_short} - {gl.gl_account_name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={newItemTaxable}
-                        onChange={(e) => setNewItemTaxable(e.target.checked)}
-                        className="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500"
-                      />
-                      Taxable (7.75%)
-                    </label>
-                  </div>
-                  <div className="flex gap-2 pt-1">
-                    <button
-                      onClick={() => { setShowAddItem(false); setNewItemDesc(''); setNewItemPrice(0); setNewItemGLId(''); }}
-                      className="px-4 py-2 text-sm border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 transition"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={addCompletionLineItem}
-                      disabled={!newItemDesc || !newItemGLId || newItemPrice <= 0}
-                      className="px-4 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-medium transition"
-                    >
-                      Add Line Item
-                    </button>
-                  </div>
-                </div>
+                        Add Line Item
+                      </Button>
+                    </Box>
+                  </Paper>
+                )}
+              </Box>
+
+              {/* Totals */}
+              {completionLineItems.length > 0 && (
+                <Paper variant="outlined" sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="body2" color="text.secondary">Subtotal</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>${completionSubtotal.toFixed(2)}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="body2" color="text.secondary">Tax (7.75%)</Typography>
+                    <Typography variant="body2">${completionTax.toFixed(2)}</Typography>
+                  </Box>
+                  <Divider sx={{ my: 1 }} />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>Total</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>${completionTotal.toFixed(2)}</Typography>
+                  </Box>
+                </Paper>
               )}
-            </div>
 
-            {/* Totals */}
-            {completionLineItems.length > 0 && (
-              <div className="bg-slate-50 rounded-lg p-4 space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Subtotal</span>
-                  <span className="text-slate-900 font-medium">${completionSubtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Tax (7.75%)</span>
-                  <span className="text-slate-900">${completionTax.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm font-bold border-t border-slate-200 pt-1">
-                  <span className="text-slate-900">Total</span>
-                  <span className="text-slate-900">${completionTotal.toFixed(2)}</span>
-                </div>
-              </div>
-            )}
+              {/* Notes */}
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    label="Internal Notes"
+                    value={completionNotes}
+                    onChange={(e) => setCompletionNotes(e.target.value)}
+                    multiline
+                    rows={3}
+                    placeholder="Internal notes..."
+                    size="small"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    label="Vendor Notes"
+                    value={completionVendorNotes}
+                    onChange={(e) => setCompletionVendorNotes(e.target.value)}
+                    multiline
+                    rows={3}
+                    placeholder="Notes for vendor..."
+                    size="small"
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
 
-            {/* Notes */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Internal Notes</label>
-                <textarea
-                  value={completionNotes}
-                  onChange={(e) => setCompletionNotes(e.target.value)}
-                  rows={3}
-                  placeholder="Internal notes..."
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Vendor Notes</label>
-                <textarea
-                  value={completionVendorNotes}
-                  onChange={(e) => setCompletionVendorNotes(e.target.value)}
-                  rows={3}
-                  placeholder="Notes for vendor..."
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
-                />
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <button
-                onClick={() => handleCompletePO('Draft')}
-                disabled={completionSubmitting || !completionVendorId || completionLineItems.length === 0}
-                className="flex-1 py-3 px-4 border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition disabled:opacity-50"
-              >
-                {completionSubmitting ? 'Saving...' : 'Save Draft'}
-              </button>
-              <button
-                onClick={() => handleCompletePO('Approved')}
-                disabled={completionSubmitting || !completionVendorId || completionLineItems.length === 0}
-                className="flex-1 py-3 px-4 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition disabled:opacity-50"
-              >
-                {completionSubmitting ? 'Approving...' : 'Approve'}
-              </button>
-            </div>
-          </div>
+              {/* Action Buttons */}
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5 }}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  startIcon={completionSubmitting ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+                  onClick={() => handleCompletePO('Draft')}
+                  disabled={completionSubmitting || !completionVendorId || completionLineItems.length === 0}
+                  sx={{ flex: 1, py: 1.5 }}
+                >
+                  {completionSubmitting ? 'Saving...' : 'Save Draft'}
+                </Button>
+                <Button
+                  variant="contained"
+                  color="success"
+                  startIcon={completionSubmitting ? <CircularProgress size={16} color="inherit" /> : <CheckCircleOutlineIcon />}
+                  onClick={() => handleCompletePO('Approved')}
+                  disabled={completionSubmitting || !completionVendorId || completionLineItems.length === 0}
+                  sx={{ flex: 1, py: 1.5 }}
+                >
+                  {completionSubmitting ? 'Approving...' : 'Approve'}
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
         )}
 
         {/* Line Items */}
         {po.line_items && po.line_items.length > 0 && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Line Items</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full table-auto">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">#</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Description</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Qty</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Unit Price</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-600">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {po.line_items.map((item) => (
-                    <tr key={item.id} className="border-t">
-                      <td className="px-4 py-2 text-sm text-gray-900">{item.line_number}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{item.item_description}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{item.quantity} {item.unit_of_measure}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">${Number(item.unit_price).toFixed(2)}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">${Number(item.line_subtotal).toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <Card>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>Line Items</Typography>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: 'grey.50' }}>
+                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>#</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Description</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }}>Qty</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }} align="right">Unit Price</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: 'text.secondary' }} align="right">Total</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {po.line_items.map((item) => (
+                      <TableRow key={item.id} hover>
+                        <TableCell>{item.line_number}</TableCell>
+                        <TableCell>{item.item_description}</TableCell>
+                        <TableCell>{item.quantity} {item.unit_of_measure}</TableCell>
+                        <TableCell align="right">${Number(item.unit_price).toFixed(2)}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 500 }}>${Number(item.line_subtotal).toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
         )}
 
         {/* Audit Log */}
         {po.audit_log && po.audit_log.length > 0 && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Audit Log</h3>
-            <div className="space-y-3">
-              {po.audit_log.map((entry) => (
-                <div key={entry.id} className="border-l-4 border-blue-500 pl-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{entry.action}</p>
-                      <p className="text-xs text-gray-600">
-                        by {entry.created_by || 'System'} at {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'N/A'}
-                      </p>
-                      {entry.notes && (
-                        <p className="text-xs text-gray-600 mt-1">{entry.notes}</p>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {entry.status_before} → {entry.status_after}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <Card>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>Audit Log</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                {po.audit_log.map((entry) => (
+                  <Box
+                    key={entry.id}
+                    sx={{ borderLeft: 4, borderColor: 'primary.main', pl: 2, py: 0.5 }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>{entry.action}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          by {entry.created_by || 'System'} at {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'N/A'}
+                        </Typography>
+                        {entry.notes && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
+                            {entry.notes}
+                          </Typography>
+                        )}
+                      </Box>
+                      <Typography variant="caption" color="text.disabled">
+                        {entry.status_before} → {entry.status_after}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            </CardContent>
+          </Card>
         )}
 
         {/* Navigation */}
-        <div className="flex justify-between">
-          <Link
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+          <Button
+            component={Link}
             href="/po"
-            className="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700"
+            variant="outlined"
+            color="secondary"
+            startIcon={<ArrowBackIcon />}
           >
             Back to Purchase Orders
-          </Link>
-          <div className="space-x-4 no-print">
-            <button
-              onClick={() => window.print()}
-              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-            >
-              Print
-            </button>
-          </div>
-        </div>
-      </div>
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<PrintIcon />}
+            onClick={() => window.print()}
+            className="no-print"
+          >
+            Print
+          </Button>
+        </Box>
+      </Box>
     </AppLayout>
   );
 }
@@ -988,20 +1034,13 @@ function ViewPurchaseOrder() {
 // Wrap with Suspense for useSearchParams() compatibility with static export
 export default function ViewPurchaseOrderWrapper() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.50' }}>
+          <CircularProgress />
+        </Box>
+      }
+    >
       <ViewPurchaseOrder />
     </Suspense>
   );

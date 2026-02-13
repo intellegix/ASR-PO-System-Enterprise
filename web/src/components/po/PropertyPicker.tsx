@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Box, Button, TextField, Typography, Paper, CircularProgress } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 
 interface Property {
   id: string;
@@ -58,113 +60,145 @@ export default function PropertyPicker({
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold text-slate-800 mb-1">Pick Property</h2>
-        <p className="text-sm text-slate-500">Select a property for <span className="font-medium text-slate-700">{clientName}</span></p>
-      </div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
+          Pick Property
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Select a property for <Box component="span" sx={{ fontWeight: 500, color: 'text.primary' }}>{clientName}</Box>
+        </Typography>
+      </Box>
 
-      <input
-        type="text"
+      <TextField
+        fullWidth
         placeholder="Search properties..."
         aria-label="Search properties"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+        size="small"
       />
 
       {loading ? (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500"></div>
-        </div>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress size={24} color="warning" />
+        </Box>
       ) : (
         <>
           {filtered.length === 0 && !showAdd ? (
-            <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-200">
-              <p className="text-slate-600 font-medium">No properties found</p>
-              <p className="text-sm text-slate-500 mt-1">Add a new property for this client</p>
-            </div>
+            <Paper sx={{ textAlign: 'center', py: 4, bgcolor: 'grey.50', border: 1, borderColor: 'grey.200' }}>
+              <Typography variant="body1" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+                No properties found
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                Add a new property for this client
+              </Typography>
+            </Paper>
           ) : (
-            <div className="space-y-2 max-h-[350px] overflow-y-auto">
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: 350, overflowY: 'auto' }}>
               {filtered.map((prop) => (
-                <button
+                <Button
                   key={prop.id}
                   onClick={() => onSelect(prop)}
-                  className="w-full text-left p-4 rounded-xl border border-slate-200 bg-white hover:border-orange-300 hover:bg-orange-50/50 transition"
+                  variant="outlined"
+                  sx={{
+                    justifyContent: 'flex-start',
+                    textAlign: 'left',
+                    p: 2,
+                    borderRadius: 3,
+                    borderColor: 'grey.300',
+                    color: 'text.primary',
+                    textTransform: 'none',
+                    '&:hover': {
+                      borderColor: 'warning.main',
+                      bgcolor: 'warning.lighter'
+                    }
+                  }}
                 >
-                  <p className="font-medium text-slate-900">{prop.property_name}</p>
-                  {prop.property_address && (
-                    <p className="text-sm text-slate-500">{prop.property_address}</p>
-                  )}
-                  {(prop.city || prop.state) && (
-                    <p className="text-sm text-slate-500">
-                      {[prop.city, prop.state, prop.zip].filter(Boolean).join(', ')}
-                    </p>
-                  )}
-                </button>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      {prop.property_name}
+                    </Typography>
+                    {prop.property_address && (
+                      <Typography variant="body2" color="text.secondary">
+                        {prop.property_address}
+                      </Typography>
+                    )}
+                    {(prop.city || prop.state) && (
+                      <Typography variant="body2" color="text.secondary">
+                        {[prop.city, prop.state, prop.zip].filter(Boolean).join(', ')}
+                      </Typography>
+                    )}
+                  </Box>
+                </Button>
               ))}
-            </div>
+            </Box>
           )}
 
           {/* Add new property inline */}
           {showAdd ? (
-            <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Property Name *</label>
-                <input
-                  type="text"
+            <Paper sx={{ bgcolor: 'grey.50', border: 1, borderColor: 'grey.200', p: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              <Box>
+                <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.secondary', mb: 0.5, display: 'block' }}>
+                  Property Name *
+                </Typography>
+                <TextField
+                  fullWidth
+                  size="small"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g., Main Office"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
                 />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Address</label>
-                <input
-                  type="text"
+              </Box>
+              <Box>
+                <Typography variant="caption" sx={{ fontWeight: 500, color: 'text.secondary', mb: 0.5, display: 'block' }}>
+                  Address
+                </Typography>
+                <TextField
+                  fullWidth
+                  size="small"
                   value={newAddress}
                   onChange={(e) => setNewAddress(e.target.value)}
                   placeholder="e.g., 123 Main St, San Diego, CA"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500"
                 />
-              </div>
-              <div className="flex gap-2">
-                <button
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
                   onClick={() => { setShowAdd(false); setNewName(''); setNewAddress(''); }}
-                  className="px-4 py-2 text-sm border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100"
+                  variant="outlined"
+                  sx={{ px: 2, py: 1 }}
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleAdd}
                   disabled={!newName.trim() || adding}
-                  className="px-4 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-medium"
+                  variant="contained"
+                  color="warning"
+                  sx={{ px: 2, py: 1, fontWeight: 500 }}
                 >
                   {adding ? 'Adding...' : 'Add & Select'}
-                </button>
-              </div>
-            </div>
+                </Button>
+              </Box>
+            </Paper>
           ) : (
-            <button
+            <Button
               onClick={() => setShowAdd(true)}
-              className="inline-flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700 font-medium"
+              startIcon={<AddIcon />}
+              sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 500, color: 'warning.main' }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
               Add New Property
-            </button>
+            </Button>
           )}
         </>
       )}
 
-      <button
+      <Button
         onClick={onSkip}
-        className="w-full py-3 text-sm text-slate-500 hover:text-slate-700 transition"
+        sx={{ width: '100%', py: 1.5, color: 'text.secondary', textTransform: 'none', '&:hover': { color: 'text.primary' } }}
       >
         Skip — go directly to project selection
-      </button>
-    </div>
+      </Button>
+    </Box>
   );
 }

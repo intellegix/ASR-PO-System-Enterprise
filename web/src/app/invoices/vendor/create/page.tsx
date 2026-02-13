@@ -5,6 +5,17 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
+import {
+  Box,
+  Typography,
+  TextField,
+  MenuItem,
+  Button,
+  Paper,
+  Alert,
+  Grid,
+  InputAdornment,
+} from '@mui/material';
 
 export default function CreateVendorInvoicePage() {
   const router = useRouter();
@@ -134,201 +145,203 @@ export default function CreateVendorInvoicePage() {
 
   return (
     <AppLayout pageTitle="Record Vendor Invoice">
-      <div className="max-w-3xl mx-auto">
+      <Box sx={{ maxWidth: 768, mx: 'auto' }}>
         {/* Header */}
-        <div className="mb-6">
-          <p className="text-sm text-slate-500">Record a vendor invoice, optionally linked to a purchase order</p>
-        </div>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="body2" color="text.secondary">Record a vendor invoice, optionally linked to a purchase order</Typography>
+        </Box>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-6 space-y-6">
-          {/* Vendor Selection */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Vendor *</label>
-            <select
+        <Paper component="form" onSubmit={handleSubmit} sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Vendor Selection */}
+            <TextField
+              select
+              label="Vendor"
               value={form.vendorId}
               onChange={(e) => {
                 setForm(prev => ({ ...prev, vendorId: e.target.value, poId: '' }));
                 setSelectedVendorId(e.target.value);
               }}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               required
+              fullWidth
             >
-              <option value="">Select vendor...</option>
+              <MenuItem value="">Select vendor...</MenuItem>
               {(Array.isArray(vendors) ? vendors : []).map((v: { id: string; vendor_name: string; vendor_code: string }) => (
-                <option key={v.id} value={v.id}>{v.vendor_name} ({v.vendor_code})</option>
+                <MenuItem key={v.id} value={v.id}>{v.vendor_name} ({v.vendor_code})</MenuItem>
               ))}
-            </select>
-          </div>
+            </TextField>
 
-          {/* Link to PO (optional) */}
-          {selectedVendorId && (
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Link to Purchase Order (optional)</label>
-              <select
+            {/* Link to PO (optional) */}
+            {selectedVendorId && (
+              <TextField
+                select
+                label="Link to Purchase Order (optional)"
                 value={form.poId}
                 onChange={(e) => setForm(prev => ({ ...prev, poId: e.target.value }))}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                fullWidth
               >
-                <option value="">No PO linked</option>
+                <MenuItem value="">No PO linked</MenuItem>
                 {(Array.isArray(vendorPOs) ? vendorPOs : [])
                   .filter((po: PurchaseOrder) => ['Issued', 'Received', 'Approved'].includes(po.status))
                   .map((po: PurchaseOrder) => (
-                    <option key={po.id} value={po.id}>
+                    <MenuItem key={po.id} value={po.id}>
                       {po.po_number} - ${Number(po.total_amount).toLocaleString()} ({po.status})
-                    </option>
+                    </MenuItem>
                   ))}
-              </select>
-            </div>
-          )}
+              </TextField>
+            )}
 
-          {/* Invoice Number */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Vendor Invoice Number *</label>
-            <input
-              type="text"
+            {/* Invoice Number */}
+            <TextField
+              label="Vendor Invoice Number"
               value={form.invoiceNumber}
               onChange={(e) => setForm(prev => ({ ...prev, invoiceNumber: e.target.value }))}
               placeholder="e.g. INV-12345"
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               required
+              fullWidth
             />
-          </div>
 
-          {/* Project & Division */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Project</label>
-              <select
-                value={form.projectId}
-                onChange={(e) => setForm(prev => ({ ...prev, projectId: e.target.value }))}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value="">Select project...</option>
-                {(Array.isArray(projects) ? projects : []).map((p: { id: string; project_code: string; project_name: string }) => (
-                  <option key={p.id} value={p.id}>{p.project_code} - {p.project_name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Division</label>
-              <select
-                value={form.divisionId}
-                onChange={(e) => setForm(prev => ({ ...prev, divisionId: e.target.value }))}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value="">Select division...</option>
-                {(Array.isArray(divisions) ? divisions : []).map((d: { id: string; division_name: string }) => (
-                  <option key={d.id} value={d.id}>{d.division_name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+            {/* Project & Division */}
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  select
+                  label="Project"
+                  value={form.projectId}
+                  onChange={(e) => setForm(prev => ({ ...prev, projectId: e.target.value }))}
+                  fullWidth
+                >
+                  <MenuItem value="">Select project...</MenuItem>
+                  {(Array.isArray(projects) ? projects : []).map((p: { id: string; project_code: string; project_name: string }) => (
+                    <MenuItem key={p.id} value={p.id}>{p.project_code} - {p.project_name}</MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  select
+                  label="Division"
+                  value={form.divisionId}
+                  onChange={(e) => setForm(prev => ({ ...prev, divisionId: e.target.value }))}
+                  fullWidth
+                >
+                  <MenuItem value="">Select division...</MenuItem>
+                  {(Array.isArray(divisions) ? divisions : []).map((d: { id: string; division_name: string }) => (
+                    <MenuItem key={d.id} value={d.id}>{d.division_name}</MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+            </Grid>
 
-          {/* Amounts */}
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Amount *</label>
-              <div className="relative">
-                <span className="absolute left-3 top-2 text-slate-400 text-sm">$</span>
-                <input
+            {/* Amounts */}
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
                   type="number"
-                  step="0.01"
-                  min="0"
+                  label="Amount"
                   value={form.amount}
                   onChange={(e) => setForm(prev => ({ ...prev, amount: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-lg pl-7 pr-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                  inputProps={{ step: '0.01', min: '0' }}
                   required
+                  fullWidth
                 />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Tax</label>
-              <div className="relative">
-                <span className="absolute left-3 top-2 text-slate-400 text-sm">$</span>
-                <input
+              </Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
                   type="number"
-                  step="0.01"
-                  min="0"
+                  label="Tax"
                   value={form.taxAmount}
                   onChange={(e) => setForm(prev => ({ ...prev, taxAmount: e.target.value }))}
-                  className="w-full border border-slate-300 rounded-lg pl-7 pr-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                  inputProps={{ step: '0.01', min: '0' }}
+                  fullWidth
                 />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Total</label>
-              <div className="relative">
-                <span className="absolute left-3 top-2 text-slate-400 text-sm">$</span>
-                <input
+              </Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
                   type="number"
-                  step="0.01"
+                  label="Total"
                   value={form.totalAmount}
-                  readOnly
-                  className="w-full border border-slate-200 rounded-lg pl-7 pr-3 py-2 text-sm bg-slate-50 font-medium"
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                    readOnly: true,
+                  }}
+                  inputProps={{ step: '0.01' }}
+                  sx={{ '& .MuiInputBase-root': { bgcolor: 'grey.50' } }}
+                  fullWidth
                 />
-              </div>
-            </div>
-          </div>
+              </Grid>
+            </Grid>
 
-          {/* Dates */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Date Received *</label>
-              <input
-                type="date"
-                value={form.dateReceived}
-                onChange={(e) => setForm(prev => ({ ...prev, dateReceived: e.target.value }))}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
-              <input
-                type="date"
-                value={form.dateDue}
-                onChange={(e) => setForm(prev => ({ ...prev, dateDue: e.target.value }))}
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              />
-            </div>
-          </div>
+            {/* Dates */}
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  type="date"
+                  label="Date Received"
+                  value={form.dateReceived}
+                  onChange={(e) => setForm(prev => ({ ...prev, dateReceived: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  required
+                  fullWidth
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  type="date"
+                  label="Due Date"
+                  value={form.dateDue}
+                  onChange={(e) => setForm(prev => ({ ...prev, dateDue: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
 
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
-            <textarea
+            {/* Notes */}
+            <TextField
+              label="Notes"
               value={form.notes}
               onChange={(e) => setForm(prev => ({ ...prev, notes: e.target.value }))}
+              multiline
               rows={3}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               placeholder="Optional notes..."
+              fullWidth
             />
-          </div>
 
-          {/* Submit */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
-            <Link
-              href="/invoices"
-              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-2 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition disabled:opacity-50"
-            >
-              {isSubmitting ? 'Saving...' : 'Record Invoice'}
-            </button>
-          </div>
-        </form>
-      </div>
+            {/* Submit */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+              <Button
+                component={Link}
+                href="/invoices"
+                variant="outlined"
+                color="inherit"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={isSubmitting}
+                sx={{ bgcolor: 'orange.main', '&:hover': { bgcolor: 'orange.dark' } }}
+              >
+                {isSubmitting ? 'Saving...' : 'Record Invoice'}
+              </Button>
+            </Box>
+          </Box>
+        </Paper>
+      </Box>
     </AppLayout>
   );
 }

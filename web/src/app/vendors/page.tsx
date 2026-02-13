@@ -4,6 +4,23 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
+import {
+  Box,
+  Typography,
+  TextField,
+  MenuItem,
+  Button,
+  Card,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  CircularProgress,
+} from '@mui/material';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 
 interface Vendor {
   id: string;
@@ -16,14 +33,14 @@ interface Vendor {
   payment_terms_default: string | null;
 }
 
-const vendorTypeBadge = (type: string | null): string => {
-  const styles: Record<string, string> = {
-    Subcontractor: 'bg-blue-100 text-blue-700',
-    Supplier: 'bg-green-100 text-green-700',
-    Service: 'bg-purple-100 text-purple-700',
-    Equipment: 'bg-orange-100 text-orange-700',
+const vendorTypeColor = (type: string | null): 'primary' | 'success' | 'secondary' | 'warning' | 'default' => {
+  const colors: Record<string, 'primary' | 'success' | 'secondary' | 'warning'> = {
+    Subcontractor: 'primary',
+    Supplier: 'success',
+    Service: 'secondary',
+    Equipment: 'warning',
   };
-  return styles[type || ''] || 'bg-slate-100 text-slate-700';
+  return colors[type || ''] || 'default';
 };
 
 export default function VendorsPage() {
@@ -58,9 +75,9 @@ export default function VendorsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
@@ -79,151 +96,168 @@ export default function VendorsPage() {
 
   return (
     <AppLayout pageTitle="Vendors">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-xl font-bold text-slate-900">Vendors</h1>
-          <p className="text-sm text-slate-500">{filteredVendors.length} vendors</p>
-        </div>
+      <Box sx={{ maxWidth: '1280px', mx: 'auto' }}>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h5" fontWeight="bold" color="text.primary">
+            Vendors
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {filteredVendors.length} vendors
+          </Typography>
+        </Box>
 
-        <div className="bg-white rounded-lg border border-slate-200 p-4 mb-6">
-          <div className="flex flex-wrap gap-4">
-            <div className="flex-1 min-w-[150px]">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
-              <select
+        <Card sx={{ p: 2, mb: 3, border: 1, borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ flex: '1 1 150px', minWidth: '150px' }}>
+              <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 0.5 }}>
+                Type
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                size="small"
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">All Types</option>
-                <option value="Subcontractor">Subcontractor</option>
-                <option value="Supplier">Supplier</option>
-                <option value="Service">Service</option>
-                <option value="Equipment">Equipment</option>
-              </select>
-            </div>
+                <MenuItem value="">All Types</MenuItem>
+                <MenuItem value="Subcontractor">Subcontractor</MenuItem>
+                <MenuItem value="Supplier">Supplier</MenuItem>
+                <MenuItem value="Service">Service</MenuItem>
+                <MenuItem value="Equipment">Equipment</MenuItem>
+              </TextField>
+            </Box>
 
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Search</label>
-              <input
-                type="text"
+            <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 0.5 }}>
+                Search
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by vendor name..."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-            </div>
+            </Box>
 
             {(typeFilter || searchQuery) && (
-              <div className="flex items-end">
-                <button
+              <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                <Button
                   onClick={() => {
                     setTypeFilter('');
                     setSearchQuery('');
                   }}
-                  className="px-3 py-2 text-sm text-blue-600 hover:text-blue-800"
+                  size="small"
+                  sx={{ textTransform: 'none' }}
                 >
                   Clear filters
-                </button>
-              </div>
+                </Button>
+              </Box>
             )}
-          </div>
-        </div>
+          </Box>
+        </Card>
 
-        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <Card sx={{ border: 1, borderColor: 'divider', overflow: 'hidden' }}>
           {loading ? (
-            <div className="p-8 flex justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
+            <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}>
+              <CircularProgress />
+            </Box>
           ) : filteredVendors.length === 0 ? (
-            <div className="p-8 text-center">
-              <svg className="w-12 h-12 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-              </svg>
-              <p className="text-slate-500">No vendors found</p>
-            </div>
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <SwapHorizIcon sx={{ fontSize: 48, color: 'action.disabled', mb: 2 }} />
+              <Typography color="text.secondary">No vendors found</Typography>
+            </Box>
           ) : (
             <>
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-50 border-b border-slate-200">
-                    <tr>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Code</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Name</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Type</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Contact</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Phone</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Email</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Payment Terms</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {filteredVendors.map((vendor) => (
-                      <tr
-                        key={vendor.id}
-                        className="hover:bg-slate-50 transition"
-                      >
-                        <td className="px-4 py-3 text-sm font-mono font-medium text-slate-900">
-                          {vendor.vendor_code}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-900 font-medium">
-                          {vendor.vendor_name}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${vendorTypeBadge(vendor.vendor_type)}`}>
-                            {vendor.vendor_type || 'N/A'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
-                          {vendor.contact_name || '-'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
-                          {vendor.contact_phone || '-'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
-                          {vendor.contact_email || '-'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
-                          {vendor.payment_terms_default || '-'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Box sx={{ display: { xs: 'none', md: 'block' }, overflowX: 'auto' }}>
+                <TableContainer>
+                  <Table>
+                    <TableHead sx={{ bgcolor: 'grey.50' }}>
+                      <TableRow>
+                        <TableCell>Code</TableCell>
+                        <TableCell>Name</TableCell>
+                        <TableCell>Type</TableCell>
+                        <TableCell>Contact</TableCell>
+                        <TableCell>Phone</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell>Payment Terms</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filteredVendors.map((vendor) => (
+                        <TableRow
+                          key={vendor.id}
+                          hover
+                          sx={{ cursor: 'pointer', transition: 'background-color 0.2s' }}
+                        >
+                          <TableCell sx={{ fontFamily: 'monospace', fontWeight: 'medium' }}>
+                            {vendor.vendor_code}
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 'medium' }}>
+                            {vendor.vendor_name}
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={vendor.vendor_type || 'N/A'}
+                              color={vendorTypeColor(vendor.vendor_type)}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>{vendor.contact_name || '-'}</TableCell>
+                          <TableCell>{vendor.contact_phone || '-'}</TableCell>
+                          <TableCell>{vendor.contact_email || '-'}</TableCell>
+                          <TableCell>{vendor.payment_terms_default || '-'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
 
-              <div className="md:hidden divide-y divide-slate-200">
+              <Box sx={{ display: { xs: 'block', md: 'none' } }}>
                 {filteredVendors.map((vendor) => (
-                  <div
+                  <Box
                     key={vendor.id}
-                    className="p-4 hover:bg-slate-50 transition"
+                    sx={{
+                      p: 2,
+                      borderBottom: 1,
+                      borderColor: 'divider',
+                      '&:hover': { bgcolor: 'grey.50' },
+                      transition: 'background-color 0.2s',
+                      cursor: 'pointer',
+                    }}
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-medium text-slate-900">{vendor.vendor_name}</p>
-                        <p className="text-xs font-mono text-slate-500">{vendor.vendor_code}</p>
-                      </div>
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${vendorTypeBadge(vendor.vendor_type)}`}>
-                        {vendor.vendor_type || 'N/A'}
-                      </span>
-                    </div>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                      <Box>
+                        <Typography fontWeight="medium" color="text.primary">
+                          {vendor.vendor_name}
+                        </Typography>
+                        <Typography variant="caption" sx={{ fontFamily: 'monospace' }} color="text.secondary">
+                          {vendor.vendor_code}
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={vendor.vendor_type || 'N/A'}
+                        color={vendorTypeColor(vendor.vendor_type)}
+                        size="small"
+                      />
+                    </Box>
                     {vendor.contact_name && (
-                      <p className="text-sm text-slate-600 mb-1">{vendor.contact_name}</p>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                        {vendor.contact_name}
+                      </Typography>
                     )}
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
-                      {vendor.contact_phone && (
-                        <span>{vendor.contact_phone}</span>
-                      )}
-                      {vendor.contact_email && (
-                        <span>{vendor.contact_email}</span>
-                      )}
-                    </div>
-                  </div>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, fontSize: '0.875rem', color: 'text.secondary' }}>
+                      {vendor.contact_phone && <span>{vendor.contact_phone}</span>}
+                      {vendor.contact_email && <span>{vendor.contact_email}</span>}
+                    </Box>
+                  </Box>
                 ))}
-              </div>
+              </Box>
             </>
           )}
-        </div>
-      </div>
+        </Card>
+      </Box>
     </AppLayout>
   );
 }

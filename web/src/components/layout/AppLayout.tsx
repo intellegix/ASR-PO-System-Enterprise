@@ -5,95 +5,45 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { getRoleDisplayName, type UserRole } from '@/lib/auth/permissions';
+import { getRoleDisplayName, isAdmin, type UserRole } from '@/lib/auth/permissions';
 import { CommandPalette } from '@/components/ui/CommandPalette';
+import {
+  AppBar,
+  Avatar,
+  Badge,
+  Box,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  Typography,
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
+import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined';
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
+import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
+import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import LogoutIcon from '@mui/icons-material/Logout';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import SettingsIcon from '@mui/icons-material/Settings';
 
-interface IconProps {
-  className?: string;
-}
-
-const MenuIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-  </svg>
-);
-
-const DocumentIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
-
-const ClipboardIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-  </svg>
-);
-
-const TruckIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-  </svg>
-);
-
-const ChartIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-  </svg>
-);
-
-const ArchiveIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-  </svg>
-);
-
-const CheckCircleIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
-
-const UserIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-  </svg>
-);
-
-const LogoutIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-  </svg>
-);
-
-const XIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-  </svg>
-);
-
-const BuildingIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-  </svg>
-);
-
-const UsersIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-  </svg>
-);
-
-const ShieldCheckIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-  </svg>
-);
+const SIDEBAR_WIDTH = 288;
 
 interface NavItem {
   href: string;
   label: string;
-  icon: React.ComponentType<IconProps>;
+  icon: React.ReactNode;
   badge?: number;
 }
 
@@ -127,7 +77,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
   }, [router]);
 
   const role = (user?.role || 'DIVISION_LEADER') as UserRole;
-  const isAdmin = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER'].includes(role);
+  const userIsAdmin = isAdmin(role);
 
   const { data: pendingData } = useQuery({
     queryKey: ['pending-count'],
@@ -143,16 +93,16 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
   const pendingCount = pendingData?.summary?.total || 0;
 
   const navItems: NavItem[] = [
-    { href: '/', label: 'Dashboard', icon: ChartIcon },
-    { href: '/po', label: 'Purchase Orders', icon: DocumentIcon },
-    { href: '/approvals', label: 'Approvals', icon: CheckCircleIcon, badge: pendingCount },
-    { href: '/work-orders', label: 'Work Orders', icon: ClipboardIcon },
-    { href: '/vendors', label: 'Vendors', icon: TruckIcon },
-    { href: '/clients', label: 'Clients', icon: UsersIcon },
-    { href: '/invoices', label: 'Invoices', icon: DocumentIcon },
-    { href: '/invoice-archive', label: 'Invoice Archive', icon: ArchiveIcon },
-    { href: '/reports', label: 'Reports', icon: ChartIcon },
-    { href: '/audit', label: 'Audit Trail', icon: ShieldCheckIcon },
+    { href: '/', label: 'Dashboard', icon: <BarChartOutlinedIcon /> },
+    { href: '/po', label: 'Purchase Orders', icon: <DescriptionOutlinedIcon /> },
+    { href: '/approvals', label: 'Approvals', icon: <CheckCircleOutlineIcon />, badge: pendingCount },
+    { href: '/work-orders', label: 'Work Orders', icon: <AssignmentOutlinedIcon /> },
+    { href: '/vendors', label: 'Vendors', icon: <SwapHorizIcon /> },
+    { href: '/clients', label: 'Clients', icon: <PeopleOutlineIcon /> },
+    { href: '/invoices', label: 'Invoices', icon: <DescriptionOutlinedIcon /> },
+    { href: '/invoice-archive', label: 'Invoice Archive', icon: <ArchiveOutlinedIcon /> },
+    { href: '/reports', label: 'Reports', icon: <BarChartOutlinedIcon /> },
+    { href: '/audit', label: 'Audit Trail', icon: <SecurityOutlinedIcon /> },
   ];
 
   const isActive = (href: string): boolean => {
@@ -160,126 +110,232 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
     return pathname === href || pathname.startsWith(href + '/');
   };
 
-  return (
-    <div className="min-h-screen bg-slate-100">
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+  const sidebarContent = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#0f172a' }}>
+      {/* Logo header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 3, py: 2.5, borderBottom: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ width: 40, height: 40, bgcolor: 'primary.main', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <DescriptionOutlinedIcon sx={{ color: 'white' }} />
+          </Box>
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'white', lineHeight: 1.3 }}>ASR PO System</Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(148,163,184,1)' }}>All Surface Roofing</Typography>
+          </Box>
+        </Box>
+        <IconButton
           onClick={() => setSidebarOpen(false)}
-        />
-      )}
+          sx={{ display: { lg: 'none' }, color: 'rgba(148,163,184,1)' }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </Box>
 
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 transform transition-transform duration-300 lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-                <DocumentIcon />
-              </div>
-              <div>
-                <h1 className="font-bold text-white">ASR PO System</h1>
-                <p className="text-xs text-slate-400">All Surface Roofing</p>
-              </div>
-            </div>
-            <button className="lg:hidden text-slate-400" onClick={() => setSidebarOpen(false)}>
-              <XIcon />
-            </button>
-          </div>
-
-          <nav aria-label="Main navigation" className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            {navItems.map((item) => {
-              const active = isActive(item.href);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
+      {/* Navigation */}
+      <Box component="nav" aria-label="Main navigation" sx={{ flex: 1, px: 2, py: 3, overflowY: 'auto' }}>
+        <List disablePadding>
+          {navItems.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <ListItem key={item.href} disablePadding sx={{ mb: 0.25 }}>
+                <ListItemButton
+                  component={Link}
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
-                    active
-                      ? 'bg-slate-800 text-white'
-                      : 'text-slate-400 hover:bg-slate-800 hover:text-white transition'
-                  }`}
+                  onClick={() => setSidebarOpen(false)}
                   aria-current={active ? 'page' : undefined}
-                  onClick={() => setSidebarOpen(false)}
+                  sx={{
+                    borderRadius: 2,
+                    py: 1.25,
+                    px: 2,
+                    color: active ? 'white' : 'rgba(148,163,184,1)',
+                    bgcolor: active ? 'rgba(30,41,59,1)' : 'transparent',
+                    '&:hover': {
+                      bgcolor: 'rgba(30,41,59,1)',
+                      color: 'white',
+                    },
+                  }}
                 >
-                  <Icon />
-                  <span>{item.label}</span>
+                  <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.label}
+                    primaryTypographyProps={{ variant: 'body2', fontWeight: active ? 500 : 400 }}
+                  />
                   {item.badge !== undefined && item.badge > 0 && (
-                    <span className="ml-auto bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                      {item.badge}
-                    </span>
+                    <Badge
+                      badgeContent={item.badge}
+                      sx={{
+                        '& .MuiBadge-badge': {
+                          bgcolor: '#f59e0b',
+                          color: 'white',
+                          fontWeight: 700,
+                          fontSize: '0.7rem',
+                          position: 'static',
+                          transform: 'none',
+                        },
+                      }}
+                    />
                   )}
-                </Link>
-              );
-            })}
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
+        </List>
 
-            {isAdmin && (
-              <>
-                <div className="mt-6 mb-2 px-4">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Admin</p>
-                </div>
-                <Link
-                  href="/projects"
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
-                    isActive('/projects')
-                      ? 'bg-slate-800 text-white'
-                      : 'text-slate-400 hover:bg-slate-800 hover:text-white transition'
-                  }`}
-                  aria-current={isActive('/projects') ? 'page' : undefined}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <BuildingIcon />
-                  <span>Projects</span>
-                </Link>
-              </>
-            )}
-          </nav>
+        {userIsAdmin && (
+          <>
+            <Box sx={{ mt: 3, mb: 1, px: 2 }}>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: 'rgba(100,116,139,1)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Admin
+              </Typography>
+            </Box>
+            <List disablePadding>
+              {[
+                { href: '/projects', label: 'Projects', icon: <BusinessOutlinedIcon /> },
+                { href: '/admin/users', label: 'Users', icon: <AdminPanelSettingsIcon /> },
+                { href: '/admin/divisions', label: 'Divisions', icon: <BusinessOutlinedIcon /> },
+                { href: '/admin/settings', label: 'Settings', icon: <SettingsIcon /> },
+              ].map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <ListItem key={item.href} disablePadding sx={{ mb: 0.25 }}>
+                    <ListItemButton
+                      component={Link}
+                      href={item.href}
+                      onClick={() => setSidebarOpen(false)}
+                      aria-current={active ? 'page' : undefined}
+                      sx={{
+                        borderRadius: 2,
+                        py: 1.25,
+                        px: 2,
+                        color: active ? 'white' : 'rgba(148,163,184,1)',
+                        bgcolor: active ? 'rgba(30,41,59,1)' : 'transparent',
+                        '&:hover': {
+                          bgcolor: 'rgba(30,41,59,1)',
+                          color: 'white',
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.label}
+                        primaryTypographyProps={{ variant: 'body2', fontWeight: active ? 500 : 400 }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </List>
+          </>
+        )}
+      </Box>
 
-          <div className="px-4 py-4 border-t border-slate-700">
-            <div className="flex items-center gap-3 px-4 py-3">
-              <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
-                <UserIcon />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">{user?.name || 'User'}</p>
-                <p className="text-xs text-slate-400">{getRoleDisplayName(role)}</p>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                logout();
-                router.push('/login');
-              }}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition"
-            >
-              <LogoutIcon />
-              <span>Sign Out</span>
-            </button>
-          </div>
-        </div>
-      </aside>
+      {/* User footer */}
+      <Box sx={{ px: 2, py: 2, borderTop: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5 }}>
+          <Avatar sx={{ width: 40, height: 40, bgcolor: 'rgba(51,65,85,1)' }}>
+            <PersonOutlineIcon />
+          </Avatar>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, color: 'white' }} noWrap>
+              {user?.name || 'User'}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(148,163,184,1)' }}>
+              {getRoleDisplayName(role)}
+            </Typography>
+          </Box>
+        </Box>
+        <ListItemButton
+          onClick={() => {
+            logout();
+            router.push('/login');
+          }}
+          sx={{
+            borderRadius: 2,
+            py: 1.25,
+            px: 2,
+            color: 'rgba(148,163,184,1)',
+            '&:hover': {
+              bgcolor: 'rgba(30,41,59,1)',
+              color: 'white',
+            },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>
+            <LogoutIcon />
+          </ListItemIcon>
+          <ListItemText primary="Sign Out" primaryTypographyProps={{ variant: 'body2' }} />
+        </ListItemButton>
+      </Box>
+    </Box>
+  );
 
-      <div className="lg:pl-72">
-        <header className="sticky top-0 z-30 bg-white border-b border-slate-200 lg:hidden">
-          <div className="flex items-center justify-between px-4 py-4">
-            <button onClick={() => setSidebarOpen(true)} className="text-slate-600">
+  return (
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.100' }}>
+      {/* Mobile sidebar (Drawer) */}
+      <Drawer
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        sx={{
+          display: { lg: 'none' },
+          '& .MuiDrawer-paper': {
+            width: SIDEBAR_WIDTH,
+            border: 'none',
+          },
+        }}
+      >
+        {sidebarContent}
+      </Drawer>
+
+      {/* Desktop sidebar (permanent) */}
+      <Box
+        component="aside"
+        sx={{
+          display: { xs: 'none', lg: 'block' },
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          bottom: 0,
+          width: SIDEBAR_WIDTH,
+          zIndex: 50,
+        }}
+      >
+        {sidebarContent}
+      </Box>
+
+      {/* Main content area */}
+      <Box sx={{ pl: { xs: 0, lg: `${SIDEBAR_WIDTH}px` } }}>
+        {/* Mobile header */}
+        <AppBar
+          position="sticky"
+          elevation={0}
+          sx={{
+            display: { lg: 'none' },
+            bgcolor: 'white',
+            borderBottom: 1,
+            borderColor: 'divider',
+          }}
+        >
+          <Toolbar sx={{ justifyContent: 'space-between' }}>
+            <IconButton onClick={() => setSidebarOpen(true)} sx={{ color: 'text.secondary' }}>
               <MenuIcon />
-            </button>
-            <h1 className="font-semibold text-slate-900">{pageTitle || 'ASR PO System'}</h1>
-            <div className="w-6" />
-          </div>
-        </header>
+            </IconButton>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>
+              {pageTitle || 'ASR PO System'}
+            </Typography>
+            <Box sx={{ width: 40 }} />
+          </Toolbar>
+        </AppBar>
 
-        <main id="main-content" className="p-4 lg:p-8">
+        <Box component="main" id="main-content" sx={{ p: { xs: 2, lg: 4 } }}>
           {children}
-        </main>
-      </div>
+        </Box>
+      </Box>
 
       <CommandPalette isOpen={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
-    </div>
+    </Box>
   );
 }

@@ -1,21 +1,7 @@
 'use client';
 
 import React, { ErrorInfo, ReactNode } from 'react';
-// Replaced shadcn/ui Button with simple button for TypeScript compatibility
-const Button = ({ children, onClick, className = "", variant: _variant = "default", size: _size = "default" }: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  className?: string;
-  variant?: string;
-  size?: string;
-}) => (
-  <button
-    onClick={onClick}
-    className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-10 py-2 px-4 ${className}`}
-  >
-    {children}
-  </button>
-);
+import { Box, Button, Alert, AlertTitle } from '@mui/material';
 import log from '@/lib/logging/logger';
 
 interface Props {
@@ -91,73 +77,98 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
       // Default error UI
       return (
-        <div className="flex min-h-[400px] w-full items-center justify-center">
-          <div className="mx-auto max-w-md rounded-lg border border-red-200 bg-red-50 p-6">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
+        <Box
+          sx={{
+            display: 'flex',
+            minHeight: '400px',
+            width: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Alert
+            severity="error"
+            sx={{
+              maxWidth: 'md',
+              borderRadius: 2,
+              border: 1,
+              borderColor: 'error.light',
+            }}
+          >
+            <AlertTitle sx={{ fontWeight: 500 }}>Something went wrong</AlertTitle>
+            <Box sx={{ mt: 1 }}>
+              An error occurred while displaying this content. Our team has been notified and is
+              working to fix the issue.
+            </Box>
+            <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => this.setState({ hasError: false })}
+                sx={{
+                  bgcolor: 'error.lighter',
+                  color: 'error.dark',
+                  borderColor: 'error.light',
+                  '&:hover': {
+                    bgcolor: 'error.light',
+                    borderColor: 'error.main',
+                  },
+                }}
+              >
+                Try again
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.reload();
+                  }
+                }}
+                sx={{
+                  bgcolor: 'error.lighter',
+                  color: 'error.dark',
+                  borderColor: 'error.light',
+                  '&:hover': {
+                    bgcolor: 'error.light',
+                    borderColor: 'error.main',
+                  },
+                }}
+              >
+                Reload page
+              </Button>
+            </Box>
+            {process.env.NODE_ENV === 'development' && this.state.error && (
+              <details style={{ marginTop: 16 }}>
+                <summary
+                  style={{
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                  }}
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">
-                  Something went wrong
-                </h3>
-                <div className="mt-2 text-sm text-red-700">
-                  <p>
-                    An error occurred while displaying this content. Our team has been
-                    notified and is working to fix the issue.
-                  </p>
-                </div>
-                <div className="mt-4">
-                  <div className="-mx-2 -my-1.5 flex">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => this.setState({ hasError: false })}
-                      className="mr-2 bg-red-50 text-red-800 hover:bg-red-100"
-                    >
-                      Try again
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (typeof window !== 'undefined') {
-                          window.location.reload();
-                        }
-                      }}
-                      className="bg-red-50 text-red-800 hover:bg-red-100"
-                    >
-                      Reload page
-                    </Button>
-                  </div>
-                </div>
-                {process.env.NODE_ENV === 'development' && this.state.error && (
-                  <details className="mt-4">
-                    <summary className="cursor-pointer text-sm font-medium text-red-800">
-                      Error Details (Development)
-                    </summary>
-                    <pre className="mt-2 whitespace-pre-wrap rounded bg-red-100 p-2 text-xs text-red-900">
-                      {this.state.error.stack}
-                    </pre>
-                    <p className="mt-2 text-xs text-red-600">
-                      Error ID: {this.state.errorId}
-                    </p>
-                  </details>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+                  Error Details (Development)
+                </summary>
+                <pre
+                  style={{
+                    marginTop: 8,
+                    whiteSpace: 'pre-wrap',
+                    borderRadius: 4,
+                    backgroundColor: '#fee2e2',
+                    padding: 8,
+                    fontSize: '0.75rem',
+                    overflow: 'auto',
+                  }}
+                >
+                  {this.state.error.stack}
+                </pre>
+                <Box sx={{ mt: 1, fontSize: '0.75rem', color: 'error.dark' }}>
+                  Error ID: {this.state.errorId}
+                </Box>
+              </details>
+            )}
+          </Alert>
+        </Box>
       );
     }
 
@@ -218,21 +229,31 @@ export const withErrorBoundary = <P extends object>(
 /**
  * Specific error boundary for dashboard components
  */
-export const DashboardErrorBoundary: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => (
+export const DashboardErrorBoundary: React.FC<{ children: ReactNode }> = ({ children }) => (
   <ErrorBoundary
     fallback={
-      <div className="flex h-64 w-full items-center justify-center rounded-lg border border-yellow-200 bg-yellow-50">
-        <div className="text-center">
-          <p className="text-sm font-medium text-yellow-800">
+      <Box
+        sx={{
+          display: 'flex',
+          height: 256,
+          width: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 2,
+          border: 1,
+          borderColor: 'warning.light',
+          bgcolor: 'warning.lighter',
+        }}
+      >
+        <Box sx={{ textAlign: 'center' }}>
+          <Box sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'warning.dark' }}>
             Unable to load dashboard data
-          </p>
-          <p className="mt-1 text-xs text-yellow-600">
+          </Box>
+          <Box sx={{ mt: 0.5, fontSize: '0.75rem', color: 'warning.main' }}>
             Please refresh the page or contact support if the issue persists
-          </p>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
     }
     onError={(error, errorInfo) => {
       log.error('Dashboard component error', {
@@ -249,21 +270,31 @@ export const DashboardErrorBoundary: React.FC<{ children: ReactNode }> = ({
 /**
  * Specific error boundary for report components
  */
-export const ReportErrorBoundary: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => (
+export const ReportErrorBoundary: React.FC<{ children: ReactNode }> = ({ children }) => (
   <ErrorBoundary
     fallback={
-      <div className="flex h-96 w-full items-center justify-center rounded-lg border border-red-200 bg-red-50">
-        <div className="text-center">
-          <p className="text-sm font-medium text-red-800">
+      <Box
+        sx={{
+          display: 'flex',
+          height: 384,
+          width: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 2,
+          border: 1,
+          borderColor: 'error.light',
+          bgcolor: 'error.lighter',
+        }}
+      >
+        <Box sx={{ textAlign: 'center' }}>
+          <Box sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'error.dark' }}>
             Unable to generate report
-          </p>
-          <p className="mt-1 text-xs text-red-600">
+          </Box>
+          <Box sx={{ mt: 0.5, fontSize: '0.75rem', color: 'error.main' }}>
             The report data could not be loaded. Please try refreshing or contact support.
-          </p>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
     }
     onError={(error, errorInfo) => {
       log.error('Report component error', {

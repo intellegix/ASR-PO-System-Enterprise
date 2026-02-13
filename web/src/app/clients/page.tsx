@@ -5,6 +5,19 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
+import {
+  Box,
+  Typography,
+  TextField,
+  Card,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  CircularProgress,
+} from '@mui/material';
 
 interface Client {
   id: string;
@@ -72,9 +85,9 @@ export default function ClientsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
@@ -96,106 +109,151 @@ export default function ClientsPage() {
 
   return (
     <AppLayout pageTitle="Clients">
-      <div className="max-w-6xl mx-auto">
+      <Box sx={{ maxWidth: '1152px', mx: 'auto' }}>
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Clients</h1>
-            <p className="text-sm text-slate-500">{clients.length} active clients</p>
-          </div>
-        </div>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, justifyContent: 'space-between', gap: 2, mb: 3 }}>
+          <Box>
+            <Typography variant="h4" fontWeight="bold" color="text.primary">
+              Clients
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {clients.length} active clients
+            </Typography>
+          </Box>
+        </Box>
 
         {/* Search */}
-        <div className="mb-6">
-          <input
-            type="text"
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            fullWidth
             placeholder="Search clients by name, code, or parent entity..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
           />
-        </div>
+        </Box>
 
         {/* Content */}
         {loading ? (
-          <div className="bg-white rounded-lg border border-slate-200 p-8 flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
+          <Card sx={{ border: 1, borderColor: 'divider', p: 4, display: 'flex', justifyContent: 'center' }}>
+            <CircularProgress />
+          </Card>
         ) : filteredClients.length === 0 ? (
-          <div className="bg-white rounded-lg border border-slate-200 p-8 text-center">
-            <p className="text-slate-500">
+          <Card sx={{ border: 1, borderColor: 'divider', p: 4, textAlign: 'center' }}>
+            <Typography color="text.secondary">
               {searchQuery ? 'No clients match your search.' : 'No clients found.'}
-            </p>
-          </div>
+            </Typography>
+          </Card>
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden md:block bg-white rounded-lg border border-slate-200 overflow-hidden">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Code</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Category</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Parent Entity</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Properties</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Projects</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredClients.map((client) => (
-                    <tr key={client.id} className="hover:bg-slate-50 transition">
-                      <td className="px-4 py-3">
-                        <Link
-                          href={`/clients/${client.id}`}
-                          className="font-medium text-slate-900 hover:text-orange-600"
-                        >
-                          {client.client_name}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-slate-600 font-mono">{client.client_code}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{client.category || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600">{client.parent_entity || '-'}</td>
-                      <td className="px-4 py-3 text-center text-sm text-slate-600">{client._count?.properties || 0}</td>
-                      <td className="px-4 py-3 text-center text-sm text-slate-600">{client._count?.projects || 0}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              <Card sx={{ border: 1, borderColor: 'divider', overflow: 'hidden' }}>
+                <TableContainer>
+                  <Table>
+                    <TableHead sx={{ bgcolor: 'grey.50' }}>
+                      <TableRow>
+                        <TableCell sx={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Name</TableCell>
+                        <TableCell sx={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Code</TableCell>
+                        <TableCell sx={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Category</TableCell>
+                        <TableCell sx={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Parent Entity</TableCell>
+                        <TableCell align="center" sx={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Properties</TableCell>
+                        <TableCell align="center" sx={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Projects</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filteredClients.map((client) => (
+                        <TableRow key={client.id} hover sx={{ transition: 'background-color 0.2s' }}>
+                          <TableCell>
+                            <Link
+                              href={`/clients/${client.id}`}
+                              style={{ fontWeight: 500, color: 'inherit', textDecoration: 'none' }}
+                            >
+                              <Box component="span" sx={{ '&:hover': { color: 'warning.main' } }}>
+                                {client.client_name}
+                              </Box>
+                            </Link>
+                          </TableCell>
+                          <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.875rem' }}>
+                            {client.client_code}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: '0.875rem' }}>
+                            {client.category || '-'}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: '0.875rem' }}>
+                            {client.parent_entity || '-'}
+                          </TableCell>
+                          <TableCell align="center" sx={{ fontSize: '0.875rem' }}>
+                            {client._count?.properties || 0}
+                          </TableCell>
+                          <TableCell align="center" sx={{ fontSize: '0.875rem' }}>
+                            {client._count?.projects || 0}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Card>
+            </Box>
 
             {/* Mobile cards */}
-            <div className="md:hidden space-y-3">
+            <Box sx={{ display: { xs: 'block', md: 'none' }, '& > *:not(:last-child)': { mb: 1.5 } }}>
               {filteredClients.map((client) => (
                 <Link
                   key={client.id}
                   href={`/clients/${client.id}`}
-                  className="block bg-white rounded-lg border border-slate-200 p-4 hover:border-orange-300 transition"
+                  style={{ textDecoration: 'none' }}
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-medium text-slate-900">{client.client_name}</p>
-                      <p className="text-sm text-slate-500 font-mono">{client.client_code}</p>
-                    </div>
-                    {client.category && (
-                      <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                        {client.category}
-                      </span>
+                  <Card
+                    sx={{
+                      border: 1,
+                      borderColor: 'divider',
+                      p: 2,
+                      '&:hover': { borderColor: 'warning.light' },
+                      transition: 'border-color 0.2s',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography fontWeight="medium" color="text.primary">
+                          {client.client_name}
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontFamily: 'monospace' }} color="text.secondary">
+                          {client.client_code}
+                        </Typography>
+                      </Box>
+                      {client.category && (
+                        <Box
+                          sx={{
+                            fontSize: '0.75rem',
+                            bgcolor: 'grey.100',
+                            color: 'text.secondary',
+                            px: 1,
+                            py: 0.25,
+                            borderRadius: 1,
+                          }}
+                        >
+                          {client.category}
+                        </Box>
+                      )}
+                    </Box>
+                    {client.parent_entity && (
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                        {client.parent_entity}
+                      </Typography>
                     )}
-                  </div>
-                  {client.parent_entity && (
-                    <p className="text-xs text-slate-500 mt-1">{client.parent_entity}</p>
-                  )}
-                  <div className="flex gap-4 mt-2 text-xs text-slate-500">
-                    <span>{client._count?.properties || 0} properties</span>
-                    <span>{client._count?.projects || 0} projects</span>
-                  </div>
+                    <Box sx={{ display: 'flex', gap: 2, mt: 1, fontSize: '0.75rem', color: 'text.secondary' }}>
+                      <span>{client._count?.properties || 0} properties</span>
+                      <span>{client._count?.projects || 0} projects</span>
+                    </Box>
+                  </Card>
                 </Link>
               ))}
-            </div>
+            </Box>
           </>
         )}
-      </div>
+      </Box>
     </AppLayout>
   );
 }

@@ -3,6 +3,17 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { authenticateDemo, setDemoSession } from '@/lib/demo-auth';
+import {
+  Box,
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  Alert,
+  Grid,
+  CircularProgress,
+} from '@mui/material';
+import { Description as DescriptionIcon } from '@mui/icons-material';
 
 export default function DemoLoginPage() {
   const router = useRouter();
@@ -34,176 +45,199 @@ export default function DemoLoginPage() {
     }
   };
 
+  const fillCredentials = (user: string, pass: string) => {
+    setIdentifier(user);
+    setPassword(pass);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4">
-      <div className="w-full max-w-md">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%)',
+        px: 2,
+      }}
+    >
+      <Box sx={{ width: '100%', maxWidth: 'md' }}>
         {/* Logo/Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-500 rounded-xl mb-4">
-            <svg
-              className="w-10 h-10 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-white">ASR PO System</h1>
-          <p className="text-slate-400 mt-1">All Surface Roofing & Waterproofing</p>
-          <p className="text-orange-400 text-sm mt-2">🚀 Demo Mode - Frontend Only</p>
-        </div>
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Box
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 64,
+              height: 64,
+              bgcolor: 'primary.main',
+              borderRadius: 3,
+              mb: 2,
+            }}
+          >
+            <DescriptionIcon sx={{ fontSize: 40, color: 'white' }} />
+          </Box>
+          <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
+            ASR PO System
+          </Typography>
+          <Typography sx={{ color: 'grey.400', mt: 0.5 }}>
+            All Surface Roofing & Waterproofing
+          </Typography>
+          <Typography sx={{ color: 'primary.light', fontSize: '0.875rem', mt: 1 }}>
+            🚀 Demo Mode - Frontend Only
+          </Typography>
+        </Box>
 
         {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <h2 className="text-xl font-semibold text-slate-800 mb-6">Demo Sign In</h2>
+        <Paper sx={{ borderRadius: 4, boxShadow: 10, p: 4 }}>
+          <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary', mb: 3 }}>
+            Demo Sign In
+          </Typography>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <Alert severity="error" sx={{ mb: 2 }}>
               {error}
-            </div>
+            </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label htmlFor="identifier" className="block text-sm font-medium text-slate-700 mb-1">
-                Username or Email
-              </label>
-              <input
+          <form onSubmit={handleSubmit}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              <TextField
                 id="identifier"
-                type="text"
+                label="Username or Email"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition text-slate-800 placeholder-slate-400"
                 placeholder="Intellegix or owner1@allsurfaceroofing.com"
+                fullWidth
               />
-            </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
-                Password
-              </label>
-              <input
+              <TextField
                 id="password"
                 type="password"
+                label="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition text-slate-800 placeholder-slate-400"
                 placeholder="Enter your password"
+                fullWidth
               />
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-            >
-              {loading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Signing in...
-                </>
-              ) : (
-                'Sign In'
-              )}
-            </button>
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                disabled={loading}
+                fullWidth
+                sx={{ py: 1.5 }}
+              >
+                {loading ? (
+                  <>
+                    <CircularProgress size={20} sx={{ mr: 1 }} color="inherit" />
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+            </Box>
           </form>
 
           {/* Demo credentials */}
-          <div className="mt-6 pt-6 border-t border-slate-200">
-            <p className="text-sm text-slate-500 text-center mb-3">Demo Accounts - Click to auto-fill:</p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('Intellegix');
-                  setPassword('Devops$@2026');
-                }}
-                className="p-2 bg-orange-50 hover:bg-orange-100 rounded text-slate-700 transition border border-orange-200"
-              >
-                🔑 Admin: Intellegix
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('owner1');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
-              >
-                O1: CAPEX
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('owner2');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
-              >
-                O2: Service Work
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('owner3');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
-              >
-                O3: Roofing
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('opsmgr');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
-              >
-                Ops Manager
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIdentifier('accounting');
-                  setPassword('demo123');
-                }}
-                className="p-2 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition"
-              >
-                Accounting
-              </button>
-            </div>
-          </div>
-        </div>
+          <Box sx={{ mt: 3, pt: 3, borderTop: 1, borderColor: 'divider' }}>
+            <Typography
+              variant="body2"
+              sx={{ color: 'text.secondary', textAlign: 'center', mb: 1.5 }}
+            >
+              Demo Accounts - Click to auto-fill:
+            </Typography>
+            <Grid container spacing={1}>
+              <Grid size={{ xs: 6 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  onClick={() => fillCredentials('Intellegix', 'Devops$@2026')}
+                  sx={{
+                    bgcolor: 'primary.lighter',
+                    borderColor: 'primary.light',
+                    color: 'text.primary',
+                    '&:hover': {
+                      bgcolor: 'primary.light',
+                      borderColor: 'primary.main',
+                    },
+                    py: 1,
+                  }}
+                >
+                  🔑 Admin: Intellegix
+                </Button>
+              </Grid>
+              <Grid size={{ xs: 6 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  onClick={() => fillCredentials('owner1', 'demo123')}
+                  sx={{ py: 1 }}
+                >
+                  O1: CAPEX
+                </Button>
+              </Grid>
+              <Grid size={{ xs: 6 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  onClick={() => fillCredentials('owner2', 'demo123')}
+                  sx={{ py: 1 }}
+                >
+                  O2: Service Work
+                </Button>
+              </Grid>
+              <Grid size={{ xs: 6 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  onClick={() => fillCredentials('owner3', 'demo123')}
+                  sx={{ py: 1 }}
+                >
+                  O3: Roofing
+                </Button>
+              </Grid>
+              <Grid size={{ xs: 6 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  onClick={() => fillCredentials('opsmgr', 'demo123')}
+                  sx={{ py: 1 }}
+                >
+                  Ops Manager
+                </Button>
+              </Grid>
+              <Grid size={{ xs: 6 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  onClick={() => fillCredentials('accounting', 'demo123')}
+                  sx={{ py: 1 }}
+                >
+                  Accounting
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
 
         {/* Instructions */}
-        <div className="mt-6 text-center text-slate-400 text-sm">
-          <p>🎯 This is a demo version for frontend testing</p>
-          <p>🔗 No server connection required</p>
-        </div>
-      </div>
-    </div>
+        <Box sx={{ mt: 3, textAlign: 'center', color: 'grey.400', fontSize: '0.875rem' }}>
+          <Typography>🎯 This is a demo version for frontend testing</Typography>
+          <Typography>🔗 No server connection required</Typography>
+        </Box>
+      </Box>
+    </Box>
   );
 }

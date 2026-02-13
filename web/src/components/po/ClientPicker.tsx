@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Box, Button, TextField, Typography, Paper, CircularProgress } from '@mui/material';
 
 interface Client {
   id: string;
@@ -33,57 +34,80 @@ export default function ClientPicker({ clients, loading, onSelect, onSkip }: Cli
   });
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold text-slate-800 mb-1">Pick Client</h2>
-        <p className="text-sm text-slate-500">Which client is this purchase for?</p>
-      </div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
+          Pick Client
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Which client is this purchase for?
+        </Typography>
+      </Box>
 
-      <input
-        type="text"
+      <TextField
+        fullWidth
         placeholder="Search clients..."
         aria-label="Search clients"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+        size="small"
       />
 
       {loading ? (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500"></div>
-        </div>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress size={24} color="warning" />
+        </Box>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-200">
-          <p className="text-slate-600 font-medium">No clients found</p>
-          <p className="text-sm text-slate-500 mt-1">
+        <Paper sx={{ textAlign: 'center', py: 4, bgcolor: 'grey.50', border: 1, borderColor: 'grey.200' }}>
+          <Typography variant="body1" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+            No clients found
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
             {search ? 'Try a different search term' : 'No active clients'}
-          </p>
-        </div>
+          </Typography>
+        </Paper>
       ) : (
-        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: 400, overflowY: 'auto' }}>
           {filtered.map((client) => (
-            <button
+            <Button
               key={client.id}
               onClick={() => onSelect(client)}
-              className="w-full text-left p-4 rounded-xl border border-slate-200 bg-white hover:border-orange-300 hover:bg-orange-50/50 transition"
+              variant="outlined"
+              sx={{
+                justifyContent: 'flex-start',
+                textAlign: 'left',
+                p: 2,
+                borderRadius: 3,
+                borderColor: 'grey.300',
+                color: 'text.primary',
+                textTransform: 'none',
+                '&:hover': {
+                  borderColor: 'warning.main',
+                  bgcolor: 'warning.lighter'
+                }
+              }}
             >
-              <p className="font-medium text-slate-900">{client.client_name}</p>
-              <p className="text-sm text-slate-500">
-                {client.client_code}
-                {client.category ? ` \u2022 ${client.category}` : ''}
-                {client.parent_entity ? ` \u2022 ${client.parent_entity}` : ''}
-              </p>
-            </button>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  {client.client_name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {client.client_code}
+                  {client.category ? ` • ${client.category}` : ''}
+                  {client.parent_entity ? ` • ${client.parent_entity}` : ''}
+                </Typography>
+              </Box>
+            </Button>
           ))}
-        </div>
+        </Box>
       )}
 
-      <button
+      <Button
         onClick={onSkip}
-        className="w-full py-3 text-sm text-slate-500 hover:text-slate-700 transition"
+        sx={{ width: '100%', py: 1.5, color: 'text.secondary', textTransform: 'none', '&:hover': { color: 'text.primary' } }}
       >
         Skip — go directly to project selection
-      </button>
-    </div>
+      </Button>
+    </Box>
   );
 }

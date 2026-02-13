@@ -1,55 +1,41 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-
-// Icons
-interface IconProps {
-  className?: string;
-}
-
-const ArrowLeftIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-  </svg>
-);
-
-const CalculatorIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-  </svg>
-);
-
-const TrendingUpIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-  </svg>
-);
-
-const TrendingDownIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-  </svg>
-);
-
-const DownloadIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
-
-const RefreshIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-  </svg>
-);
-
-const AlertTriangleIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.992-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-  </svg>
-);
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
+  CircularProgress,
+  Alert,
+  AlertTitle,
+  Paper,
+  Card,
+  CardContent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  LinearProgress,
+  Chip,
+  Divider,
+  Grid,
+} from '@mui/material';
+import {
+  ArrowBack,
+  Calculate,
+  TrendingUp,
+  TrendingDown,
+  Download,
+  Refresh,
+  Warning,
+} from '@mui/icons-material';
 
 interface ProjectBudgetAnalysis {
   projectId: string;
@@ -132,7 +118,7 @@ export default function BudgetVsActualPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
-    startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0], // Start of year
+    startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
     divisionId: '',
     projectId: '',
@@ -141,8 +127,6 @@ export default function BudgetVsActualPage() {
   });
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-
-  const _userRole = user?.role || 'OPERATIONS_MANAGER';
 
   const fetchData = useCallback(async () => {
     try {
@@ -164,7 +148,6 @@ export default function BudgetVsActualPage() {
 
       const result = await response.json();
 
-      // Normalize API response to match component interface
       const normalized: BudgetAnalysisData = {
         summary: {
           totalProjects: result.summary?.totalProjects ?? 0,
@@ -267,14 +250,12 @@ export default function BudgetVsActualPage() {
         },
       };
 
-      // Calculate averages for CPI/SPI
       const projects = normalized.projects;
       if (projects.length > 0) {
         normalized.summary.averageCPI = projects.reduce((s, p) => s + p.costPerformanceIndex, 0) / projects.length;
         normalized.summary.averageSPI = projects.reduce((s, p) => s + p.schedulePerformanceIndex, 0) / projects.length;
       }
 
-      // Compute cumulative variance
       let cumVar = 0;
       normalized.monthlyTrends.forEach(t => {
         cumVar += t.variance;
@@ -351,7 +332,7 @@ export default function BudgetVsActualPage() {
 
   useEffect(() => {
     if (autoRefresh) {
-      const interval = setInterval(fetchData, 5 * 60 * 1000); // 5 minutes
+      const interval = setInterval(fetchData, 5 * 60 * 1000);
       return () => clearInterval(interval);
     }
   }, [autoRefresh, fetchData]);
@@ -367,580 +348,551 @@ export default function BudgetVsActualPage() {
     return `${value.toFixed(1)}%`;
   };
 
-  const getRiskBadgeColor = (riskLevel: string) => {
+  const getRiskColor = (riskLevel: string) => {
     switch (riskLevel) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default: return 'bg-green-100 text-green-800 border-green-200';
+      case 'high': return 'error';
+      case 'medium': return 'warning';
+      default: return 'success';
     }
   };
 
   const getVarianceColor = (variance: number) => {
-    if (variance > 0) return 'text-red-600'; // Over budget
-    if (variance < -5) return 'text-green-600'; // Under budget
-    return 'text-slate-600'; // On budget
-  };
-
-  const getAlertIcon = (severity: string) => {
-    switch (severity) {
-      case 'critical': return <AlertTriangleIcon className="w-5 h-5 text-red-500" />;
-      case 'warning': return <AlertTriangleIcon className="w-5 h-5 text-yellow-500" />;
-      default: return <AlertTriangleIcon className="w-5 h-5 text-blue-500" />;
-    }
+    if (variance > 0) return 'error.main';
+    if (variance < -5) return 'success.main';
+    return 'text.primary';
   };
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <CalculatorIcon className="mx-auto h-12 w-12 text-slate-400 mb-4" />
-          <p className="text-slate-600">Please sign in to view budget analysis reports.</p>
-        </div>
-      </div>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Box sx={{ textAlign: 'center' }}>
+          <Calculate sx={{ width: 48, height: 48, color: 'grey.400', mb: 2 }} />
+          <Typography color="text.secondary">Please sign in to view budget analysis reports.</Typography>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center space-x-4">
-                <Link
+      <Paper sx={{ borderRadius: 0, borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ maxWidth: 1280, mx: 'auto', px: { xs: 2, sm: 3, lg: 4 } }}>
+          <Box sx={{ py: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, justifyContent: 'space-between', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Button
                   href="/reports"
-                  className="flex items-center space-x-2 text-slate-600 hover:text-orange-600 transition-colors"
+                  startIcon={<ArrowBack />}
+                  sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
                 >
-                  <ArrowLeftIcon />
-                  <span className="hidden sm:inline">Back to Reports</span>
-                </Link>
-                <div className="h-6 w-px bg-slate-300 hidden sm:block" />
-                <div className="flex items-center space-x-3">
-                  <CalculatorIcon className="w-6 h-6 text-orange-600" />
-                  <div>
-                    <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Budget vs Actual Analysis</h1>
-                    <p className="text-sm sm:text-base text-slate-600">Project budget variance and forecasting</p>
-                  </div>
-                </div>
-              </div>
+                  <Box sx={{ display: { xs: 'none', sm: 'inline' } }}>Back to Reports</Box>
+                </Button>
+                <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Calculate sx={{ color: 'primary.main' }} />
+                  <Box>
+                    <Typography variant="h5" fontWeight={700}>Budget vs Actual Analysis</Typography>
+                    <Typography variant="body2" color="text.secondary">Project budget variance and forecasting</Typography>
+                  </Box>
+                </Box>
+              </Box>
 
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <p className="text-sm text-slate-500">Last updated: {lastRefresh.toLocaleTimeString()}</p>
-                  <p className="text-xs text-slate-400">Welcome, {user?.name?.split(' ')[0]}</p>
-                </div>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" color="text.secondary">Last updated: {lastRefresh.toLocaleTimeString()}</Typography>
+                  <Typography variant="caption" color="text.disabled">Welcome, {user?.name?.split(' ')[0]}</Typography>
+                </Box>
 
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={autoRefresh}
-                    onChange={(e) => setAutoRefresh(e.target.checked)}
-                    className="rounded border-slate-300 text-orange-600 focus:ring-orange-500"
-                  />
-                  <span className="text-sm text-slate-600">Auto-refresh</span>
-                </label>
+                <FormControlLabel
+                  control={<Checkbox checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} />}
+                  label={<Typography variant="body2">Auto-refresh</Typography>}
+                />
 
-                <button
+                <Button
                   onClick={fetchData}
                   disabled={loading}
-                  className="flex items-center space-x-2 px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                  variant="contained"
+                  startIcon={loading ? <CircularProgress size={20} /> : <Refresh />}
                 >
-                  <RefreshIcon className={loading ? 'w-5 h-5 animate-spin' : 'w-5 h-5'} />
-                  <span>Refresh</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+                  Refresh
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </Paper>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Box sx={{ maxWidth: 1280, mx: 'auto', px: { xs: 2, sm: 3, lg: 4 }, py: 4 }}>
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Report Filters</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Start Date</label>
-              <input
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>Report Filters</Typography>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+              <TextField
+                fullWidth
+                label="Start Date"
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                InputLabelProps={{ shrink: true }}
               />
-            </div>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">End Date</label>
-              <input
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+              <TextField
+                fullWidth
+                label="End Date"
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                InputLabelProps={{ shrink: true }}
               />
-            </div>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Division</label>
-              <select
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+              <TextField
+                fullWidth
+                select
+                label="Division"
                 value={filters.divisionId}
                 onChange={(e) => setFilters(prev => ({ ...prev, divisionId: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
-                <option value="">All Divisions</option>
-                {/* Division options would be populated from API */}
-              </select>
-            </div>
+                <MenuItem value="">All Divisions</MenuItem>
+              </TextField>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Project</label>
-              <select
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+              <TextField
+                fullWidth
+                select
+                label="Project"
                 value={filters.projectId}
                 onChange={(e) => setFilters(prev => ({ ...prev, projectId: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
-                <option value="">All Projects</option>
-                {/* Project options would be populated from API */}
-              </select>
-            </div>
+                <MenuItem value="">All Projects</MenuItem>
+              </TextField>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Risk Level</label>
-              <select
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+              <TextField
+                fullWidth
+                select
+                label="Risk Level"
                 value={filters.riskLevel}
                 onChange={(e) => setFilters(prev => ({ ...prev, riskLevel: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
-                <option value="">All Risk Levels</option>
-                <option value="high">High Risk</option>
-                <option value="medium">Medium Risk</option>
-                <option value="low">Low Risk</option>
-              </select>
-            </div>
+                <MenuItem value="">All Risk Levels</MenuItem>
+                <MenuItem value="high">High Risk</MenuItem>
+                <MenuItem value="medium">Medium Risk</MenuItem>
+                <MenuItem value="low">Low Risk</MenuItem>
+              </TextField>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Variance Threshold</label>
-              <select
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
+              <TextField
+                fullWidth
+                select
+                label="Variance Threshold"
                 value={filters.varianceThreshold}
                 onChange={(e) => setFilters(prev => ({ ...prev, varianceThreshold: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
-                <option value="">Any Variance</option>
-                <option value="5">Over 5%</option>
-                <option value="10">Over 10%</option>
-                <option value="15">Over 15%</option>
-                <option value="20">Over 20%</option>
-              </select>
-            </div>
-          </div>
-        </div>
+                <MenuItem value="">Any Variance</MenuItem>
+                <MenuItem value="5">Over 5%</MenuItem>
+                <MenuItem value="10">Over 10%</MenuItem>
+                <MenuItem value="15">Over 15%</MenuItem>
+                <MenuItem value="20">Over 20%</MenuItem>
+              </TextField>
+            </Grid>
+          </Grid>
+        </Paper>
 
         {/* Export Options */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Export Options</h3>
-              <p className="text-sm text-slate-600">Download budget analysis in various formats</p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={exportToExcel}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                <DownloadIcon />
-                <span>Excel</span>
-              </button>
-              <button
-                onClick={exportToPDF}
-                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                <DownloadIcon />
-                <span>PDF</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, justifyContent: 'space-between', gap: 1.5 }}>
+            <Box>
+              <Typography variant="h6" fontWeight={600} sx={{ mb: 1 }}>Export Options</Typography>
+              <Typography variant="body2" color="text.secondary">Download budget analysis in various formats</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1.5 }}>
+              <Button onClick={exportToExcel} variant="contained" color="success" startIcon={<Download />}>
+                Excel
+              </Button>
+              <Button onClick={exportToPDF} variant="contained" color="error" startIcon={<Download />}>
+                PDF
+              </Button>
+            </Box>
+          </Box>
+        </Paper>
 
         {/* Loading State */}
         {loading && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-            <p className="text-slate-600">Loading budget analysis data...</p>
-          </div>
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <CircularProgress sx={{ mb: 2 }} />
+            <Typography color="text.secondary">Loading budget analysis data...</Typography>
+          </Paper>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6 mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-medium text-red-900">Error loading data</h3>
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            </div>
-          </div>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            <AlertTitle>Error loading data</AlertTitle>
+            {error}
+          </Alert>
         )}
 
         {/* Data Display */}
         {data && !loading && (
           <>
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Total Budget</p>
-                    <p className="text-2xl font-bold text-slate-900">{formatCurrency(data.summary.totalBudget)}</p>
-                  </div>
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <CalculatorIcon className="w-6 h-6 text-blue-600" />
-                  </div>
-                </div>
-              </div>
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+              <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary" fontWeight={500}>Total Budget</Typography>
+                        <Typography variant="h5" fontWeight={700}>{formatCurrency(data.summary.totalBudget)}</Typography>
+                      </Box>
+                      <Box sx={{ p: 1.5, bgcolor: 'primary.lighter', borderRadius: 2 }}>
+                        <Calculate sx={{ color: 'primary.main' }} />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Actual Spend</p>
-                    <p className="text-2xl font-bold text-slate-900">{formatCurrency(data.summary.totalActual)}</p>
-                  </div>
-                  <div className="p-3 bg-green-100 rounded-lg">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+              <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary" fontWeight={500}>Actual Spend</Typography>
+                        <Typography variant="h5" fontWeight={700}>{formatCurrency(data.summary.totalActual)}</Typography>
+                      </Box>
+                      <Box sx={{ p: 1.5, bgcolor: 'success.lighter', borderRadius: 2 }}>
+                        <Calculate sx={{ color: 'success.main' }} />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Total Variance</p>
-                    <p className={`text-2xl font-bold ${getVarianceColor(data.summary.totalVariance)}`}>
-                      {formatCurrency(Math.abs(data.summary.totalVariance))}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {data.summary.totalActual > data.summary.totalBudget ? 'Over budget' : 'Under budget'}
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-lg ${data.summary.totalActual > data.summary.totalBudget ? 'bg-red-100' : 'bg-green-100'}`}>
-                    {data.summary.totalActual > data.summary.totalBudget ?
-                      <TrendingUpIcon className="w-6 h-6 text-red-600" /> :
-                      <TrendingDownIcon className="w-6 h-6 text-green-600" />
-                    }
-                  </div>
-                </div>
-              </div>
+              <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary" fontWeight={500}>Total Variance</Typography>
+                        <Typography variant="h5" fontWeight={700} sx={{ color: getVarianceColor(data.summary.totalVariance) }}>
+                          {formatCurrency(Math.abs(data.summary.totalVariance))}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                          {data.summary.totalActual > data.summary.totalBudget ? 'Over budget' : 'Under budget'}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ p: 1.5, bgcolor: data.summary.totalActual > data.summary.totalBudget ? 'error.lighter' : 'success.lighter', borderRadius: 2 }}>
+                        {data.summary.totalActual > data.summary.totalBudget ?
+                          <TrendingUp sx={{ color: 'error.main' }} /> :
+                          <TrendingDown sx={{ color: 'success.main' }} />
+                        }
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Projects at Risk</p>
-                    <p className="text-2xl font-bold text-slate-900">{data.summary.projectsAtRisk}</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      of {data.summary.totalProjects} total
-                    </p>
-                  </div>
-                  <div className="p-3 bg-orange-100 rounded-lg">
-                    <AlertTriangleIcon className="w-5 h-5 text-orange-600" />
-                  </div>
-                </div>
-              </div>
-            </div>
+              <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary" fontWeight={500}>Projects at Risk</Typography>
+                        <Typography variant="h5" fontWeight={700}>{data.summary.projectsAtRisk}</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                          of {data.summary.totalProjects} total
+                        </Typography>
+                      </Box>
+                      <Box sx={{ p: 1.5, bgcolor: 'warning.lighter', borderRadius: 2 }}>
+                        <Warning sx={{ color: 'warning.main' }} />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
 
             {/* Performance Indices */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">Cost Performance Index (CPI)</h3>
-                <div className="flex items-center space-x-4">
-                  <div className="flex-1">
-                    <p className="text-3xl font-bold text-slate-900">{data.summary.averageCPI.toFixed(2)}</p>
-                    <p className="text-sm text-slate-600 mt-1">
-                      {data.summary.averageCPI >= 1.0 ? 'Under budget' : 'Over budget'}
-                    </p>
-                  </div>
-                  <div className={`w-24 h-24 rounded-full flex items-center justify-center ${
-                    data.summary.averageCPI >= 1.0 ? 'bg-green-100' : 'bg-red-100'
-                  }`}>
-                    <span className={`text-2xl font-bold ${
-                      data.summary.averageCPI >= 1.0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {data.summary.averageCPI >= 1.0 ? '✓' : '!'}
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-4 text-xs text-slate-500">
-                  CPI {'>'}= 1.0 indicates project is under budget
-                </div>
-              </div>
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Paper sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>Cost Performance Index (CPI)</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h3" fontWeight={700}>{data.summary.averageCPI.toFixed(2)}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        {data.summary.averageCPI >= 1.0 ? 'Under budget' : 'Over budget'}
+                      </Typography>
+                    </Box>
+                    <Box sx={{
+                      width: 96,
+                      height: 96,
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      bgcolor: data.summary.averageCPI >= 1.0 ? 'success.lighter' : 'error.lighter'
+                    }}>
+                      <Typography variant="h4" fontWeight={700} sx={{ color: data.summary.averageCPI >= 1.0 ? 'success.main' : 'error.main' }}>
+                        {data.summary.averageCPI >= 1.0 ? '✓' : '!'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+                    CPI &gt;= 1.0 indicates project is under budget
+                  </Typography>
+                </Paper>
+              </Grid>
 
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">Schedule Performance Index (SPI)</h3>
-                <div className="flex items-center space-x-4">
-                  <div className="flex-1">
-                    <p className="text-3xl font-bold text-slate-900">{data.summary.averageSPI.toFixed(2)}</p>
-                    <p className="text-sm text-slate-600 mt-1">
-                      {data.summary.averageSPI >= 1.0 ? 'Ahead of schedule' : 'Behind schedule'}
-                    </p>
-                  </div>
-                  <div className={`w-24 h-24 rounded-full flex items-center justify-center ${
-                    data.summary.averageSPI >= 1.0 ? 'bg-green-100' : 'bg-yellow-100'
-                  }`}>
-                    <span className={`text-2xl font-bold ${
-                      data.summary.averageSPI >= 1.0 ? 'text-green-600' : 'text-yellow-600'
-                    }`}>
-                      {data.summary.averageSPI >= 1.0 ? '✓' : '⚠'}
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-4 text-xs text-slate-500">
-                  SPI {'>'}= 1.0 indicates project is ahead of schedule
-                </div>
-              </div>
-            </div>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Paper sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>Schedule Performance Index (SPI)</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h3" fontWeight={700}>{data.summary.averageSPI.toFixed(2)}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        {data.summary.averageSPI >= 1.0 ? 'Ahead of schedule' : 'Behind schedule'}
+                      </Typography>
+                    </Box>
+                    <Box sx={{
+                      width: 96,
+                      height: 96,
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      bgcolor: data.summary.averageSPI >= 1.0 ? 'success.lighter' : 'warning.lighter'
+                    }}>
+                      <Typography variant="h4" fontWeight={700} sx={{ color: data.summary.averageSPI >= 1.0 ? 'success.main' : 'warning.main' }}>
+                        {data.summary.averageSPI >= 1.0 ? '✓' : '⚠'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+                    SPI &gt;= 1.0 indicates project is ahead of schedule
+                  </Typography>
+                </Paper>
+              </Grid>
+            </Grid>
 
             {/* Project Details Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-              <h3 className="text-lg font-semibold text-slate-900 mb-6">Project Budget Analysis</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead>
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Project
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Budget
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Actual
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Variance
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        CPI / SPI
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Completion
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Risk Level
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
+            <Paper sx={{ p: 3, mb: 4 }}>
+              <Typography variant="h6" fontWeight={600} sx={{ mb: 3 }}>Project Budget Analysis</Typography>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Project</TableCell>
+                      <TableCell>Budget</TableCell>
+                      <TableCell>Actual</TableCell>
+                      <TableCell>Variance</TableCell>
+                      <TableCell>CPI / SPI</TableCell>
+                      <TableCell>Completion</TableCell>
+                      <TableCell>Risk Level</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
                     {data.projects.slice(0, 10).map((project) => (
-                      <tr key={project.projectId} className="hover:bg-slate-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <p className="text-sm font-medium text-slate-900">{project.projectName}</p>
-                            <p className="text-xs text-slate-500">{project.divisionName}</p>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">{formatCurrency(project.revisedBudget)}</div>
+                      <TableRow key={project.projectId} hover>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={500}>{project.projectName}</Typography>
+                          <Typography variant="caption" color="text.secondary">{project.divisionName}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{formatCurrency(project.revisedBudget)}</Typography>
                           {project.originalBudget !== project.revisedBudget && (
-                            <div className="text-xs text-slate-500">
+                            <Typography variant="caption" color="text.secondary">
                               Original: {formatCurrency(project.originalBudget)}
-                            </div>
+                            </Typography>
                           )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">{formatCurrency(project.actualSpend)}</div>
-                          <div className="text-xs text-slate-500">
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{formatCurrency(project.actualSpend)}</Typography>
+                          <Typography variant="caption" color="text.secondary">
                             Util: {formatPercentage(project.budgetUtilization)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className={`text-sm font-medium ${getVarianceColor(project.variancePercentage)}`}>
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={500} sx={{ color: getVarianceColor(project.variancePercentage) }}>
                             {formatCurrency(Math.abs(project.varianceAmount))}
-                          </div>
-                          <div className={`text-xs ${getVarianceColor(project.variancePercentage)}`}>
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: getVarianceColor(project.variancePercentage) }}>
                             {formatPercentage(Math.abs(project.variancePercentage))}
                             {project.variancePercentage > 0 ? ' over' : ' under'}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">
-                            CPI: {project.costPerformanceIndex.toFixed(2)}
-                          </div>
-                          <div className="text-xs text-slate-500">
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">CPI: {project.costPerformanceIndex.toFixed(2)}</Typography>
+                          <Typography variant="caption" color="text.secondary">
                             SPI: {project.schedulePerformanceIndex.toFixed(2)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">
-                            {formatPercentage(project.timeline.percentComplete)}
-                          </div>
-                          <div className="w-full bg-slate-200 rounded-full h-2 mt-1">
-                            <div
-                              className="bg-orange-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${project.timeline.percentComplete}%` }}
-                            />
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRiskBadgeColor(project.riskLevel)}`}>
-                            {project.riskLevel.charAt(0).toUpperCase() + project.riskLevel.slice(1)} Risk
-                          </span>
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{formatPercentage(project.timeline.percentComplete)}</Typography>
+                          <LinearProgress
+                            variant="determinate"
+                            value={project.timeline.percentComplete}
+                            sx={{ mt: 0.5, height: 8, borderRadius: 1 }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={`${project.riskLevel.charAt(0).toUpperCase() + project.riskLevel.slice(1)} Risk`}
+                            color={getRiskColor(project.riskLevel) as 'error' | 'warning' | 'success'}
+                            size="small"
+                          />
                           {project.alerts.length > 0 && (
-                            <div className="mt-1">
-                              {project.alerts.slice(0, 1).map((alert, index) => (
-                                <div key={index} className="flex items-center space-x-1">
-                                  {getAlertIcon(alert.severity)}
-                                  <span className="text-xs text-slate-600 truncate">{alert.type}</span>
-                                </div>
-                              ))}
-                            </div>
+                            <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Warning sx={{ width: 16, height: 16, color: project.alerts[0].severity === 'critical' ? 'error.main' : 'warning.main' }} />
+                              <Typography variant="caption" color="text.secondary">{project.alerts[0].type}</Typography>
+                            </Box>
                           )}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
 
-            {/* Division Summary */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 className="text-lg font-semibold text-slate-900 mb-6">Division Performance</h3>
-                <div className="space-y-4">
-                  {data.divisionSummary.map((division, index) => (
-                    <div key={index} className="border-b border-slate-200 pb-4 last:border-b-0 last:pb-0">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <h4 className="font-medium text-slate-900">{division.divisionName}</h4>
-                          <p className="text-sm text-slate-500">{division.projectCount} projects</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-slate-900">{formatCurrency(division.totalActual)}</p>
-                          <p className="text-sm text-slate-600">of {formatCurrency(division.totalBudget)}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm font-medium ${getVarianceColor(division.variancePercentage)}`}>
-                          Variance: {formatCurrency(Math.abs(division.variance))} ({formatPercentage(Math.abs(division.variancePercentage))})
-                        </span>
-                        <span className="text-sm text-slate-600">
-                          CPI: {division.averageCPI.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="w-full bg-slate-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-300 ${
-                            division.variance > 0 ? 'bg-red-600' : 'bg-green-600'
-                          }`}
-                          style={{ width: `${Math.min(100, (division.totalActual / division.totalBudget) * 100)}%` }}
+            {/* Division Summary & Forecast */}
+            <Grid container spacing={4} sx={{ mb: 4 }}>
+              <Grid size={{ xs: 12, lg: 6 }}>
+                <Paper sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight={600} sx={{ mb: 3 }}>Division Performance</Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {data.divisionSummary.map((division, index) => (
+                      <Box key={index} sx={{ borderBottom: index < data.divisionSummary.length - 1 ? 1 : 0, borderColor: 'divider', pb: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                          <Box>
+                            <Typography variant="body1" fontWeight={500}>{division.divisionName}</Typography>
+                            <Typography variant="body2" color="text.secondary">{division.projectCount} projects</Typography>
+                          </Box>
+                          <Box sx={{ textAlign: 'right' }}>
+                            <Typography variant="body1" fontWeight={600}>{formatCurrency(division.totalActual)}</Typography>
+                            <Typography variant="body2" color="text.secondary">of {formatCurrency(division.totalBudget)}</Typography>
+                          </Box>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="body2" fontWeight={500} sx={{ color: getVarianceColor(division.variancePercentage) }}>
+                            Variance: {formatCurrency(Math.abs(division.variance))} ({formatPercentage(Math.abs(division.variancePercentage))})
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            CPI: {division.averageCPI.toFixed(2)}
+                          </Typography>
+                        </Box>
+                        <LinearProgress
+                          variant="determinate"
+                          value={Math.min(100, (division.totalActual / division.totalBudget) * 100)}
+                          color={division.variance > 0 ? 'error' : 'success'}
+                          sx={{ height: 8, borderRadius: 1 }}
                         />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                      </Box>
+                    ))}
+                  </Box>
+                </Paper>
+              </Grid>
 
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 className="text-lg font-semibold text-slate-900 mb-6">Forecast Analysis</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
-                    <div>
-                      <h4 className="font-medium text-red-900">Projected Overrun</h4>
-                      <p className="text-sm text-red-600">Based on current trends</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-red-900">
-                        {formatCurrency(data.forecastAnalysis.projectedOverrun)}
-                      </p>
-                      <p className="text-sm text-red-600">
-                        {data.forecastAnalysis.confidenceLevel}% confidence
-                      </p>
-                    </div>
-                  </div>
+              <Grid size={{ xs: 12, lg: 6 }}>
+                <Paper sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight={600} sx={{ mb: 3 }}>Forecast Analysis</Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box sx={{ p: 2, bgcolor: 'error.lighter', borderRadius: 2, border: 1, borderColor: 'error.light' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Box>
+                          <Typography variant="body1" fontWeight={500} color="error.dark">Projected Overrun</Typography>
+                          <Typography variant="body2" color="error.main">Based on current trends</Typography>
+                        </Box>
+                        <Box sx={{ textAlign: 'right' }}>
+                          <Typography variant="h6" fontWeight={700} color="error.dark">
+                            {formatCurrency(data.forecastAnalysis.projectedOverrun)}
+                          </Typography>
+                          <Typography variant="body2" color="error.main">
+                            {data.forecastAnalysis.confidenceLevel}% confidence
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
 
-                  <div>
-                    <h4 className="font-medium text-slate-900 mb-3">Key Risks</h4>
-                    <div className="space-y-2">
-                      {data.forecastAnalysis.keyRisks.slice(0, 3).map((risk, index) => (
-                        <div key={index} className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-yellow-900">{risk.risk}</p>
-                              <p className="text-xs text-yellow-700 mt-1">{risk.mitigation}</p>
-                            </div>
-                            <span className="text-sm font-semibold text-yellow-900 ml-2">
-                              {formatCurrency(risk.impact)}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+                    <Box>
+                      <Typography variant="body1" fontWeight={500} sx={{ mb: 1.5 }}>Key Risks</Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {data.forecastAnalysis.keyRisks.slice(0, 3).map((risk, index) => (
+                          <Box key={index} sx={{ p: 1.5, bgcolor: 'warning.lighter', borderRadius: 2, border: 1, borderColor: 'warning.light' }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" fontWeight={500} color="warning.dark">{risk.risk}</Typography>
+                                <Typography variant="caption" color="warning.main" sx={{ mt: 0.5 }}>{risk.mitigation}</Typography>
+                              </Box>
+                              <Typography variant="body2" fontWeight={600} color="warning.dark" sx={{ ml: 1 }}>
+                                {formatCurrency(risk.impact)}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
 
             {/* Monthly Trends */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h3 className="text-lg font-semibold text-slate-900 mb-6">Monthly Variance Trends</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead>
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Month
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Budget Spend
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Actual Spend
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Monthly Variance
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Cumulative Variance
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" fontWeight={600} sx={{ mb: 3 }}>Monthly Variance Trends</Typography>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Month</TableCell>
+                      <TableCell>Budget Spend</TableCell>
+                      <TableCell>Actual Spend</TableCell>
+                      <TableCell>Monthly Variance</TableCell>
+                      <TableCell>Cumulative Variance</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
                     {data.monthlyTrends.map((trend, index) => (
-                      <tr key={index} className="hover:bg-slate-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                          {trend.month}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                          {formatCurrency(trend.budgetSpend)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                          {formatCurrency(trend.actualSpend)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`text-sm font-medium ${getVarianceColor(trend.variance)}`}>
+                      <TableRow key={index} hover>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={500}>{trend.month}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{formatCurrency(trend.budgetSpend)}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{formatCurrency(trend.actualSpend)}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={500} sx={{ color: getVarianceColor(trend.variance) }}>
                             {formatCurrency(Math.abs(trend.variance))}
                             {trend.variance > 0 ? ' over' : ' under'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`text-sm font-medium ${getVarianceColor(trend.cumulativeVariance)}`}>
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={500} sx={{ color: getVarianceColor(trend.cumulativeVariance) }}>
                             {formatCurrency(Math.abs(trend.cumulativeVariance))}
-                          </span>
-                        </td>
-                      </tr>
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
           </>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

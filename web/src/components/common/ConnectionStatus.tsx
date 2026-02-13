@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { checkBackendHealth } from '@/lib/api-client';
+import { Box, Typography, Button, Paper } from '@mui/material';
+import { Circle as CircleIcon } from '@mui/icons-material';
 
 interface ConnectionStatusProps {
   className?: string;
@@ -35,31 +37,45 @@ export function ConnectionStatus({ className = '' }: ConnectionStatusProps) {
 
   if (isConnected === null) {
     return (
-      <div className={`flex items-center text-gray-500 ${className}`}>
-        <div className="w-2 h-2 rounded-full bg-gray-400 mr-2 animate-pulse" />
-        <span className="text-sm">Checking backend...</span>
-      </div>
+      <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }} className={className}>
+        <CircleIcon
+          sx={{
+            width: 8,
+            height: 8,
+            mr: 1,
+            color: 'grey.400',
+            animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            '@keyframes pulse': {
+              '0%, 100%': { opacity: 1 },
+              '50%': { opacity: 0.5 },
+            },
+          }}
+        />
+        <Typography variant="body2">Checking backend...</Typography>
+      </Box>
     );
   }
 
   return (
-    <div className={`flex items-center ${className}`}>
-      <div
-        className={`w-2 h-2 rounded-full mr-2 ${
-          isConnected ? 'bg-green-500' : 'bg-red-500'
-        }`}
+    <Box sx={{ display: 'flex', alignItems: 'center' }} className={className}>
+      <CircleIcon
+        sx={{
+          width: 8,
+          height: 8,
+          mr: 1,
+          color: isConnected ? 'success.main' : 'error.main',
+        }}
       />
-      <span
-        className={`text-sm ${
-          isConnected ? 'text-green-600' : 'text-red-600'
-        }`}
+      <Typography
+        variant="body2"
+        sx={{ color: isConnected ? 'success.main' : 'error.main' }}
       >
         {isConnected ? 'Backend Connected' : 'Backend Offline'}
-      </span>
-      <span className="text-xs text-gray-400 ml-2">
+      </Typography>
+      <Typography variant="caption" sx={{ color: 'text.disabled', ml: 1 }}>
         ({lastCheck.toLocaleTimeString()})
-      </span>
-    </div>
+      </Typography>
+    </Box>
   );
 }
 
@@ -97,71 +113,97 @@ export function DetailedConnectionStatus() {
   }, []);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-      <h3 className="text-lg font-semibold mb-3">Backend Connection Status</h3>
+    <Paper sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: 2, boxShadow: 1 }}>
+      <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 600 }}>
+        Backend Connection Status
+      </Typography>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Status:</span>
-          <div className="flex items-center">
-            <div
-              className={`w-3 h-3 rounded-full mr-2 ${
-                isConnected === null
-                  ? 'bg-gray-400 animate-pulse'
-                  : isConnected
-                  ? 'bg-green-500'
-                  : 'bg-red-500'
-              }`}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            Status:
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <CircleIcon
+              sx={{
+                width: 12,
+                height: 12,
+                mr: 1,
+                color:
+                  isConnected === null
+                    ? 'grey.400'
+                    : isConnected
+                    ? 'success.main'
+                    : 'error.main',
+                ...(isConnected === null && {
+                  animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                }),
+              }}
             />
-            <span
-              className={`text-sm font-medium ${
-                isConnected === null
-                  ? 'text-gray-500'
-                  : isConnected
-                  ? 'text-green-600'
-                  : 'text-red-600'
-              }`}
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 500,
+                color:
+                  isConnected === null
+                    ? 'text.secondary'
+                    : isConnected
+                    ? 'success.main'
+                    : 'error.main',
+              }}
             >
               {isConnected === null
                 ? 'Checking...'
                 : isConnected
                 ? 'Connected'
                 : 'Disconnected'}
-            </span>
-          </div>
-        </div>
+            </Typography>
+          </Box>
+        </Box>
 
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">API URL:</span>
-          <span className="text-sm text-gray-600 font-mono">{apiUrl}</span>
-        </div>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            API URL:
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
+            {apiUrl}
+          </Typography>
+        </Box>
 
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Last Check:</span>
-          <span className="text-sm text-gray-600">
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            Last Check:
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             {lastCheck.toLocaleString()}
-          </span>
-        </div>
+          </Typography>
+        </Box>
 
         {error && (
-          <div className="flex items-start justify-between">
-            <span className="text-sm font-medium">Error:</span>
-            <span className="text-sm text-red-600 text-right flex-1 ml-2">
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              Error:
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ color: 'error.main', textAlign: 'right', flex: 1, ml: 1 }}
+            >
               {error}
-            </span>
-          </div>
+            </Typography>
+          </Box>
         )}
 
-        <div className="pt-2">
-          <button
+        <Box sx={{ pt: 1 }}>
+          <Button
             onClick={checkConnection}
-            className="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
+            variant="contained"
+            size="small"
             disabled={isConnected === null}
           >
             Refresh Status
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </Box>
+      </Box>
+    </Paper>
   );
 }

@@ -2,6 +2,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import { PONumberDisplay } from '@/components/mui';
+import { Box, Paper, Typography, Chip } from '@mui/material';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import WarningIcon from '@mui/icons-material/Warning';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 interface PendingApprovalItem {
   id: string;
@@ -57,41 +62,25 @@ interface PendingApprovalsProps {
 }
 
 const UrgencyBadge = ({ level, score }: { level: string; score: number }) => {
-  const colors = {
-    critical: 'bg-red-100 text-red-800 border-red-200',
-    high: 'bg-orange-100 text-orange-800 border-orange-200',
-    medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    low: 'bg-green-100 text-green-800 border-green-200',
+  const getColor = () => {
+    switch (level) {
+      case 'critical': return 'error';
+      case 'high': return 'warning';
+      case 'medium': return 'info';
+      case 'low': return 'success';
+      default: return 'info';
+    }
   };
 
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${colors[level as keyof typeof colors] || colors.low}`}>
-      {level} ({score})
-    </span>
+    <Chip
+      label={`${level} (${score})`}
+      color={getColor()}
+      size="small"
+      sx={{ fontSize: '0.75rem', height: 20 }}
+    />
   );
 };
-
-interface IconProps {
-  className?: string;
-}
-
-const ClockIcon = ({ className = "w-4 h-4" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
-
-const AlertTriangleIcon = ({ className = "w-4 h-4" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 18.5c-.77.833.192 2.5 1.732 2.5z" />
-  </svg>
-);
-
-const CheckCircleIcon = ({ className = "w-4 h-4" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
 
 export default function PendingApprovals({ limit = 10, urgencyFilter, className = '' }: PendingApprovalsProps) {
   const { data, isLoading, error } = useQuery({
@@ -113,188 +102,202 @@ export default function PendingApprovals({ limit = 10, urgencyFilter, className 
         items: result.items,
       };
     },
-    refetchInterval: 30 * 1000, // 30 seconds for real-time updates
-    staleTime: 15 * 1000, // 15 seconds
+    refetchInterval: 30 * 1000,
+    staleTime: 15 * 1000,
   });
 
   if (isLoading) {
     return (
-      <div className={`bg-white rounded-xl shadow-sm ${className}`}>
-        <div className="px-6 py-4 border-b border-slate-100">
-          <div className="h-6 bg-slate-200 rounded animate-pulse"></div>
-        </div>
-        <div className="divide-y divide-slate-100">
+      <Paper className={className}>
+        <Box sx={{ px: 3, py: 2, borderBottom: 1, borderColor: 'divider' }}>
+          <Box sx={{ height: 24, bgcolor: 'grey.200', borderRadius: 1, animation: 'pulse 1.5s ease-in-out infinite' }} />
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="px-6 py-4 animate-pulse">
-              <div className="flex items-start gap-4">
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-slate-200 rounded w-1/3"></div>
-                  <div className="h-3 bg-slate-200 rounded w-2/3"></div>
-                </div>
-                <div className="h-6 bg-slate-200 rounded w-16"></div>
-              </div>
-            </div>
+            <Box key={i} sx={{ px: 3, py: 2, animation: 'pulse 1.5s ease-in-out infinite' }}>
+              <Box sx={{ display: 'flex', alignItems: 'start', gap: 2 }}>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ height: 16, bgcolor: 'grey.200', borderRadius: 1, width: '33%' }} />
+                  <Box sx={{ height: 12, bgcolor: 'grey.200', borderRadius: 1, width: '67%' }} />
+                </Box>
+                <Box sx={{ height: 24, bgcolor: 'grey.200', borderRadius: 1, width: 64 }} />
+              </Box>
+            </Box>
           ))}
-        </div>
-      </div>
+        </Box>
+      </Paper>
     );
   }
 
   if (error) {
     return (
-      <div className={`bg-white rounded-xl shadow-sm p-6 ${className}`}>
-        <div className="flex items-center gap-2 text-red-600 mb-2">
-          <AlertTriangleIcon />
-          <span className="font-medium">Failed to load pending approvals</span>
-        </div>
-        <p className="text-red-500 text-sm">
+      <Paper className={className} sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'error.main', mb: 1 }}>
+          <WarningIcon />
+          <Typography variant="body1" sx={{ fontWeight: 500 }}>Failed to load pending approvals</Typography>
+        </Box>
+        <Typography variant="body2" color="error.light">
           {error instanceof Error ? error.message : 'Unknown error occurred'}
-        </p>
-      </div>
+        </Typography>
+      </Paper>
     );
   }
 
   if (!data || data.items.length === 0) {
     return (
-      <div className={`bg-white rounded-xl shadow-sm ${className}`}>
-        <div className="px-6 py-4 border-b border-slate-100">
-          <h3 className="font-semibold text-slate-900">Pending Approvals</h3>
-        </div>
-        <div className="px-6 py-8 text-center">
-          <CheckCircleIcon className="mx-auto h-8 w-8 text-green-500 mb-3" />
-          <p className="text-slate-500">No pending approvals</p>
-          <p className="text-sm text-slate-400 mt-1">All POs are up to date!</p>
-        </div>
-      </div>
+      <Paper className={className}>
+        <Box sx={{ px: 3, py: 2, borderBottom: 1, borderColor: 'divider' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>Pending Approvals</Typography>
+        </Box>
+        <Box sx={{ px: 3, py: 4, textAlign: 'center' }}>
+          <CheckCircleIcon sx={{ width: 32, height: 32, color: 'success.main', mb: 1.5 }} />
+          <Typography variant="body1" color="text.secondary">No pending approvals</Typography>
+          <Typography variant="body2" color="text.disabled" sx={{ mt: 0.5 }}>All POs are up to date!</Typography>
+        </Box>
+      </Paper>
     );
   }
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm ${className}`}>
+    <Paper className={className}>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-slate-100">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-semibold text-slate-900">Pending Approvals</h3>
-            <p className="text-sm text-slate-500 mt-1">
+      <Box sx={{ px: 3, py: 2, borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>Pending Approvals</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {data.summary.total} items • ${(data.summary.totalValue / 1000).toFixed(0)}k total value
-            </p>
-          </div>
-          <Link href="/approvals" className="text-sm text-orange-600 hover:text-orange-700 font-medium">
-            View all
+            </Typography>
+          </Box>
+          <Link href="/approvals" style={{ textDecoration: 'none' }}>
+            <Typography variant="body2" sx={{ color: 'warning.main', fontWeight: 500, '&:hover': { color: 'warning.dark' } }}>
+              View all
+            </Typography>
           </Link>
-        </div>
+        </Box>
 
         {/* Summary stats */}
-        <div className="flex gap-4 mt-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-            <span className="text-xs text-slate-600">
+        <Box sx={{ display: 'flex', gap: 2, mt: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box sx={{ width: 8, height: 8, bgcolor: 'error.main', borderRadius: '50%' }} />
+            <Typography variant="caption" color="text.secondary">
               Critical: {data.summary.byUrgency.critical || 0}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-            <span className="text-xs text-slate-600">
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box sx={{ width: 8, height: 8, bgcolor: 'warning.main', borderRadius: '50%' }} />
+            <Typography variant="caption" color="text.secondary">
               High: {data.summary.byUrgency.high || 0}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <ClockIcon />
-            <span className="text-xs text-slate-600">
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <AccessTimeIcon sx={{ width: 16, height: 16 }} />
+            <Typography variant="caption" color="text.secondary">
               Avg age: {data.summary.averageAge.toFixed(1)} days
-            </span>
-          </div>
-        </div>
-      </div>
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
 
       {/* Pending items list */}
-      <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto">
+      <Box sx={{ maxHeight: 384, overflowY: 'auto' }}>
         {data.items.slice(0, limit).map((item) => (
           <Link
             key={item.id}
             href={`/po/view?id=${item.id}`}
-            className="block px-6 py-4 hover:bg-slate-50 transition"
+            style={{ textDecoration: 'none', display: 'block' }}
           >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                {/* PO Number and Vendor */}
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-medium text-slate-900 font-mono text-sm">
-                    {item.poNumber}
-                  </p>
-                  <UrgencyBadge level={item.urgency.level} score={item.urgency.score} />
-                </div>
+            <Box
+              sx={{
+                px: 3,
+                py: 2,
+                borderBottom: 1,
+                borderColor: 'divider',
+                transition: 'background-color 0.2s',
+                '&:hover': {
+                  bgcolor: 'grey.50'
+                }
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', gap: 2 }}>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  {/* PO Number and Vendor */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                    <PONumberDisplay poNumber={item.poNumber} size="small" />
+                    <UrgencyBadge level={item.urgency.level} score={item.urgency.score} />
+                  </Box>
 
-                <p className="text-sm text-slate-600 truncate mb-1">
-                  {item.vendor.name} • {item.division.name}
-                </p>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {item.vendor.name} • {item.division.name}
+                  </Typography>
 
-                {/* Preview and timing */}
-                <div className="flex items-center gap-4 text-xs text-slate-500">
-                  <span>{item.preview.itemsCount} items</span>
-                  <div className="flex items-center gap-1">
-                    <ClockIcon />
-                    <span>
-                      {item.timing.daysPending} day{item.timing.daysPending !== 1 ? 's' : ''} pending
-                    </span>
-                  </div>
-                  {item.timing.isOverdue && (
-                    <div className="flex items-center gap-1 text-red-600">
-                      <AlertTriangleIcon />
-                      <span>Overdue</span>
-                    </div>
+                  {/* Preview and timing */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                    <Typography variant="caption" color="text.secondary">
+                      {item.preview.itemsCount} items
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <AccessTimeIcon sx={{ width: 12, height: 12 }} />
+                      <Typography variant="caption" color="text.secondary">
+                        {item.timing.daysPending} day{item.timing.daysPending !== 1 ? 's' : ''} pending
+                      </Typography>
+                    </Box>
+                    {item.timing.isOverdue && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <WarningIcon sx={{ width: 12, height: 12, color: 'error.main' }} />
+                        <Typography variant="caption" color="error.main">Overdue</Typography>
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* First items preview */}
+                  {item.preview.firstItems.length > 0 && (
+                    <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.preview.firstItems.slice(0, 2).join(', ')}
+                      {item.preview.itemsCount > 2 && '...'}
+                    </Typography>
                   )}
-                </div>
+                </Box>
 
-                {/* First items preview */}
-                {item.preview.firstItems.length > 0 && (
-                  <p className="text-xs text-slate-400 mt-1 truncate">
-                    {item.preview.firstItems.slice(0, 2).join(', ')}
-                    {item.preview.itemsCount > 2 && '...'}
-                  </p>
-                )}
-              </div>
+                {/* Amount and approval status */}
+                <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    ${item.amount >= 1000000
+                      ? `${(item.amount / 1000000).toFixed(1)}M`
+                      : `${(item.amount / 1000).toFixed(0)}k`
+                    }
+                  </Typography>
 
-              {/* Amount and approval status */}
-              <div className="text-right flex-shrink-0">
-                <p className="font-semibold text-slate-900">
-                  ${item.amount >= 1000000
-                    ? `${(item.amount / 1000000).toFixed(1)}M`
-                    : `${(item.amount / 1000).toFixed(0)}k`
-                  }
-                </p>
-
-                {/* Approval capability indicator */}
-                <div className="mt-1">
-                  {item.approval.canApprove ? (
-                    <span className="inline-flex items-center gap-1 text-xs text-green-600">
-                      <CheckCircleIcon className="w-3 h-3" />
-                      Can approve
-                    </span>
-                  ) : item.approval.requiresOwnerApproval ? (
-                    <span className="text-xs text-orange-600">Owner approval</span>
-                  ) : (
-                    <span className="text-xs text-slate-500">View only</span>
-                  )}
-                </div>
-              </div>
-            </div>
+                  {/* Approval capability indicator */}
+                  <Box sx={{ mt: 0.5 }}>
+                    {item.approval.canApprove ? (
+                      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                        <CheckCircleIcon sx={{ width: 12, height: 12, color: 'success.main' }} />
+                        <Typography variant="caption" color="success.main">Can approve</Typography>
+                      </Box>
+                    ) : item.approval.requiresOwnerApproval ? (
+                      <Typography variant="caption" color="warning.main">Owner approval</Typography>
+                    ) : (
+                      <Typography variant="caption" color="text.secondary">View only</Typography>
+                    )}
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
           </Link>
         ))}
-      </div>
+      </Box>
 
       {/* Show more link if there are more items */}
       {data.summary.total > limit && (
-        <div className="px-6 py-3 border-t border-slate-100 bg-slate-50">
-          <Link
-            href="/approvals"
-            className="text-sm text-orange-600 hover:text-orange-700 font-medium"
-          >
-            View {data.summary.total - limit} more pending approvals →
+        <Box sx={{ px: 3, py: 1.5, borderTop: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
+          <Link href="/approvals" style={{ textDecoration: 'none' }}>
+            <Typography variant="body2" sx={{ color: 'warning.main', fontWeight: 500, '&:hover': { color: 'warning.dark' } }}>
+              View {data.summary.total - limit} more pending approvals →
+            </Typography>
           </Link>
-        </div>
+        </Box>
       )}
-    </div>
+    </Paper>
   );
 }

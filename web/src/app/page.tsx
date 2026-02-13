@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Dashboard from '@/components/dashboard/Dashboard';
+import { Box, Paper, Skeleton } from '@mui/material';
 
 export default function HomePage() {
   const { isLoading, isAuthenticated } = useAuth();
@@ -17,15 +18,21 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </div>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          bgcolor: 'grey.50',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Paper sx={{ borderRadius: 2, boxShadow: 1, p: 3 }}>
+          <Skeleton variant="rectangular" height={32} sx={{ mb: 2 }} />
+          <Skeleton variant="rectangular" height={16} sx={{ mb: 1 }} />
+          <Skeleton variant="rectangular" height={16} />
+        </Paper>
+      </Box>
     );
   }
 

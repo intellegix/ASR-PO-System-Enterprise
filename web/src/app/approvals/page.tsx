@@ -8,6 +8,25 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
+import { PONumberDisplay } from '@/components/mui';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Alert,
+  Chip,
+  CircularProgress,
+  IconButton,
+} from '@mui/material';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface PendingPO {
   id: string;
@@ -90,7 +109,6 @@ export default function ApprovalsPage() {
 
       if (response.ok) {
         setSuccessMessage(data.message);
-        // Remove from list
         setPendingPOs((prev) => prev.filter((po) => po.id !== poId));
       } else {
         setError(data.error || 'Action failed');
@@ -119,9 +137,9 @@ export default function ApprovalsPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
@@ -154,216 +172,188 @@ export default function ApprovalsPage() {
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffDays > 0) {
-      return `${diffDays}d ago`;
-    } else if (diffHours > 0) {
-      return `${diffHours}h ago`;
-    } else {
-      return 'Just now';
-    }
+    if (diffDays > 0) return `${diffDays}d ago`;
+    if (diffHours > 0) return `${diffHours}h ago`;
+    return 'Just now';
   };
 
   return (
     <AppLayout pageTitle="Approvals">
-      {/* Pending count subtitle */}
-      <div className="max-w-5xl mx-auto mb-4">
-        <p className="text-sm text-slate-500">
+      <Box sx={{ maxWidth: 960, mx: 'auto' }}>
+        {/* Pending count */}
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {pendingPOs.length} PO{pendingPOs.length !== 1 ? 's' : ''} awaiting your review
-        </p>
-      </div>
+        </Typography>
 
-      {/* Alerts */}
-      <div className="max-w-5xl mx-auto space-y-4">
+        {/* Alerts */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-            <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="flex-1">
-              <p className="text-red-800">{error}</p>
-            </div>
-            <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            action={
+              <IconButton size="small" onClick={() => setError(null)}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            }
+          >
+            {error}
+          </Alert>
         )}
 
         {successMessage && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
-            <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <div className="flex-1">
-              <p className="text-green-800">{successMessage}</p>
-            </div>
-            <button onClick={() => setSuccessMessage(null)} className="text-green-500 hover:text-green-700">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+          <Alert
+            severity="success"
+            sx={{ mb: 2 }}
+            action={
+              <IconButton size="small" onClick={() => setSuccessMessage(null)}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            }
+          >
+            {successMessage}
+          </Alert>
         )}
-      </div>
 
-      {/* Content */}
-      <div className="max-w-5xl mx-auto py-6">
+        {/* Content */}
         {loading ? (
-          <div className="bg-white rounded-lg border border-slate-200 p-8 flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
+          <Card>
+            <CardContent sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress />
+            </CardContent>
+          </Card>
         ) : pendingPOs.length === 0 ? (
-          <div className="bg-white rounded-lg border border-slate-200 p-8 text-center">
-            <svg className="w-16 h-16 mx-auto text-green-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h2 className="text-lg font-bold text-slate-900 mb-2">All caught up!</h2>
-            <p className="text-slate-500 mb-4">No purchase orders are waiting for your approval.</p>
-            <Link
-              href="/po"
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800"
-            >
-              View all POs
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
+          <Card>
+            <CardContent sx={{ textAlign: 'center', py: 6 }}>
+              <CheckCircleIcon sx={{ fontSize: 64, color: 'success.light', mb: 2 }} />
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                All caught up!
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                No purchase orders are waiting for your approval.
+              </Typography>
+              <Button component={Link} href="/po" color="primary">
+                View all POs
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
-          <div className="space-y-4">
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {pendingPOs.map((po) => {
               const poAmount = typeof po.total_amount === 'string' ? parseFloat(po.total_amount) : po.total_amount;
               const isHighValue = poAmount > OWNER_APPROVAL_THRESHOLD;
               const isLoading = actionLoading === po.id;
 
               return (
-                <div
+                <Card
                   key={po.id}
-                  className={`bg-white rounded-lg border ${
-                    isHighValue ? 'border-amber-300' : 'border-slate-200'
-                  } overflow-hidden`}
+                  sx={{
+                    border: 1,
+                    borderColor: isHighValue ? 'warning.light' : 'divider',
+                  }}
                 >
                   {isHighValue && (
-                    <div className="bg-amber-50 px-4 py-2 border-b border-amber-200 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                      <span className="text-sm font-medium text-amber-700">
+                    <Box sx={{ bgcolor: '#fffbeb', px: 2, py: 1, borderBottom: 1, borderColor: '#fde68a', display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <WarningAmberIcon sx={{ fontSize: 16, color: 'warning.dark' }} />
+                      <Typography variant="caption" sx={{ fontWeight: 500, color: 'warning.dark' }}>
                         High-value PO - Requires Owner Approval
-                      </span>
-                    </div>
+                      </Typography>
+                    </Box>
                   )}
 
-                  <div className="p-4">
+                  <CardContent sx={{ p: 2.5 }}>
                     {/* Header Row */}
-                    <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Link
-                            href={`/po/view?id=${po.id}`}
-                            className="font-mono font-bold text-lg text-slate-900 hover:text-blue-600"
-                          >
-                            {po.po_number}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, mb: 2 }}>
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Link href={`/po/view?id=${po.id}`} style={{ textDecoration: 'none' }}>
+                            <PONumberDisplay poNumber={po.po_number} size="medium" />
                           </Link>
                           {!po.vendors && (
-                            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
-                              Needs Vendor Info
-                            </span>
+                            <Chip label="Needs Vendor Info" size="small" color="warning" variant="outlined" />
                           )}
-                        </div>
-                        <p className="text-sm text-slate-500">
+                        </Box>
+                        <Typography variant="body2" color="text.secondary">
                           {po.vendors?.vendor_name || 'TBD'} &bull; {po.divisions?.division_name}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-slate-900">{formatCurrency(po.total_amount)}</p>
-                        <p className="text-sm text-slate-500">{po.lineItemCount} line items</p>
-                      </div>
-                    </div>
+                        </Typography>
+                      </Box>
+                      <Box sx={{ textAlign: 'right' }}>
+                        <Typography variant="h5" sx={{ fontWeight: 700 }}>{formatCurrency(po.total_amount)}</Typography>
+                        <Typography variant="caption" color="text.secondary">{po.lineItemCount} line items</Typography>
+                      </Box>
+                    </Box>
 
                     {/* Details Row */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
-                      <div>
-                        <p className="text-slate-500">Project</p>
-                        <p className="font-medium text-slate-900">{po.projects?.project_code || '-'}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500">Requested By</p>
-                        <p className="font-medium text-slate-900">
-                          {po.users_po_headers_requested_by_idTousers?.name || '-'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500">Submitted</p>
-                        <p className="font-medium text-slate-900">{getTimeAgo(po.created_at)}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500">Required By</p>
-                        <p className="font-medium text-slate-900">{formatDate(po.required_by_date)}</p>
-                      </div>
-                    </div>
+                    <Grid container spacing={2} sx={{ mb: 2 }}>
+                      <Grid size={{ xs: 6, md: 3 }}>
+                        <Typography variant="caption" color="text.secondary">Project</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>{po.projects?.project_code || '-'}</Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, md: 3 }}>
+                        <Typography variant="caption" color="text.secondary">Requested By</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>{po.users_po_headers_requested_by_idTousers?.name || '-'}</Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, md: 3 }}>
+                        <Typography variant="caption" color="text.secondary">Submitted</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>{getTimeAgo(po.created_at)}</Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, md: 3 }}>
+                        <Typography variant="caption" color="text.secondary">Required By</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>{formatDate(po.required_by_date)}</Typography>
+                      </Grid>
+                    </Grid>
 
                     {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-100">
-                      <Link
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+                      <Button
+                        component={Link}
                         href={`/po/view?id=${po.id}`}
-                        className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 text-slate-600 border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50 transition"
+                        variant="outlined"
+                        color="secondary"
+                        startIcon={<VisibilityIcon />}
+                        size="small"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
                         View Details
-                      </Link>
+                      </Button>
 
                       {po.canApprove ? (
                         <>
-                          <button
+                          <Button
+                            variant="contained"
+                            color="success"
                             onClick={() => quickApprove(po)}
                             disabled={isLoading}
-                            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition font-medium disabled:opacity-50"
+                            startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleOutlineIcon />}
+                            size="small"
                           >
-                            {isLoading ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            ) : (
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
                             Approve
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            variant="contained"
+                            color="error"
                             onClick={() => quickReject(po)}
                             disabled={isLoading}
-                            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition font-medium disabled:opacity-50"
+                            startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : <CancelOutlinedIcon />}
+                            size="small"
                           >
-                            {isLoading ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            ) : (
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            )}
                             Reject
-                          </button>
+                          </Button>
                         </>
                       ) : (
-                        <div className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 text-amber-600 bg-amber-50 px-4 py-2 rounded-lg">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                          </svg>
-                          {isHighValue ? 'Owner approval required' : 'Cannot approve'}
-                        </div>
+                        <Chip
+                          icon={<WarningAmberIcon />}
+                          label={isHighValue ? 'Owner approval required' : 'Cannot approve'}
+                          color="warning"
+                          variant="outlined"
+                        />
                       )}
-                    </div>
-                  </div>
-                </div>
+                    </Box>
+                  </CardContent>
+                </Card>
               );
             })}
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
     </AppLayout>
   );
 }

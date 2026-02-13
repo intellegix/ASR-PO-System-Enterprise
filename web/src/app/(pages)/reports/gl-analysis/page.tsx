@@ -2,36 +2,41 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import Link from 'next/link';
-
-// Icons
-interface IconProps {
-  className?: string;
-}
-
-const ArrowLeftIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-  </svg>
-);
-
-const ChartBarIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-  </svg>
-);
-
-const DownloadIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
-
-const RefreshIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-  </svg>
-);
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  Paper,
+  Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  LinearProgress,
+  CircularProgress,
+  Alert,
+  Checkbox,
+  FormControlLabel,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Divider,
+  Card,
+  CardContent,
+} from '@mui/material';
+import {
+  ArrowBack as ArrowBackIcon,
+  BarChart as ChartBarIcon,
+  Download as DownloadIcon,
+  Refresh as RefreshIcon,
+  AttachMoney as MoneyIcon,
+  Business as BusinessIcon,
+  Receipt as ReceiptIcon,
+} from '@mui/icons-material';
 
 interface GLSummaryData {
   totalSpend: number;
@@ -81,7 +86,7 @@ export default function GLAnalysisPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
-    startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0], // Start of year
+    startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
     divisionId: '',
     glAccountFilter: '',
@@ -109,14 +114,12 @@ export default function GLAnalysisPage() {
 
       const result = await response.json();
 
-      // Normalize API response to match component interface
       const totalCOGS = result.summary?.totalCOGSSpend ?? 0;
       const totalOpEx = result.summary?.totalOpExSpend ?? 0;
       const totalOther = result.summary?.totalOtherSpend ?? 0;
       const totalCC = result.summary?.totalCreditCardSpend ?? 0;
       const totalSpend = totalCOGS + totalOpEx + totalOther + totalCC;
 
-      // Build categories from accountAnalysis grouped by GL category
       const categoryMap = new Map<string, { amount: number; accounts: Record<string, unknown>[] }>();
       (result.accountAnalysis || []).forEach((acct: Record<string, unknown>) => {
         const glAccount = acct.glAccount as Record<string, unknown> | undefined;
@@ -151,7 +154,6 @@ export default function GLAnalysisPage() {
           }),
       })).sort((a, b) => b.amount - a.amount);
 
-      // Build division breakdown from accountAnalysis
       const divMap = new Map<string, { divisionName: string; totalSpend: number; cogs: number; opex: number; accounts: Array<Record<string, unknown> & { divAmount: number }> }>();
       (result.accountAnalysis || []).forEach((acct: Record<string, unknown>) => {
         const divisionBreakdownArray = acct.divisionBreakdown as Record<string, unknown>[] | undefined;
@@ -186,7 +188,6 @@ export default function GLAnalysisPage() {
           }),
       })).sort((a, b) => b.totalSpend - a.totalSpend);
 
-      // Compute taxable from account analysis
       const taxableAmount = (result.accountAnalysis || []).reduce(
         (sum: number, a: Record<string, unknown>) => {
           const metrics = a.metrics as Record<string, unknown> | undefined;
@@ -288,7 +289,7 @@ export default function GLAnalysisPage() {
 
   useEffect(() => {
     if (autoRefresh) {
-      const interval = setInterval(fetchData, 5 * 60 * 1000); // 5 minutes
+      const interval = setInterval(fetchData, 5 * 60 * 1000);
       return () => clearInterval(interval);
     }
   }, [autoRefresh, fetchData]);
@@ -306,367 +307,358 @@ export default function GLAnalysisPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <ChartBarIcon className="mx-auto h-12 w-12 text-slate-400 mb-4" />
-          <p className="text-slate-600">Please sign in to view GL analysis reports.</p>
-        </div>
-      </div>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Box sx={{ textAlign: 'center' }}>
+          <ChartBarIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
+          <Typography color="text.secondary">Please sign in to view GL analysis reports.</Typography>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Link
+      <Paper sx={{ borderBottom: 1, borderColor: 'divider', borderRadius: 0 }}>
+        <Box sx={{ maxWidth: 1280, mx: 'auto', px: { xs: 2, sm: 3, lg: 4 } }}>
+          <Box sx={{ py: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Button
                   href="/reports"
-                  className="flex items-center space-x-2 text-slate-600 hover:text-orange-600 transition-colors"
+                  startIcon={<ArrowBackIcon />}
+                  sx={{ color: 'text.secondary' }}
                 >
-                  <ArrowLeftIcon />
-                  <span>Back to Reports</span>
-                </Link>
-                <div className="h-6 w-px bg-slate-300" />
-                <div className="flex items-center space-x-3">
-                  <ChartBarIcon className="w-6 h-6 text-orange-600" />
-                  <div>
-                    <h1 className="text-2xl font-bold text-slate-900">GL Account Analysis</h1>
-                    <p className="text-slate-600">Financial categorization and budget analysis</p>
-                  </div>
-                </div>
-              </div>
+                  Back to Reports
+                </Button>
+                <Divider orientation="vertical" flexItem />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <ChartBarIcon sx={{ color: 'warning.main' }} />
+                  <Box>
+                    <Typography variant="h5" fontWeight={700}>GL Account Analysis</Typography>
+                    <Typography variant="body2" color="text.secondary">Financial categorization and budget analysis</Typography>
+                  </Box>
+                </Box>
+              </Box>
 
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <p className="text-sm text-slate-500">Last updated: {lastRefresh.toLocaleTimeString()}</p>
-                  <p className="text-xs text-slate-400">Welcome, {user?.name?.split(' ')[0]}</p>
-                </div>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" color="text.secondary">Last updated: {lastRefresh.toLocaleTimeString()}</Typography>
+                  <Typography variant="caption" color="text.disabled">Welcome, {user?.name?.split(' ')[0]}</Typography>
+                </Box>
 
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={autoRefresh}
-                    onChange={(e) => setAutoRefresh(e.target.checked)}
-                    className="rounded border-slate-300 text-orange-600 focus:ring-orange-500"
-                  />
-                  <span className="text-sm text-slate-600">Auto-refresh</span>
-                </label>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={autoRefresh}
+                      onChange={(e) => setAutoRefresh(e.target.checked)}
+                    />
+                  }
+                  label={<Typography variant="body2">Auto-refresh</Typography>}
+                />
 
-                <button
+                <Button
                   onClick={fetchData}
                   disabled={loading}
-                  className="flex items-center space-x-2 px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                  variant="contained"
+                  startIcon={loading ? <CircularProgress size={16} /> : <RefreshIcon />}
                 >
-                  <RefreshIcon className={loading ? 'w-5 h-5 animate-spin' : 'w-5 h-5'} />
-                  <span>Refresh</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+                  Refresh
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </Paper>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Box sx={{ maxWidth: 1280, mx: 'auto', px: { xs: 2, sm: 3, lg: 4 }, py: 4 }}>
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Report Filters</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Start Date</label>
-              <input
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h6" fontWeight={600} mb={2}>Report Filters</Typography>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                label="Start Date"
                 type="date"
+                fullWidth
                 value={filters.startDate}
                 onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                InputLabelProps={{ shrink: true }}
               />
-            </div>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">End Date</label>
-              <input
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                label="End Date"
                 type="date"
+                fullWidth
                 value={filters.endDate}
                 onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                InputLabelProps={{ shrink: true }}
               />
-            </div>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Division</label>
-              <select
-                value={filters.divisionId}
-                onChange={(e) => setFilters(prev => ({ ...prev, divisionId: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              >
-                <option value="">All Divisions</option>
-                {/* Division options would be populated from API */}
-              </select>
-            </div>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <FormControl fullWidth>
+                <InputLabel>Division</InputLabel>
+                <Select
+                  value={filters.divisionId}
+                  label="Division"
+                  onChange={(e) => setFilters(prev => ({ ...prev, divisionId: e.target.value }))}
+                >
+                  <MenuItem value="">All Divisions</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">GL Account Filter</label>
-              <input
-                type="text"
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                label="GL Account Filter"
+                fullWidth
                 placeholder="Enter GL account number or name"
                 value={filters.glAccountFilter}
                 onChange={(e) => setFilters(prev => ({ ...prev, glAccountFilter: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
-            </div>
-          </div>
-        </div>
+            </Grid>
+          </Grid>
+        </Paper>
 
         {/* Export Options */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Export Options</h3>
-              <p className="text-sm text-slate-600">Download this report in various formats</p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <button
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography variant="h6" fontWeight={600} mb={0.5}>Export Options</Typography>
+              <Typography variant="body2" color="text.secondary">Download this report in various formats</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1.5 }}>
+              <Button
                 onClick={exportToExcel}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                variant="contained"
+                color="success"
+                startIcon={<DownloadIcon />}
               >
-                <DownloadIcon />
-                <span>Excel</span>
-              </button>
-              <button
+                Excel
+              </Button>
+              <Button
                 onClick={exportToPDF}
-                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                variant="contained"
+                color="error"
+                startIcon={<DownloadIcon />}
               >
-                <DownloadIcon />
-                <span>PDF</span>
-              </button>
-            </div>
-          </div>
-        </div>
+                PDF
+              </Button>
+            </Box>
+          </Box>
+        </Paper>
 
         {/* Loading State */}
         {loading && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-            <p className="text-slate-600">Loading GL analysis data...</p>
-          </div>
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <CircularProgress sx={{ mb: 2 }} />
+            <Typography color="text.secondary">Loading GL analysis data...</Typography>
+          </Paper>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6 mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-medium text-red-900">Error loading data</h3>
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            </div>
-          </div>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" fontWeight={600}>Error loading data</Typography>
+            <Typography variant="body2">{error}</Typography>
+          </Alert>
         )}
 
         {/* Data Display */}
         {data && !loading && (
           <>
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Total Spend</p>
-                    <p className="text-2xl font-bold text-slate-900">{formatCurrency(data.totalSpend)}</p>
-                  </div>
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <ChartBarIcon className="w-6 h-6 text-blue-600" />
-                  </div>
-                </div>
-              </div>
+            <Grid container spacing={3} mb={4}>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">Total Spend</Typography>
+                        <Typography variant="h5" fontWeight={700}>{formatCurrency(data.totalSpend)}</Typography>
+                      </Box>
+                      <Box sx={{ p: 1.5, bgcolor: 'primary.lighter', borderRadius: 2 }}>
+                        <ChartBarIcon sx={{ color: 'primary.main' }} />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">COGS Amount</p>
-                    <p className="text-2xl font-bold text-slate-900">{formatCurrency(data.cogsAmount)}</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {formatPercentage(data.totalSpend > 0 ? (data.cogsAmount / data.totalSpend) * 100 : 0)} of total
-                    </p>
-                  </div>
-                  <div className="p-3 bg-green-100 rounded-lg">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">COGS Amount</Typography>
+                        <Typography variant="h5" fontWeight={700}>{formatCurrency(data.cogsAmount)}</Typography>
+                        <Typography variant="caption" color="text.secondary" mt={0.5}>
+                          {formatPercentage(data.totalSpend > 0 ? (data.cogsAmount / data.totalSpend) * 100 : 0)} of total
+                        </Typography>
+                      </Box>
+                      <Box sx={{ p: 1.5, bgcolor: 'success.lighter', borderRadius: 2 }}>
+                        <MoneyIcon sx={{ color: 'success.main' }} />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">OpEx Amount</p>
-                    <p className="text-2xl font-bold text-slate-900">{formatCurrency(data.opexAmount)}</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {formatPercentage(data.totalSpend > 0 ? (data.opexAmount / data.totalSpend) * 100 : 0)} of total
-                    </p>
-                  </div>
-                  <div className="p-3 bg-purple-100 rounded-lg">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">OpEx Amount</Typography>
+                        <Typography variant="h5" fontWeight={700}>{formatCurrency(data.opexAmount)}</Typography>
+                        <Typography variant="caption" color="text.secondary" mt={0.5}>
+                          {formatPercentage(data.totalSpend > 0 ? (data.opexAmount / data.totalSpend) * 100 : 0)} of total
+                        </Typography>
+                      </Box>
+                      <Box sx={{ p: 1.5, bgcolor: 'secondary.lighter', borderRadius: 2 }}>
+                        <BusinessIcon sx={{ color: 'secondary.main' }} />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Taxable Amount</p>
-                    <p className="text-2xl font-bold text-slate-900">{formatCurrency(data.taxableAmount)}</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {formatPercentage(data.totalSpend > 0 ? (data.taxableAmount / data.totalSpend) * 100 : 0)} of total
-                    </p>
-                  </div>
-                  <div className="p-3 bg-orange-100 rounded-lg">
-                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">Taxable Amount</Typography>
+                        <Typography variant="h5" fontWeight={700}>{formatCurrency(data.taxableAmount)}</Typography>
+                        <Typography variant="caption" color="text.secondary" mt={0.5}>
+                          {formatPercentage(data.totalSpend > 0 ? (data.taxableAmount / data.totalSpend) * 100 : 0)} of total
+                        </Typography>
+                      </Box>
+                      <Box sx={{ p: 1.5, bgcolor: 'warning.lighter', borderRadius: 2 }}>
+                        <ReceiptIcon sx={{ color: 'warning.main' }} />
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
 
             {/* Category Breakdown */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-              <h3 className="text-lg font-semibold text-slate-900 mb-6">Spend by GL Category</h3>
-              <div className="space-y-4">
+            <Paper sx={{ p: 3, mb: 4 }}>
+              <Typography variant="h6" fontWeight={600} mb={3}>Spend by GL Category</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {data.categories.map((category, index) => (
-                  <div key={index} className="border-b border-slate-200 pb-4 last:border-b-0 last:pb-0">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h4 className="font-medium text-slate-900">{category.category}</h4>
-                        <p className="text-sm text-slate-500">{category.accountCount} accounts</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-slate-900">{formatCurrency(category.amount)}</p>
-                        <p className="text-sm text-slate-600">{formatPercentage(category.percentage)}</p>
-                      </div>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2 mb-3">
-                      <div
-                        className="bg-orange-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${category.percentage}%` }}
-                      />
-                    </div>
+                  <Box key={index} sx={{ pb: 2, borderBottom: index < data.categories.length - 1 ? 1 : 0, borderColor: 'divider' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                      <Box>
+                        <Typography variant="subtitle1" fontWeight={500}>{category.category}</Typography>
+                        <Typography variant="body2" color="text.secondary">{category.accountCount} accounts</Typography>
+                      </Box>
+                      <Box sx={{ textAlign: 'right' }}>
+                        <Typography variant="subtitle1" fontWeight={600}>{formatCurrency(category.amount)}</Typography>
+                        <Typography variant="body2" color="text.secondary">{formatPercentage(category.percentage)}</Typography>
+                      </Box>
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={Math.min(100, category.percentage)}
+                      sx={{ height: 8, borderRadius: 1, mb: 1.5 }}
+                    />
                     {category.topAccounts.length > 0 && (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <Grid container spacing={1}>
                         {category.topAccounts.slice(0, 3).map((account, accountIndex) => (
-                          <div key={accountIndex} className="text-xs bg-slate-50 rounded p-2">
-                            <p className="font-medium text-slate-700">{account.accountNumber}</p>
-                            <p className="text-slate-600 truncate">{account.accountName}</p>
-                            <p className="font-semibold text-slate-900">{formatCurrency(account.amount)}</p>
-                          </div>
+                          <Grid key={accountIndex} size={{ xs: 12, md: 4 }}>
+                            <Paper variant="outlined" sx={{ p: 1, bgcolor: 'grey.50' }}>
+                              <Typography variant="caption" fontWeight={500}>{account.accountNumber}</Typography>
+                              <Typography variant="caption" display="block" noWrap color="text.secondary">{account.accountName}</Typography>
+                              <Typography variant="caption" fontWeight={600}>{formatCurrency(account.amount)}</Typography>
+                            </Paper>
+                          </Grid>
                         ))}
-                      </div>
+                      </Grid>
                     )}
-                  </div>
+                  </Box>
                 ))}
-              </div>
-            </div>
+              </Box>
+            </Paper>
 
             {/* Division Breakdown */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-              <h3 className="text-lg font-semibold text-slate-900 mb-6">Division Breakdown</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead>
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Division
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Total Spend
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        COGS
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        OpEx
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Top GL Account
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
+            <Paper sx={{ mb: 4 }}>
+              <Box sx={{ p: 3 }}>
+                <Typography variant="h6" fontWeight={600} mb={3}>Division Breakdown</Typography>
+              </Box>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Division</TableCell>
+                      <TableCell>Total Spend</TableCell>
+                      <TableCell>COGS</TableCell>
+                      <TableCell>OpEx</TableCell>
+                      <TableCell>Top GL Account</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
                     {data.divisionBreakdown.map((division, index) => (
-                      <tr key={index} className="hover:bg-slate-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                          {division.divisionName}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                          {formatCurrency(division.totalSpend)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                          {formatCurrency(division.cogsAmount)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                          {formatCurrency(division.opexAmount)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                      <TableRow key={index} hover>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={500}>{division.divisionName}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{formatCurrency(division.totalSpend)}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{formatCurrency(division.cogsAmount)}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{formatCurrency(division.opexAmount)}</Typography>
+                        </TableCell>
+                        <TableCell>
                           {division.topGLAccounts[0] && (
-                            <div>
-                              <p className="font-medium">{division.topGLAccounts[0].accountNumber}</p>
-                              <p className="text-xs text-slate-500">{formatCurrency(division.topGLAccounts[0].amount)}</p>
-                            </div>
+                            <Box>
+                              <Typography variant="body2" fontWeight={500}>{division.topGLAccounts[0].accountNumber}</Typography>
+                              <Typography variant="caption" color="text.secondary">{formatCurrency(division.topGLAccounts[0].amount)}</Typography>
+                            </Box>
                           )}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
 
             {/* Risk Factors */}
             {data.riskFactors.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 className="text-lg font-semibold text-slate-900 mb-6">Risk Factors</h3>
-                <div className="space-y-4">
+              <Paper sx={{ p: 3 }}>
+                <Typography variant="h6" fontWeight={600} mb={3}>Risk Factors</Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {data.riskFactors.map((risk, index) => (
-                    <div key={index} className={`p-4 rounded-lg border-l-4 ${
-                      risk.riskLevel === 'high' ? 'border-red-500 bg-red-50' :
-                      risk.riskLevel === 'medium' ? 'border-yellow-500 bg-yellow-50' :
-                      'border-green-500 bg-green-50'
-                    }`}>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium text-slate-900">{risk.type}</h4>
-                          <p className="text-sm text-slate-600">{risk.description}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-slate-900">{formatCurrency(risk.amount)}</p>
-                          <p className={`text-xs font-medium uppercase ${
-                            risk.riskLevel === 'high' ? 'text-red-600' :
-                            risk.riskLevel === 'medium' ? 'text-yellow-600' :
-                            'text-green-600'
-                          }`}>
-                            {risk.riskLevel} risk
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                    <Alert
+                      key={index}
+                      severity={risk.riskLevel === 'high' ? 'error' : risk.riskLevel === 'medium' ? 'warning' : 'success'}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Box>
+                          <Typography variant="subtitle2" fontWeight={500}>{risk.type}</Typography>
+                          <Typography variant="body2">{risk.description}</Typography>
+                        </Box>
+                        <Box sx={{ textAlign: 'right' }}>
+                          <Typography variant="subtitle2" fontWeight={600}>{formatCurrency(risk.amount)}</Typography>
+                          <Typography variant="caption" textTransform="uppercase">{risk.riskLevel} risk</Typography>
+                        </Box>
+                      </Box>
+                    </Alert>
                   ))}
-                </div>
-              </div>
+                </Box>
+              </Paper>
             )}
           </>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

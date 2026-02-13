@@ -3,65 +3,38 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-
-// Icons
-interface IconProps {
-  className?: string;
-}
-
-const ClockIcon = ({ className = "w-4 h-4" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
-
-const UserIcon = ({ className = "w-4 h-4" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-  </svg>
-);
-
-const DocumentIcon = ({ className = "w-4 h-4" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
-
-const CheckIcon = ({ className = "w-4 h-4" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-  </svg>
-);
-
-const XIcon = ({ className = "w-4 h-4" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-  </svg>
-);
-
-const TruckIcon = ({ className = "w-4 h-4" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-  </svg>
-);
-
-const CreditCardIcon = ({ className = "w-4 h-4" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-  </svg>
-);
-
-const ChevronDownIcon = ({ className = "w-4 h-4" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-  </svg>
-);
-
-const ExternalLinkIcon = ({ className = "w-4 h-4" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-  </svg>
-);
+import { PONumberDisplay } from '@/components/mui';
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  MenuItem,
+  Chip,
+  Paper,
+  CircularProgress,
+  Collapse,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Grid,
+  Link as MuiLink,
+} from '@mui/material';
+import {
+  Schedule as ClockIcon,
+  Person as UserIcon,
+  Description as DocumentIcon,
+  Check as CheckIcon,
+  Close as XIcon,
+  LocalShipping as TruckIcon,
+  CreditCard as CreditCardIcon,
+  ExpandMore as ChevronDownIcon,
+  OpenInNew as ExternalLinkIcon,
+  Refresh as RefreshIcon,
+  Download as DownloadIcon,
+} from '@mui/icons-material';
 
 interface AuditTrailEntry {
   id: string;
@@ -89,7 +62,7 @@ interface AuditTrailEntry {
 }
 
 interface AuditTrailProps {
-  poId?: string; // If provided, show only audit trail for this PO
+  poId?: string;
   limit?: number;
   className?: string;
 }
@@ -103,7 +76,6 @@ export default function AuditTrail({ poId, limit = 50, className = '' }: AuditTr
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  // Fetch audit trail data
   const { data: auditData, isLoading, error, refetch } = useQuery({
     queryKey: ['audit-trail', poId, searchQuery, selectedAction, selectedUser, startDate, endDate, limit],
     queryFn: async (): Promise<{ entries: AuditTrailEntry[] }> => {
@@ -122,11 +94,10 @@ export default function AuditTrail({ poId, limit = 50, className = '' }: AuditTr
       }
       return response.json();
     },
-    refetchInterval: 30 * 1000, // 30 seconds
-    staleTime: 15 * 1000, // 15 seconds
+    refetchInterval: 30 * 1000,
+    staleTime: 15 * 1000,
   });
 
-  // Fetch available filters
   const { data: filters } = useQuery({
     queryKey: ['audit-filters'],
     queryFn: async () => {
@@ -149,50 +120,50 @@ export default function AuditTrail({ poId, limit = 50, className = '' }: AuditTr
   const getActionIcon = (action: string) => {
     switch (action.toLowerCase()) {
       case 'created':
-        return <DocumentIcon className="text-blue-600" />;
+        return <DocumentIcon sx={{ color: 'primary.main' }} />;
       case 'submitted':
-        return <ClockIcon className="text-yellow-600" />;
+        return <ClockIcon sx={{ color: 'warning.main' }} />;
       case 'approved':
-        return <CheckIcon className="text-green-600" />;
+        return <CheckIcon sx={{ color: 'success.main' }} />;
       case 'rejected':
-        return <XIcon className="text-red-600" />;
+        return <XIcon sx={{ color: 'error.main' }} />;
       case 'issued':
-        return <TruckIcon className="text-purple-600" />;
+        return <TruckIcon sx={{ color: '#9333ea' }} />;
       case 'received':
-        return <CheckIcon className="text-emerald-600" />;
+        return <CheckIcon sx={{ color: '#10b981' }} />;
       case 'invoiced':
-        return <DocumentIcon className="text-orange-600" />;
+        return <DocumentIcon sx={{ color: '#f97316' }} />;
       case 'paid':
-        return <CreditCardIcon className="text-green-700" />;
+        return <CreditCardIcon sx={{ color: '#15803d' }} />;
       case 'cancelled':
-        return <XIcon className="text-gray-600" />;
+        return <XIcon sx={{ color: 'text.secondary' }} />;
       default:
-        return <DocumentIcon className="text-slate-600" />;
+        return <DocumentIcon sx={{ color: 'text.disabled' }} />;
     }
   };
 
-  const getActionColor = (action: string) => {
+  const getActionColor = (action: string): 'primary' | 'warning' | 'success' | 'error' | 'info' | 'secondary' => {
     switch (action.toLowerCase()) {
       case 'created':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'primary';
       case 'submitted':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'warning';
       case 'approved':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'success';
       case 'rejected':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'error';
       case 'issued':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+        return 'secondary';
       case 'received':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+        return 'success';
       case 'invoiced':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'warning';
       case 'paid':
-        return 'bg-green-100 text-green-900 border-green-300';
+        return 'success';
       case 'cancelled':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'secondary';
       default:
-        return 'bg-slate-100 text-slate-800 border-slate-200';
+        return 'info';
     }
   };
 
@@ -206,320 +177,402 @@ export default function AuditTrail({ poId, limit = 50, className = '' }: AuditTr
   };
 
   if (!session) {
-    return <div className="text-slate-600">Please sign in to view audit trail.</div>;
+    return <Typography color="text.secondary">Please sign in to view audit trail.</Typography>;
   }
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm border border-slate-200 ${className}`}>
+    <Paper
+      sx={{
+        borderRadius: 3,
+        border: 1,
+        borderColor: 'divider',
+      }}
+      className={className}
+    >
       {/* Header */}
-      <div className="px-6 py-4 border-b border-slate-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900">
+      <Box sx={{ px: 3, py: 2, borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography variant="h6" fontWeight={600}>
               {poId ? 'PO Audit Trail' : 'System Audit Trail'}
-            </h3>
-            <p className="text-sm text-slate-500">
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
               Complete timeline of all purchase order activities and system changes
-            </p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Button
               onClick={() => refetch()}
               disabled={isLoading}
-              className="px-3 py-1.5 text-sm bg-slate-100 text-slate-700 rounded hover:bg-slate-200 transition-colors disabled:opacity-50"
+              variant="outlined"
+              size="small"
+              startIcon={<RefreshIcon />}
             >
               Refresh
-            </button>
-            <button
-              onClick={() => {
-                // Export functionality would go here
-                console.log('Export audit trail');
-              }}
-              className="px-3 py-1.5 text-sm bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
+            </Button>
+            <Button
+              onClick={() => console.log('Export audit trail')}
+              variant="contained"
+              size="small"
+              startIcon={<DownloadIcon />}
+              sx={{ bgcolor: '#ea580c', '&:hover': { bgcolor: '#c2410c' } }}
             >
               Export
-            </button>
-          </div>
-        </div>
-      </div>
+            </Button>
+          </Box>
+        </Box>
+      </Box>
 
       {/* Filters */}
       {!poId && (
-        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Search</label>
-              <input
-                type="text"
+        <Box sx={{ px: 3, py: 2, borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 2.4 }}>
+              <Typography variant="caption" fontWeight={500} display="block" sx={{ mb: 0.5 }}>
+                Search
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
                 placeholder="PO number, user..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
-            </div>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Action</label>
-              <select
+            <Grid size={{ xs: 12, md: 2.4 }}>
+              <Typography variant="caption" fontWeight={500} display="block" sx={{ mb: 0.5 }}>
+                Action
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                select
                 value={selectedAction}
                 onChange={(e) => setSelectedAction(e.target.value)}
-                className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
-                <option value="">All Actions</option>
-                <option value="Created">Created</option>
-                <option value="Submitted">Submitted</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-                <option value="Issued">Issued</option>
-                <option value="Received">Received</option>
-                <option value="Paid">Paid</option>
-              </select>
-            </div>
+                <MenuItem value="">All Actions</MenuItem>
+                <MenuItem value="Created">Created</MenuItem>
+                <MenuItem value="Submitted">Submitted</MenuItem>
+                <MenuItem value="Approved">Approved</MenuItem>
+                <MenuItem value="Rejected">Rejected</MenuItem>
+                <MenuItem value="Issued">Issued</MenuItem>
+                <MenuItem value="Received">Received</MenuItem>
+                <MenuItem value="Paid">Paid</MenuItem>
+              </TextField>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">User</label>
-              <select
+            <Grid size={{ xs: 12, md: 2.4 }}>
+              <Typography variant="caption" fontWeight={500} display="block" sx={{ mb: 0.5 }}>
+                User
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                select
                 value={selectedUser}
                 onChange={(e) => setSelectedUser(e.target.value)}
-                className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
-                <option value="">All Users</option>
+                <MenuItem value="">All Users</MenuItem>
                 {(filters?.users as Array<{ id: string; name: string; email: string }> | undefined)?.map((user) => (
-                  <option key={user.id} value={user.id}>
+                  <MenuItem key={user.id} value={user.id}>
                     {user.name} ({user.email})
-                  </option>
+                  </MenuItem>
                 ))}
-              </select>
-            </div>
+              </TextField>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
-              <input
+            <Grid size={{ xs: 12, md: 2.4 }}>
+              <Typography variant="caption" fontWeight={500} display="block" sx={{ mb: 0.5 }}>
+                Start Date
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                slotProps={{ inputLabel: { shrink: true } }}
               />
-            </div>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">End Date</label>
-              <input
+            <Grid size={{ xs: 12, md: 2.4 }}>
+              <Typography variant="caption" fontWeight={500} display="block" sx={{ mb: 0.5 }}>
+                End Date
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                slotProps={{ inputLabel: { shrink: true } }}
               />
-            </div>
-          </div>
-        </div>
+            </Grid>
+          </Grid>
+        </Box>
       )}
 
       {/* Loading State */}
       {isLoading && (
-        <div className="px-6 py-8 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading audit trail...</p>
-        </div>
+        <Box sx={{ px: 3, py: 4, textAlign: 'center' }}>
+          <CircularProgress sx={{ mb: 2, color: '#ea580c' }} />
+          <Typography color="text.secondary">Loading audit trail...</Typography>
+        </Box>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="px-6 py-8 text-center">
-          <p className="text-red-600 mb-4">Failed to load audit trail data</p>
-          <button
-            onClick={() => refetch()}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-          >
+        <Box sx={{ px: 3, py: 4, textAlign: 'center' }}>
+          <Typography color="error" sx={{ mb: 2 }}>
+            Failed to load audit trail data
+          </Typography>
+          <Button onClick={() => refetch()} variant="contained" color="error">
             Retry
-          </button>
-        </div>
+          </Button>
+        </Box>
       )}
 
       {/* Timeline */}
       {auditData && (
-        <div className="px-6 py-4">
+        <Box sx={{ px: 3, py: 2 }}>
           {auditData.entries.length === 0 ? (
-            <div className="text-center py-8">
-              <DocumentIcon className="mx-auto h-12 w-12 text-slate-400 mb-4" />
-              <p className="text-slate-500">No audit trail entries found</p>
-              <p className="text-sm text-slate-400 mt-1">
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <DocumentIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+              <Typography color="text.secondary">No audit trail entries found</Typography>
+              <Typography variant="body2" color="text.disabled" sx={{ mt: 0.5 }}>
                 Try adjusting your filters or check back later
-              </p>
-            </div>
+              </Typography>
+            </Box>
           ) : (
-            <div className="relative">
+            <Box sx={{ position: 'relative' }}>
               {/* Timeline line */}
-              <div className="absolute left-8 top-6 bottom-6 w-0.5 bg-slate-200"></div>
+              <Box
+                sx={{
+                  position: 'absolute',
+                  left: 32,
+                  top: 24,
+                  bottom: 24,
+                  width: '2px',
+                  bgcolor: 'divider',
+                }}
+              />
 
               {/* Timeline entries */}
-              <div className="space-y-4">
-                {auditData.entries.map((entry, _index) => (
-                  <div key={entry.id} className="relative">
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {auditData.entries.map((entry) => (
+                  <Box key={entry.id} sx={{ position: 'relative' }}>
                     {/* Timeline dot */}
-                    <div className="absolute left-6 w-4 h-4 bg-white border-2 border-orange-400 rounded-full flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
-                    </div>
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        left: 24,
+                        width: 16,
+                        height: 16,
+                        bgcolor: 'background.paper',
+                        border: 2,
+                        borderColor: '#fb923c',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Box sx={{ width: 6, height: 6, bgcolor: '#ea580c', borderRadius: '50%' }} />
+                    </Box>
 
                     {/* Entry content */}
-                    <div className="ml-16 pb-4">
-                      <div className="bg-slate-50 rounded-lg border border-slate-200 hover:shadow-sm transition-shadow">
+                    <Box sx={{ ml: 8, pb: 2 }}>
+                      <Paper
+                        variant="outlined"
+                        sx={{
+                          bgcolor: 'grey.50',
+                          transition: 'box-shadow 0.2s',
+                          '&:hover': { boxShadow: 1 },
+                        }}
+                      >
                         {/* Entry header */}
-                        <div
-                          className="p-4 cursor-pointer"
+                        <Box
+                          sx={{ p: 2, cursor: 'pointer' }}
                           onClick={() => toggleExpanded(entry.id)}
                         >
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start space-x-3">
+                          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
                               {getActionIcon(entry.action)}
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  <span
-                                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getActionColor(entry.action)}`}
-                                  >
-                                    {entry.action}
-                                  </span>
-                                  <span className="text-sm text-slate-600">
-                                    {entry.po.po_number}
-                                  </span>
+                              <Box sx={{ flex: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                                  <Chip
+                                    label={entry.action}
+                                    size="small"
+                                    color={getActionColor(entry.action)}
+                                    variant="outlined"
+                                  />
+                                  <PONumberDisplay poNumber={entry.po.po_number} size="small" />
                                   {entry.statusChange.from !== entry.statusChange.to && (
-                                    <span className="text-xs text-slate-500">
+                                    <Typography variant="caption" color="text.secondary">
                                       {entry.statusChange.from} → {entry.statusChange.to}
-                                    </span>
+                                    </Typography>
                                   )}
-                                </div>
-                                <p className="text-sm text-slate-900">
-                                  <span className="font-medium">{entry.actor.name}</span>
+                                </Box>
+                                <Typography variant="body2">
+                                  <Typography component="span" fontWeight={500}>
+                                    {entry.actor.name}
+                                  </Typography>
                                   {' '}performed{' '}
-                                  <span className="font-medium">{entry.action.toLowerCase()}</span>
+                                  <Typography component="span" fontWeight={500}>
+                                    {entry.action.toLowerCase()}
+                                  </Typography>
                                   {' '}on PO{' '}
-                                  <span className="font-medium">{entry.po.po_number}</span>
+                                  <PONumberDisplay poNumber={entry.po.po_number} size="small" showTooltip={false} />
                                   {' '}for{' '}
-                                  <span className="font-medium">{entry.po.vendor_name}</span>
-                                </p>
-                                <div className="flex items-center space-x-4 mt-1 text-xs text-slate-500">
-                                  <span className="flex items-center">
-                                    <ClockIcon className="w-3 h-3 mr-1" />
-                                    {new Date(entry.timestamp).toLocaleString()}
-                                  </span>
-                                  <span className="flex items-center">
-                                    <UserIcon className="w-3 h-3 mr-1" />
-                                    {entry.actor.role.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}
-                                  </span>
-                                  <span>
+                                  <Typography component="span" fontWeight={500}>
+                                    {entry.po.vendor_name}
+                                  </Typography>
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 0.5 }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <ClockIcon sx={{ fontSize: 12 }} />
+                                    <Typography variant="caption" color="text.secondary">
+                                      {new Date(entry.timestamp).toLocaleString()}
+                                    </Typography>
+                                  </Box>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <UserIcon sx={{ fontSize: 12 }} />
+                                    <Typography variant="caption" color="text.secondary">
+                                      {entry.actor.role.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                                    </Typography>
+                                  </Box>
+                                  <Typography variant="caption" color="text.secondary">
                                     {entry.po.division_name} • {formatCurrency(entry.po.total_amount)}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Box>
 
-                            <div className="flex items-center space-x-2">
-                              <a
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <MuiLink
                                 href={`/po/view?id=${entry.po.id}`}
-                                className="text-orange-600 hover:text-orange-700"
-                                onClick={(e) => e.stopPropagation()}
+                                color="#ea580c"
+                                sx={{ '&:hover': { color: '#c2410c' } }}
+                                onClick={(e: React.MouseEvent) => e.stopPropagation()}
                               >
-                                <ExternalLinkIcon />
-                              </a>
+                                <ExternalLinkIcon fontSize="small" />
+                              </MuiLink>
                               <ChevronDownIcon
-                                className={`text-slate-400 transition-transform ${
-                                  expandedItems.has(entry.id) ? 'rotate-180' : ''
-                                }`}
+                                sx={{
+                                  color: 'text.disabled',
+                                  transition: 'transform 0.2s',
+                                  transform: expandedItems.has(entry.id) ? 'rotate(180deg)' : 'rotate(0deg)',
+                                }}
                               />
-                            </div>
-                          </div>
-                        </div>
+                            </Box>
+                          </Box>
+                        </Box>
 
                         {/* Expanded details */}
-                        {expandedItems.has(entry.id) && (
-                          <div className="border-t border-slate-200 p-4 bg-white">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <h4 className="font-medium text-slate-900 mb-2">Action Details</h4>
-                                <dl className="space-y-1">
-                                  <div className="flex justify-between">
-                                    <dt className="text-slate-500">Timestamp:</dt>
-                                    <dd className="text-slate-900">
-                                      {new Date(entry.timestamp).toLocaleString()}
-                                    </dd>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <dt className="text-slate-500">Actor:</dt>
-                                    <dd className="text-slate-900">{entry.actor.name}</dd>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <dt className="text-slate-500">Role:</dt>
-                                    <dd className="text-slate-900">{entry.actor.role.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}</dd>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <dt className="text-slate-500">Email:</dt>
-                                    <dd className="text-slate-900">{entry.actor.email}</dd>
-                                  </div>
-                                </dl>
-                              </div>
+                        <Collapse in={expandedItems.has(entry.id)}>
+                          <Box sx={{ borderTop: 1, borderColor: 'divider', p: 2, bgcolor: 'background.paper' }}>
+                            <Grid container spacing={2}>
+                              <Grid size={{ xs: 12, md: 6 }}>
+                                <Typography variant="subtitle2" fontWeight={500} sx={{ mb: 1 }}>
+                                  Action Details
+                                </Typography>
+                                <TableContainer>
+                                  <Table size="small">
+                                    <TableBody>
+                                      <TableRow>
+                                        <TableCell sx={{ color: 'text.secondary' }}>Timestamp:</TableCell>
+                                        <TableCell>{new Date(entry.timestamp).toLocaleString()}</TableCell>
+                                      </TableRow>
+                                      <TableRow>
+                                        <TableCell sx={{ color: 'text.secondary' }}>Actor:</TableCell>
+                                        <TableCell>{entry.actor.name}</TableCell>
+                                      </TableRow>
+                                      <TableRow>
+                                        <TableCell sx={{ color: 'text.secondary' }}>Role:</TableCell>
+                                        <TableCell>
+                                          {entry.actor.role.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                                        </TableCell>
+                                      </TableRow>
+                                      <TableRow>
+                                        <TableCell sx={{ color: 'text.secondary' }}>Email:</TableCell>
+                                        <TableCell>{entry.actor.email}</TableCell>
+                                      </TableRow>
+                                    </TableBody>
+                                  </Table>
+                                </TableContainer>
+                              </Grid>
 
-                              <div>
-                                <h4 className="font-medium text-slate-900 mb-2">System Info</h4>
-                                <dl className="space-y-1">
-                                  {entry.ipAddress && (
-                                    <div className="flex justify-between">
-                                      <dt className="text-slate-500">IP Address:</dt>
-                                      <dd className="text-slate-900 font-mono text-xs">
-                                        {entry.ipAddress}
-                                      </dd>
-                                    </div>
-                                  )}
-                                  {entry.userAgent && (
-                                    <div>
-                                      <dt className="text-slate-500 mb-1">User Agent:</dt>
-                                      <dd className="text-slate-900 text-xs font-mono break-all">
-                                        {entry.userAgent}
-                                      </dd>
-                                    </div>
-                                  )}
-                                  {entry.statusChange.from !== entry.statusChange.to && (
-                                    <div className="flex justify-between">
-                                      <dt className="text-slate-500">Status Change:</dt>
-                                      <dd className="text-slate-900">
-                                        {entry.statusChange.from || 'None'} → {entry.statusChange.to || 'None'}
-                                      </dd>
-                                    </div>
-                                  )}
-                                </dl>
-                              </div>
-                            </div>
+                              <Grid size={{ xs: 12, md: 6 }}>
+                                <Typography variant="subtitle2" fontWeight={500} sx={{ mb: 1 }}>
+                                  System Info
+                                </Typography>
+                                <TableContainer>
+                                  <Table size="small">
+                                    <TableBody>
+                                      {entry.ipAddress && (
+                                        <TableRow>
+                                          <TableCell sx={{ color: 'text.secondary' }}>IP Address:</TableCell>
+                                          <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                                            {entry.ipAddress}
+                                          </TableCell>
+                                        </TableRow>
+                                      )}
+                                      {entry.userAgent && (
+                                        <TableRow>
+                                          <TableCell sx={{ color: 'text.secondary' }}>User Agent:</TableCell>
+                                          <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>
+                                            {entry.userAgent}
+                                          </TableCell>
+                                        </TableRow>
+                                      )}
+                                      {entry.statusChange.from !== entry.statusChange.to && (
+                                        <TableRow>
+                                          <TableCell sx={{ color: 'text.secondary' }}>Status Change:</TableCell>
+                                          <TableCell>
+                                            {entry.statusChange.from || 'None'} → {entry.statusChange.to || 'None'}
+                                          </TableCell>
+                                        </TableRow>
+                                      )}
+                                    </TableBody>
+                                  </Table>
+                                </TableContainer>
+                              </Grid>
+                            </Grid>
 
                             {entry.notes && (
-                              <div className="mt-4 pt-4 border-t border-slate-200">
-                                <h4 className="font-medium text-slate-900 mb-2">Notes</h4>
-                                <p className="text-sm text-slate-700 bg-slate-50 p-3 rounded border">
-                                  {entry.notes}
-                                </p>
-                              </div>
+                              <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+                                <Typography variant="subtitle2" fontWeight={500} sx={{ mb: 1 }}>
+                                  Notes
+                                </Typography>
+                                <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'grey.50' }}>
+                                  <Typography variant="body2">{entry.notes}</Typography>
+                                </Paper>
+                              </Box>
                             )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                          </Box>
+                        </Collapse>
+                      </Paper>
+                    </Box>
+                  </Box>
                 ))}
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
 
           {/* Load more indicator */}
           {auditData.entries.length >= limit && (
-            <div className="text-center pt-4 border-t border-slate-200 mt-6">
-              <p className="text-sm text-slate-500">
-                Showing {auditData.entries.length} entries.
-                <button className="text-orange-600 hover:text-orange-700 ml-1">
+            <Box sx={{ textAlign: 'center', pt: 2, borderTop: 1, borderColor: 'divider', mt: 3 }}>
+              <Typography variant="body2" color="text.secondary">
+                Showing {auditData.entries.length} entries.{' '}
+                <Button variant="text" sx={{ color: '#ea580c', '&:hover': { color: '#c2410c' } }}>
                   Load more
-                </button>
-              </p>
-            </div>
+                </Button>
+              </Typography>
+            </Box>
           )}
-        </div>
+        </Box>
       )}
-    </div>
+    </Paper>
   );
 }

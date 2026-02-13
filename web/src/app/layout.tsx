@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+
+export const dynamic = 'force-dynamic';
 import "./globals.css";
 import { Providers } from "./providers";
+import { Box } from "@mui/material";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,12 +41,28 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50`}
-      >
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-orange-500 focus:text-white focus:rounded">
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <Box
+          component="a"
+          href="#main-content"
+          sx={{
+            position: 'absolute',
+            left: '-9999px',
+            '&:focus': {
+              position: 'absolute',
+              top: 8,
+              left: 8,
+              zIndex: 50,
+              px: 2,
+              py: 1,
+              bgcolor: 'primary.main',
+              color: 'white',
+              borderRadius: 1,
+            },
+          }}
+        >
           Skip to content
-        </a>
+        </Box>
         <Providers>{children}</Providers>
         <button id="pwa-install-button" aria-label="Install app">
           📱 Install App

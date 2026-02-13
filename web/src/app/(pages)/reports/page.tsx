@@ -9,58 +9,22 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
 
-// Icons
-interface IconProps {
-  className?: string;
-}
-
-const ChartBarIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-  </svg>
-);
-
-const DocumentIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
-
-const TruckIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-  </svg>
-);
-
-const CurrencyIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-  </svg>
-);
-
-const ClockIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
-
-const CalculatorIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 18.5c-.77.833.192 2.5 1.732 2.5z" />
-  </svg>
-);
-
-const ArrowRightIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-  </svg>
-);
+// MUI imports
+import { Box, Typography, Button, Chip, Grid, Card, CardContent } from '@mui/material';
+import type { SvgIconProps } from '@mui/material';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import DescriptionIcon from '@mui/icons-material/Description';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import CalculateIcon from '@mui/icons-material/Calculate';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 interface ReportCard {
   id: string;
   title: string;
   description: string;
-  icon: React.ComponentType<IconProps>;
+  icon: React.ComponentType<SvgIconProps>;
   path: string;
   features: string[];
   requiredRole?: string[];
@@ -73,7 +37,7 @@ const REPORT_TYPES: ReportCard[] = [
     id: 'po-summary',
     title: 'PO Summary by Division',
     description: 'Executive overview of purchasing activity and spending by division with vendor analysis and completion tracking.',
-    icon: DocumentIcon,
+    icon: DescriptionIcon,
     path: '/reports/po-summary',
     features: [
       'Division-by-division spending breakdown',
@@ -89,7 +53,7 @@ const REPORT_TYPES: ReportCard[] = [
     id: 'project-details',
     title: 'Project Details Report',
     description: 'Comprehensive project analysis with budget tracking, work order correlation, and cross-divisional visibility.',
-    icon: ChartBarIcon,
+    icon: BarChartIcon,
     path: '/reports/project-details',
     features: [
       'Budget vs actual analysis',
@@ -105,7 +69,7 @@ const REPORT_TYPES: ReportCard[] = [
     id: 'gl-analysis',
     title: 'GL Analysis Report',
     description: 'Financial categorization analysis with COGS vs OpEx breakdown and tax compliance tracking.',
-    icon: CalculatorIcon,
+    icon: CalculateIcon,
     path: '/reports/gl-analysis',
     features: [
       'COGS vs OpEx spending analysis',
@@ -121,7 +85,7 @@ const REPORT_TYPES: ReportCard[] = [
     id: 'vendor-analysis',
     title: 'Vendor Analysis Report',
     description: 'Vendor performance evaluation with quality scoring, payment terms analysis, and risk assessment.',
-    icon: TruckIcon,
+    icon: LocalShippingIcon,
     path: '/reports/vendor-analysis',
     features: [
       'Vendor performance scoring (0-100)',
@@ -137,7 +101,7 @@ const REPORT_TYPES: ReportCard[] = [
     id: 'budget-actual',
     title: 'Budget vs Actual Report',
     description: 'Project budget variance analysis with forecasting, timeline alignment, and risk identification.',
-    icon: CurrencyIcon,
+    icon: AttachMoneyIcon,
     path: '/reports/budget-vs-actual',
     features: [
       'Budget variance and utilization tracking',
@@ -153,7 +117,7 @@ const REPORT_TYPES: ReportCard[] = [
     id: 'approval-bottleneck',
     title: 'Approval Bottleneck Report',
     description: 'Workflow efficiency analysis with approver performance tracking and bottleneck identification.',
-    icon: ClockIcon,
+    icon: AccessTimeIcon,
     path: '/reports/approval-bottleneck',
     features: [
       'Approver performance scoring',
@@ -162,7 +126,6 @@ const REPORT_TYPES: ReportCard[] = [
       'Bottleneck identification',
       'Process improvement recommendations'
     ],
-    requiredRole: ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'],
     color: 'text-red-600',
     bgGradient: 'from-red-50 to-red-100',
   },
@@ -180,11 +143,8 @@ export default function ReportsPage() {
 
   const _userRole = (user?.role || 'OPERATIONS_MANAGER') as UserRole;
 
-  // Filter reports based on user permissions
-  const availableReports = REPORT_TYPES.filter(report => {
-    if (!report.requiredRole) return true;
-    return report.requiredRole.includes(_userRole);
-  });
+  // All authenticated users can view all reports
+  const availableReports = REPORT_TYPES;
 
   const categories = [
     { id: 'all', name: 'All Reports', count: availableReports.length },
@@ -210,177 +170,200 @@ export default function ReportsPage() {
   return (
     <AppLayout pageTitle="Reports">
       {/* Header content */}
-      <div className="bg-white border-b border-slate-200 -mx-4 lg:-mx-8 -mt-4 lg:-mt-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">Business Reports</h1>
-                <p className="mt-2 text-slate-600">
+      <Box sx={{ bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', mx: { xs: -2, lg: -4 }, mt: { xs: -2, lg: -4 }, px: { xs: 2, sm: 3, lg: 4 } }}>
+        <Box sx={{ maxWidth: '1280px', mx: 'auto' }}>
+          <Box sx={{ py: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box>
+                <Typography variant="h3" fontWeight="bold" color="text.primary">Business Reports</Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
                   Comprehensive analytics and insights for purchase order management
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-slate-500">Welcome back, {user?.name?.split(' ')[0]}</p>
-                <p className="text-xs text-slate-400">
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: 'right' }}>
+                <Typography variant="body2" color="text.secondary">Welcome back, {user?.name?.split(' ')[0]}</Typography>
+                <Typography variant="caption" color="text.disabled">
                   {user?.divisionName || 'All Divisions'} • {getRoleDisplayName(_userRole as AuthUserRole)}
-                </p>
-              </div>
-            </div>
+                </Typography>
+              </Box>
+            </Box>
 
             {/* Category Filter */}
-            <div className="mt-6">
-              <nav className="flex space-x-8">
+            <Box sx={{ mt: 3 }}>
+              <Box sx={{ display: 'flex', gap: 4 }}>
                 {categories.filter(c => c.count > 0 || c.id === 'all').map(category => (
-                  <button
+                  <Button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
-                    className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm transition ${
-                      selectedCategory === category.id
-                        ? 'border-orange-500 text-orange-600'
-                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                    }`}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      py: 1,
+                      px: 0.5,
+                      borderBottom: 2,
+                      borderColor: selectedCategory === category.id ? 'primary.main' : 'transparent',
+                      color: selectedCategory === category.id ? 'primary.main' : 'text.secondary',
+                      fontWeight: 'medium',
+                      fontSize: '0.875rem',
+                      borderRadius: 0,
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        color: 'text.primary',
+                        borderColor: 'divider',
+                        bgcolor: 'transparent',
+                      }
+                    }}
                   >
                     <span>{category.name}</span>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                      selectedCategory === category.id
-                        ? 'bg-orange-100 text-orange-800'
-                        : 'bg-slate-100 text-slate-600'
-                    }`}>
-                      {category.count}
-                    </span>
-                  </button>
+                    <Chip
+                      label={category.count}
+                      size="small"
+                      sx={{
+                        bgcolor: selectedCategory === category.id ? 'primary.lighter' : 'grey.100',
+                        color: selectedCategory === category.id ? 'primary.dark' : 'text.secondary',
+                        fontSize: '0.75rem',
+                        fontWeight: 'medium',
+                      }}
+                    />
+                  </Button>
                 ))}
-              </nav>
-            </div>
-          </div>
-        </div>
-      </div>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
 
       {/* Report Cards */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <Box sx={{ maxWidth: '1280px', mx: 'auto', px: { xs: 2, sm: 3, lg: 4 }, py: 4 }}>
+        <Grid container spacing={3}>
           {filteredReports.map(report => {
             const IconComponent = report.icon;
             return (
-              <Link
-                key={report.id}
-                href={report.path}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border border-slate-200 hover:border-orange-200 group block"
-              >
-                {/* Header with gradient background */}
-                <div className={`p-6 bg-gradient-to-br ${report.bgGradient} rounded-t-xl`}>
-                  <div className="flex items-start justify-between">
-                    <div className={`p-3 rounded-lg bg-white shadow-sm ${report.color}`}>
-                      <IconComponent />
-                    </div>
-                    <ArrowRightIcon className="w-5 h-5 text-slate-400 group-hover:text-orange-500 transition-colors" />
-                  </div>
+              <Grid key={report.id} size={{ xs: 12, md: 6, xl: 4 }}>
+                <Link href={report.path} style={{ textDecoration: 'none' }}>
+                  <Card
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      border: 1,
+                      borderColor: 'divider',
+                      '&:hover': {
+                        boxShadow: 4,
+                        borderColor: 'primary.lighter',
+                      }
+                    }}
+                  >
+                    {/* Header with gradient background */}
+                    <Box sx={{ p: 3, bgcolor: 'primary.lighter', borderRadius: '12px 12px 0 0' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                        <Box sx={{ p: 1.5, borderRadius: 1.5, bgcolor: 'background.paper', boxShadow: 1 }}>
+                          <IconComponent sx={{ fontSize: 28, color: 'primary.main' }} />
+                        </Box>
+                        <ChevronRightIcon sx={{ color: 'text.disabled', transition: 'color 0.2s', '.MuiCard-root:hover &': { color: 'primary.main' } }} />
+                      </Box>
 
-                  <div className="mt-4">
-                    <h3 className="text-lg font-semibold text-slate-900 group-hover:text-orange-600 transition-colors">
-                      {report.title}
-                    </h3>
-                    <p className="mt-2 text-slate-600 text-sm leading-relaxed">
-                      {report.description}
-                    </p>
-                  </div>
-                </div>
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="h6" fontWeight="semibold" color="text.primary" sx={{ transition: 'color 0.2s', '.MuiCard-root:hover &': { color: 'primary.main' } }}>
+                          {report.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1, lineHeight: 1.6 }}>
+                          {report.description}
+                        </Typography>
+                      </Box>
+                    </Box>
 
-                {/* Features list */}
-                <div className="p-6 pt-4">
-                  <ul className="space-y-2">
-                    {report.features.map((feature, index) => (
-                      <li key={index} className="flex items-start text-sm text-slate-600">
-                        <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-2 mr-3 flex-shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                    {/* Features list */}
+                    <CardContent sx={{ p: 3, pt: 2, flexGrow: 1 }}>
+                      <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {report.features.map((feature, index) => (
+                          <Box key={index} component="li" sx={{ display: 'flex', alignItems: 'flex-start', fontSize: '0.875rem', color: 'text.secondary' }}>
+                            <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'primary.main', mt: 1, mr: 1.5, flexShrink: 0 }} />
+                            <span>{feature}</span>
+                          </Box>
+                        ))}
+                      </Box>
+                    </CardContent>
 
-                  {report.requiredRole && (
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                      <div className="flex items-center space-x-2">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                          Restricted Access
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          {report.requiredRole.join(', ')}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Action footer */}
-                <div className="px-6 pb-6">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-500">Click to generate report</span>
-                    <div className="flex items-center space-x-1 text-orange-600 group-hover:text-orange-700 font-medium">
-                      <span>View Report</span>
-                      <ArrowRightIcon className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-              </Link>
+                    {/* Action footer */}
+                    <Box sx={{ px: 3, pb: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+                        <Typography variant="body2" color="text.secondary">Click to generate report</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'primary.main', fontWeight: 'medium', transition: 'color 0.2s', '.MuiCard-root:hover &': { color: 'primary.dark' } }}>
+                          <span>View Report</span>
+                          <ChevronRightIcon sx={{ fontSize: 16 }} />
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Card>
+                </Link>
+              </Grid>
             );
           })}
-        </div>
+        </Grid>
 
         {/* Quick access links */}
-        <div className="mt-12 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Quick Access</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link
-              href="/reports/po-summary?format=csv"
-              className="flex items-center space-x-3 p-4 rounded-lg bg-slate-50 hover:bg-orange-50 transition-colors group"
-            >
-              <div className="p-2 rounded-lg bg-blue-100 text-blue-600 group-hover:bg-orange-100 group-hover:text-orange-600 transition-colors">
-                <DocumentIcon />
-              </div>
-              <div>
-                <p className="font-medium text-slate-900">Quick CSV Export</p>
-                <p className="text-sm text-slate-600">Download PO summary data</p>
-              </div>
-            </Link>
+        <Card sx={{ mt: 6, border: 1, borderColor: 'divider' }}>
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="h6" fontWeight="semibold" color="text.primary" sx={{ mb: 2 }}>Quick Access</Typography>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <Link href="/reports/po-summary?format=csv" style={{ textDecoration: 'none' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2, borderRadius: 1.5, bgcolor: 'grey.50', transition: 'bgcolor 0.2s', '&:hover': { bgcolor: 'primary.lighter' } }}>
+                    <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: 'info.lighter', color: 'info.main', transition: 'all 0.2s', '.MuiBox-root:hover &': { bgcolor: 'primary.lighter', color: 'primary.main' } }}>
+                      <DescriptionIcon />
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" fontWeight="medium" color="text.primary">Quick CSV Export</Typography>
+                      <Typography variant="caption" color="text.secondary">Download PO summary data</Typography>
+                    </Box>
+                  </Box>
+                </Link>
+              </Grid>
 
-            <Link
-              href="/dashboard"
-              className="flex items-center space-x-3 p-4 rounded-lg bg-slate-50 hover:bg-orange-50 transition-colors group"
-            >
-              <div className="p-2 rounded-lg bg-green-100 text-green-600 group-hover:bg-orange-100 group-hover:text-orange-600 transition-colors">
-                <ChartBarIcon />
-              </div>
-              <div>
-                <p className="font-medium text-slate-900">Live Dashboard</p>
-                <p className="text-sm text-slate-600">Real-time KPI metrics</p>
-              </div>
-            </Link>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <Link href="/dashboard" style={{ textDecoration: 'none' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2, borderRadius: 1.5, bgcolor: 'grey.50', transition: 'bgcolor 0.2s', '&:hover': { bgcolor: 'primary.lighter' } }}>
+                    <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: 'success.lighter', color: 'success.main', transition: 'all 0.2s', '.MuiBox-root:hover &': { bgcolor: 'primary.lighter', color: 'primary.main' } }}>
+                      <BarChartIcon />
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" fontWeight="medium" color="text.primary">Live Dashboard</Typography>
+                      <Typography variant="caption" color="text.secondary">Real-time KPI metrics</Typography>
+                    </Box>
+                  </Box>
+                </Link>
+              </Grid>
 
-            <Link
-              href="/approvals"
-              className="flex items-center space-x-3 p-4 rounded-lg bg-slate-50 hover:bg-orange-50 transition-colors group"
-            >
-              <div className="p-2 rounded-lg bg-orange-100 text-orange-600 group-hover:bg-orange-100 group-hover:text-orange-600 transition-colors">
-                <ClockIcon />
-              </div>
-              <div>
-                <p className="font-medium text-slate-900">Pending Approvals</p>
-                <p className="text-sm text-slate-600">Review awaiting items</p>
-              </div>
-            </Link>
-          </div>
-        </div>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <Link href="/approvals" style={{ textDecoration: 'none' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 2, borderRadius: 1.5, bgcolor: 'grey.50', transition: 'bgcolor 0.2s', '&:hover': { bgcolor: 'primary.lighter' } }}>
+                    <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: 'warning.lighter', color: 'warning.main', transition: 'all 0.2s', '.MuiBox-root:hover &': { bgcolor: 'primary.lighter', color: 'primary.main' } }}>
+                      <AccessTimeIcon />
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" fontWeight="medium" color="text.primary">Pending Approvals</Typography>
+                      <Typography variant="caption" color="text.secondary">Review awaiting items</Typography>
+                    </Box>
+                  </Box>
+                </Link>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
 
         {/* Footer info */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-slate-500">
+        <Box sx={{ mt: 4, textAlign: 'center' }}>
+          <Typography variant="body2" color="text.secondary">
             All reports are generated in real-time and respect your role-based permissions.
             <br />
             For assistance, contact your system administrator.
-          </p>
-        </div>
-      </div>
+          </Typography>
+        </Box>
+      </Box>
     </AppLayout>
   );
 }

@@ -3,53 +3,36 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
-
-// Icons
-interface IconProps {
-  className?: string;
-}
-
-const ArrowLeftIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-  </svg>
-);
-
-const FolderOpenIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-5l-2-2H5a2 2 0 00-2 2z" />
-  </svg>
-);
-
-const CalendarIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-  </svg>
-);
-
-const DownloadIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
-
-const RefreshIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-  </svg>
-);
-
-const TrendingUpIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-  </svg>
-);
-
-const TrendingDownIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-  </svg>
-);
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  TextField,
+  MenuItem,
+  Button,
+  Chip,
+  Table,
+  TableContainer,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  CircularProgress,
+  Alert,
+  LinearProgress,
+  Checkbox,
+  FormControlLabel,
+} from '@mui/material';
+import {
+  ArrowBack as ArrowBackIcon,
+  FolderOpen as FolderOpenIcon,
+  CalendarToday as CalendarIcon,
+  Download as DownloadIcon,
+  Refresh as RefreshIcon,
+  TrendingUp as TrendingUpIcon,
+  TrendingDown as TrendingDownIcon,
+} from '@mui/icons-material';
 
 interface DivisionSpend {
   divisionId: string;
@@ -159,7 +142,7 @@ export default function ProjectDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
-    startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0], // Start of year
+    startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
     projectId: '',
     divisionId: '',
@@ -191,8 +174,6 @@ export default function ProjectDetailsPage() {
 
       const result = await response.json();
 
-      // Normalize API response to match component interface
-      // API returns { summary, projects: [...] } but component expects single-project detail view
       const firstProject = (result.projects || [])[0];
       if (!firstProject) {
         setData(null);
@@ -352,7 +333,7 @@ export default function ProjectDetailsPage() {
 
   useEffect(() => {
     if (autoRefresh) {
-      const interval = setInterval(fetchData, 5 * 60 * 1000); // 5 minutes
+      const interval = setInterval(fetchData, 5 * 60 * 1000);
       return () => clearInterval(interval);
     }
   }, [autoRefresh, fetchData]);
@@ -370,625 +351,642 @@ export default function ProjectDetailsPage() {
 
   const getRiskBadgeColor = (riskLevel: string) => {
     switch (riskLevel) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default: return 'bg-green-100 text-green-800 border-green-200';
+      case 'high':
+        return 'error';
+      case 'medium':
+        return 'warning';
+      default:
+        return 'success';
     }
   };
 
   const getVarianceColor = (variance: number) => {
-    if (variance > 0) return 'text-red-600'; // Over budget
-    if (variance < -5) return 'text-green-600'; // Under budget
-    return 'text-slate-600'; // On budget
+    if (variance > 0) return 'error.main';
+    if (variance < -5) return 'success.main';
+    return 'text.primary';
   };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'in progress': return 'bg-blue-100 text-blue-800';
-      case 'on hold': return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-slate-100 text-slate-800';
+      case 'completed':
+        return 'success';
+      case 'in progress':
+        return 'info';
+      case 'on hold':
+        return 'warning';
+      case 'cancelled':
+        return 'error';
+      default:
+        return 'default';
     }
   };
 
   const getPerformanceIndicator = (value: number, threshold: number = 1.0) => {
-    if (value >= threshold) return { color: 'text-green-600', trend: 'positive' };
-    if (value >= threshold * 0.9) return { color: 'text-yellow-600', trend: 'neutral' };
-    return { color: 'text-red-600', trend: 'negative' };
+    if (value >= threshold) return { color: 'success.main', trend: 'positive' };
+    if (value >= threshold * 0.9) return { color: 'warning.main', trend: 'neutral' };
+    return { color: 'error.main', trend: 'negative' };
   };
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <FolderOpenIcon className="mx-auto h-12 w-12 text-slate-400 mb-4" />
-          <p className="text-slate-600">Please sign in to view project detail reports.</p>
-        </div>
-      </div>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Box sx={{ textAlign: 'center' }}>
+          <FolderOpenIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2, mx: 'auto' }} />
+          <Typography color="text.secondary">Please sign in to view project detail reports.</Typography>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Link
-                  href="/reports"
-                  className="flex items-center space-x-2 text-slate-600 hover:text-orange-600 transition-colors"
-                >
-                  <ArrowLeftIcon />
-                  <span>Back to Reports</span>
+      <Paper sx={{ borderRadius: 0, borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ maxWidth: 1280, mx: 'auto', px: { xs: 2, sm: 3, lg: 4 } }}>
+          <Box sx={{ py: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Link href="/reports" style={{ textDecoration: 'none' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', '&:hover': { color: 'warning.main' } }}>
+                    <ArrowBackIcon fontSize="small" />
+                    <Typography>Back to Reports</Typography>
+                  </Box>
                 </Link>
-                <div className="h-6 w-px bg-slate-300" />
-                <div className="flex items-center space-x-3">
-                  <FolderOpenIcon className="w-6 h-6 text-orange-600" />
-                  <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Project Details Analysis</h1>
-                    <p className="text-slate-600">Cross-divisional project spending and performance</p>
-                  </div>
-                </div>
-              </div>
+                <Box sx={{ height: 24, width: 1, bgcolor: 'grey.300' }} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <FolderOpenIcon sx={{ color: 'warning.main' }} />
+                  <Box>
+                    <Typography variant="h5" fontWeight="bold">Project Details Analysis</Typography>
+                    <Typography color="text.secondary">Cross-divisional project spending and performance</Typography>
+                  </Box>
+                </Box>
+              </Box>
 
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <p className="text-sm text-slate-500">Last updated: {lastRefresh.toLocaleTimeString()}</p>
-                  <p className="text-xs text-slate-400">Welcome, {user?.name?.split(' ')[0]}</p>
-                </div>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" color="text.secondary">Last updated: {lastRefresh.toLocaleTimeString()}</Typography>
+                  <Typography variant="caption" color="text.secondary">Welcome, {user?.name?.split(' ')[0]}</Typography>
+                </Box>
 
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={autoRefresh}
-                    onChange={(e) => setAutoRefresh(e.target.checked)}
-                    className="rounded border-slate-300 text-orange-600 focus:ring-orange-500"
-                  />
-                  <span className="text-sm text-slate-600">Auto-refresh</span>
-                </label>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={autoRefresh}
+                      onChange={(e) => setAutoRefresh(e.target.checked)}
+                      size="small"
+                    />
+                  }
+                  label={<Typography variant="body2">Auto-refresh</Typography>}
+                />
 
-                <button
+                <Button
                   onClick={fetchData}
                   disabled={loading}
-                  className="flex items-center space-x-2 px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                  variant="contained"
+                  color="warning"
+                  startIcon={<RefreshIcon />}
+                  sx={{ textTransform: 'none' }}
                 >
-                  <RefreshIcon className={loading ? 'w-5 h-5 animate-spin' : 'w-5 h-5'} />
-                  <span>Refresh</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+                  Refresh
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </Paper>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Box sx={{ maxWidth: 1280, mx: 'auto', px: { xs: 2, sm: 3, lg: 4 }, py: 4 }}>
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Report Filters</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Start Date</label>
-              <input
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h6" fontWeight="semibold" mb={2}>Report Filters</Typography>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 4, lg: 2 }}>
+              <Typography variant="body2" fontWeight={500} mb={1}>Start Date</Typography>
+              <TextField
                 type="date"
+                fullWidth
+                size="small"
                 value={filters.startDate}
                 onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
-            </div>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">End Date</label>
-              <input
+            <Grid size={{ xs: 12, md: 4, lg: 2 }}>
+              <Typography variant="body2" fontWeight={500} mb={1}>End Date</Typography>
+              <TextField
                 type="date"
+                fullWidth
+                size="small"
                 value={filters.endDate}
                 onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
-            </div>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Project</label>
-              <select
+            <Grid size={{ xs: 12, md: 4, lg: 2 }}>
+              <Typography variant="body2" fontWeight={500} mb={1}>Project</Typography>
+              <TextField
+                select
+                fullWidth
+                size="small"
                 value={filters.projectId}
                 onChange={(e) => setFilters(prev => ({ ...prev, projectId: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
-                <option value="">All Projects</option>
-                {/* Project options would be populated from API */}
-              </select>
-            </div>
+                <MenuItem value="">All Projects</MenuItem>
+              </TextField>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Division</label>
-              <select
+            <Grid size={{ xs: 12, md: 4, lg: 2 }}>
+              <Typography variant="body2" fontWeight={500} mb={1}>Division</Typography>
+              <TextField
+                select
+                fullWidth
+                size="small"
                 value={filters.divisionId}
                 onChange={(e) => setFilters(prev => ({ ...prev, divisionId: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
-                <option value="">All Divisions</option>
-                {/* Division options would be populated from API */}
-              </select>
-            </div>
+                <MenuItem value="">All Divisions</MenuItem>
+              </TextField>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Work Order</label>
-              <input
-                type="text"
+            <Grid size={{ xs: 12, md: 4, lg: 2 }}>
+              <Typography variant="body2" fontWeight={500} mb={1}>Work Order</Typography>
+              <TextField
+                fullWidth
+                size="small"
                 placeholder="WO number or description"
                 value={filters.workOrderFilter}
                 onChange={(e) => setFilters(prev => ({ ...prev, workOrderFilter: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
-            </div>
+            </Grid>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Include Completed</label>
-              <select
+            <Grid size={{ xs: 12, md: 4, lg: 2 }}>
+              <Typography variant="body2" fontWeight={500} mb={1}>Include Completed</Typography>
+              <TextField
+                select
+                fullWidth
+                size="small"
                 value={filters.includeCompleted}
                 onChange={(e) => setFilters(prev => ({ ...prev, includeCompleted: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
-                <option value="true">Yes</option>
-                <option value="false">No</option>
-              </select>
-            </div>
-          </div>
-        </div>
+                <MenuItem value="true">Yes</MenuItem>
+                <MenuItem value="false">No</MenuItem>
+              </TextField>
+            </Grid>
+          </Grid>
+        </Paper>
 
         {/* Export Options */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Export Options</h3>
-              <p className="text-sm text-slate-600">Download project analysis in various formats</p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <button
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography variant="h6" fontWeight="semibold" mb={1}>Export Options</Typography>
+              <Typography variant="body2" color="text.secondary">Download project analysis in various formats</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1.5 }}>
+              <Button
                 onClick={exportToExcel}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                variant="contained"
+                color="success"
+                startIcon={<DownloadIcon />}
+                sx={{ textTransform: 'none' }}
               >
-                <DownloadIcon />
-                <span>Excel</span>
-              </button>
-              <button
+                Excel
+              </Button>
+              <Button
                 onClick={exportToPDF}
-                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                variant="contained"
+                color="error"
+                startIcon={<DownloadIcon />}
+                sx={{ textTransform: 'none' }}
               >
-                <DownloadIcon />
-                <span>PDF</span>
-              </button>
-            </div>
-          </div>
-        </div>
+                PDF
+              </Button>
+            </Box>
+          </Box>
+        </Paper>
 
         {/* Loading State */}
         {loading && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-            <p className="text-slate-600">Loading project details data...</p>
-          </div>
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <CircularProgress sx={{ mb: 2 }} />
+            <Typography color="text.secondary">Loading project details data...</Typography>
+          </Paper>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6 mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-medium text-red-900">Error loading data</h3>
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            </div>
-          </div>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
         )}
 
         {/* Data Display */}
         {data && !loading && (
           <>
             {/* Project Overview */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900">{data.projectInfo.projectName}</h2>
-                  <p className="text-slate-600">{data.projectInfo.description}</p>
-                  <div className="flex items-center space-x-4 mt-2 text-sm text-slate-500">
-                    <span>PM: {data.projectInfo.projectManager}</span>
-                    <span>•</span>
-                    <span>Updated: {new Date(data.projectInfo.lastUpdated).toLocaleDateString()}</span>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end space-y-2">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(data.projectInfo.status)}`}>
-                    {data.projectInfo.status}
-                  </span>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getRiskBadgeColor(data.projectInfo.riskLevel)}`}>
-                    {data.projectInfo.riskLevel.charAt(0).toUpperCase() + data.projectInfo.riskLevel.slice(1)} Risk
-                  </span>
-                </div>
-              </div>
+            <Paper sx={{ p: 3, mb: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Box>
+                  <Typography variant="h5" fontWeight="bold">{data.projectInfo.projectName}</Typography>
+                  <Typography color="text.secondary">{data.projectInfo.description}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+                    <Typography variant="body2" color="text.secondary">PM: {data.projectInfo.projectManager}</Typography>
+                    <Typography variant="body2" color="text.secondary">•</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Updated: {new Date(data.projectInfo.lastUpdated).toLocaleDateString()}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Chip label={data.projectInfo.status} color={getStatusColor(data.projectInfo.status)} size="small" />
+                  <Chip
+                    label={`${data.projectInfo.riskLevel.charAt(0).toUpperCase() + data.projectInfo.riskLevel.slice(1)} Risk`}
+                    color={getRiskBadgeColor(data.projectInfo.riskLevel)}
+                    size="small"
+                  />
+                </Box>
+              </Box>
 
               {/* Project Metrics Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <div className="bg-slate-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-600">Total Budget</p>
-                      <p className="text-xl font-bold text-slate-900">{formatCurrency(data.projectInfo.totalBudget)}</p>
-                    </div>
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
+              <Grid container spacing={3} mb={3}>
+                <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                  <Paper sx={{ bgcolor: 'grey.50', p: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">Total Budget</Typography>
+                        <Typography variant="h6" fontWeight="bold">{formatCurrency(data.projectInfo.totalBudget)}</Typography>
+                      </Box>
+                      <Box sx={{ p: 1, bgcolor: 'info.lighter', borderRadius: 1 }}>
+                        <CalendarIcon sx={{ color: 'info.main' }} />
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grid>
 
-                <div className="bg-slate-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-600">Actual Spend</p>
-                      <p className="text-xl font-bold text-slate-900">{formatCurrency(data.projectInfo.actualSpend)}</p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {data.projectInfo.totalBudget > 0
-                          ? `${formatPercentage((data.projectInfo.actualSpend / data.projectInfo.totalBudget) * 100)} of budget`
-                          : 'No budget set'}
-                      </p>
-                    </div>
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
+                <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                  <Paper sx={{ bgcolor: 'grey.50', p: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">Actual Spend</Typography>
+                        <Typography variant="h6" fontWeight="bold">{formatCurrency(data.projectInfo.actualSpend)}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {data.projectInfo.totalBudget > 0
+                            ? `${formatPercentage((data.projectInfo.actualSpend / data.projectInfo.totalBudget) * 100)} of budget`
+                            : 'No budget set'}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ p: 1, bgcolor: 'success.lighter', borderRadius: 1 }}>
+                        <TrendingUpIcon sx={{ color: 'success.main' }} />
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grid>
 
-                <div className="bg-slate-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-600">Variance</p>
-                      <p className={`text-xl font-bold ${getVarianceColor(data.projectInfo.variancePercentage)}`}>
-                        {formatCurrency(Math.abs(data.projectInfo.varianceAmount))}
-                      </p>
-                      <p className={`text-xs mt-1 ${getVarianceColor(data.projectInfo.variancePercentage)}`}>
-                        {formatPercentage(Math.abs(data.projectInfo.variancePercentage))}
-                        {data.projectInfo.variancePercentage > 0 ? ' over' : ' under'}
-                      </p>
-                    </div>
-                    <div className={`p-2 rounded-lg ${data.projectInfo.varianceAmount > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
-                      {data.projectInfo.varianceAmount > 0 ?
-                        <TrendingUpIcon className="w-5 h-5 text-red-600" /> :
-                        <TrendingDownIcon className="w-5 h-5 text-green-600" />
-                      }
-                    </div>
-                  </div>
-                </div>
+                <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                  <Paper sx={{ bgcolor: 'grey.50', p: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">Variance</Typography>
+                        <Typography variant="h6" fontWeight="bold" color={getVarianceColor(data.projectInfo.variancePercentage)}>
+                          {formatCurrency(Math.abs(data.projectInfo.varianceAmount))}
+                        </Typography>
+                        <Typography variant="caption" color={getVarianceColor(data.projectInfo.variancePercentage)}>
+                          {formatPercentage(Math.abs(data.projectInfo.variancePercentage))}
+                          {data.projectInfo.variancePercentage > 0 ? ' over' : ' under'}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ p: 1, bgcolor: data.projectInfo.varianceAmount > 0 ? 'error.lighter' : 'success.lighter', borderRadius: 1 }}>
+                        {data.projectInfo.varianceAmount > 0 ? (
+                          <TrendingUpIcon sx={{ color: 'error.main' }} />
+                        ) : (
+                          <TrendingDownIcon sx={{ color: 'success.main' }} />
+                        )}
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grid>
 
-                <div className="bg-slate-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-600">Progress</p>
-                      <p className="text-xl font-bold text-slate-900">
-                        {formatPercentage(data.projectInfo.timeline.percentComplete)}
-                      </p>
-                      <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
-                        <div
-                          className="bg-orange-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${data.projectInfo.timeline.percentComplete}%` }}
+                <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                  <Paper sx={{ bgcolor: 'grey.50', p: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">Progress</Typography>
+                        <Typography variant="h6" fontWeight="bold">
+                          {formatPercentage(data.projectInfo.timeline.percentComplete)}
+                        </Typography>
+                        <LinearProgress
+                          variant="determinate"
+                          value={data.projectInfo.timeline.percentComplete}
+                          sx={{ mt: 1, height: 8, borderRadius: 1 }}
                         />
-                      </div>
-                    </div>
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <CalendarIcon className="w-5 h-5 text-purple-600" />
-                    </div>
-                  </div>
-                </div>
-              </div>
+                      </Box>
+                      <Box sx={{ p: 1, bgcolor: 'warning.lighter', borderRadius: 1, ml: 2 }}>
+                        <CalendarIcon sx={{ color: 'warning.main' }} />
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grid>
+              </Grid>
 
               {/* Timeline Info */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="text-slate-500">Start Date:</span>
-                  <span className="font-medium ml-2">{new Date(data.projectInfo.timeline.startDate).toLocaleDateString()}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500">Planned End:</span>
-                  <span className="font-medium ml-2">{new Date(data.projectInfo.timeline.plannedEndDate).toLocaleDateString()}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500">Revised End:</span>
-                  <span className="font-medium ml-2">{new Date(data.projectInfo.timeline.revisedEndDate).toLocaleDateString()}</span>
-                </div>
-              </div>
-            </div>
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <Typography variant="body2" color="text.secondary" component="span">Start Date: </Typography>
+                  <Typography variant="body2" fontWeight={500} component="span">
+                    {new Date(data.projectInfo.timeline.startDate).toLocaleDateString()}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <Typography variant="body2" color="text.secondary" component="span">Planned End: </Typography>
+                  <Typography variant="body2" fontWeight={500} component="span">
+                    {new Date(data.projectInfo.timeline.plannedEndDate).toLocaleDateString()}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <Typography variant="body2" color="text.secondary" component="span">Revised End: </Typography>
+                  <Typography variant="body2" fontWeight={500} component="span">
+                    {new Date(data.projectInfo.timeline.revisedEndDate).toLocaleDateString()}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Paper>
 
             {/* Key Performance Metrics */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-              <h3 className="text-lg font-semibold text-slate-900 mb-6">Key Performance Metrics</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <span className={`text-2xl font-bold ${getPerformanceIndicator(data.keyMetrics.costPerformanceIndex).color}`}>
-                      {data.keyMetrics.costPerformanceIndex.toFixed(2)}
-                    </span>
-                    <div className={`ml-2 ${getPerformanceIndicator(data.keyMetrics.costPerformanceIndex).color}`}>
-                      {data.keyMetrics.costPerformanceIndex >= 1.0 ?
-                        <TrendingUpIcon className="w-5 h-5" /> :
-                        <TrendingDownIcon className="w-5 h-5" />
-                      }
-                    </div>
-                  </div>
-                  <p className="text-sm font-medium text-slate-600">Cost Performance Index</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {data.keyMetrics.costPerformanceIndex >= 1.0 ? 'Under budget' : 'Over budget'}
-                  </p>
-                </div>
+            <Paper sx={{ p: 3, mb: 4 }}>
+              <Typography variant="h6" fontWeight="semibold" mb={3}>Key Performance Metrics</Typography>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+                      <Typography variant="h4" fontWeight="bold" color={getPerformanceIndicator(data.keyMetrics.costPerformanceIndex).color}>
+                        {data.keyMetrics.costPerformanceIndex.toFixed(2)}
+                      </Typography>
+                      <Box sx={{ ml: 1, color: getPerformanceIndicator(data.keyMetrics.costPerformanceIndex).color }}>
+                        {data.keyMetrics.costPerformanceIndex >= 1.0 ? <TrendingUpIcon /> : <TrendingDownIcon />}
+                      </Box>
+                    </Box>
+                    <Typography variant="body2" fontWeight={500} color="text.secondary">Cost Performance Index</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {data.keyMetrics.costPerformanceIndex >= 1.0 ? 'Under budget' : 'Over budget'}
+                    </Typography>
+                  </Box>
+                </Grid>
 
-                <div className="text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <span className={`text-2xl font-bold ${getPerformanceIndicator(data.keyMetrics.schedulePerformanceIndex).color}`}>
-                      {data.keyMetrics.schedulePerformanceIndex.toFixed(2)}
-                    </span>
-                    <div className={`ml-2 ${getPerformanceIndicator(data.keyMetrics.schedulePerformanceIndex).color}`}>
-                      {data.keyMetrics.schedulePerformanceIndex >= 1.0 ?
-                        <TrendingUpIcon className="w-5 h-5" /> :
-                        <TrendingDownIcon className="w-5 h-5" />
-                      }
-                    </div>
-                  </div>
-                  <p className="text-sm font-medium text-slate-600">Schedule Performance Index</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {data.keyMetrics.schedulePerformanceIndex >= 1.0 ? 'Ahead of schedule' : 'Behind schedule'}
-                  </p>
-                </div>
+                <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+                      <Typography variant="h4" fontWeight="bold" color={getPerformanceIndicator(data.keyMetrics.schedulePerformanceIndex).color}>
+                        {data.keyMetrics.schedulePerformanceIndex.toFixed(2)}
+                      </Typography>
+                      <Box sx={{ ml: 1, color: getPerformanceIndicator(data.keyMetrics.schedulePerformanceIndex).color }}>
+                        {data.keyMetrics.schedulePerformanceIndex >= 1.0 ? <TrendingUpIcon /> : <TrendingDownIcon />}
+                      </Box>
+                    </Box>
+                    <Typography variant="body2" fontWeight={500} color="text.secondary">Schedule Performance Index</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {data.keyMetrics.schedulePerformanceIndex >= 1.0 ? 'Ahead of schedule' : 'Behind schedule'}
+                    </Typography>
+                  </Box>
+                </Grid>
 
-                <div className="text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <span className="text-2xl font-bold text-slate-900">
+                <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h4" fontWeight="bold" mb={1}>
                       {formatCurrency(data.keyMetrics.estimateAtCompletion)}
-                    </span>
-                  </div>
-                  <p className="text-sm font-medium text-slate-600">Estimate at Completion</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Forecasted final cost
-                  </p>
-                </div>
+                    </Typography>
+                    <Typography variant="body2" fontWeight={500} color="text.secondary">Estimate at Completion</Typography>
+                    <Typography variant="caption" color="text.secondary">Forecasted final cost</Typography>
+                  </Box>
+                </Grid>
 
-                <div className="text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <span className={`text-2xl font-bold ${getVarianceColor(data.keyMetrics.varianceAtCompletion)}`}>
+                <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h4" fontWeight="bold" color={getVarianceColor(data.keyMetrics.varianceAtCompletion)} mb={1}>
                       {formatCurrency(Math.abs(data.keyMetrics.varianceAtCompletion))}
-                    </span>
-                  </div>
-                  <p className="text-sm font-medium text-slate-600">Variance at Completion</p>
-                  <p className={`text-xs mt-1 ${getVarianceColor(data.keyMetrics.varianceAtCompletion)}`}>
-                    {data.keyMetrics.varianceAtCompletion > 0 ? 'Over budget' : 'Under budget'}
-                  </p>
-                </div>
-              </div>
-            </div>
+                    </Typography>
+                    <Typography variant="body2" fontWeight={500} color="text.secondary">Variance at Completion</Typography>
+                    <Typography variant="caption" color={getVarianceColor(data.keyMetrics.varianceAtCompletion)}>
+                      {data.keyMetrics.varianceAtCompletion > 0 ? 'Over budget' : 'Under budget'}
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Paper>
 
             {/* Division Spending Breakdown */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-              <h3 className="text-lg font-semibold text-slate-900 mb-6">Division Spending Analysis</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead>
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Division
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Budget Allocated
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Total Spend
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Variance
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        PO Activity
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Top Vendor
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
+            <Paper sx={{ p: 3, mb: 4 }}>
+              <Typography variant="h6" fontWeight="semibold" mb={3}>Division Spending Analysis</Typography>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 600 }}>Division</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>Budget Allocated</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>Total Spend</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>Variance</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>PO Activity</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>Top Vendor</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
                     {data.divisionSpending.map((division) => (
-                      <tr key={division.divisionId} className="hover:bg-slate-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-slate-900">{division.divisionName}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">{formatCurrency(division.budgetAllocated)}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">{formatCurrency(division.totalSpend)}</div>
-                          <div className="text-xs text-slate-500">
+                      <TableRow key={division.divisionId} hover>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={500}>{division.divisionName}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{formatCurrency(division.budgetAllocated)}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{formatCurrency(division.totalSpend)}</Typography>
+                          <Typography variant="caption" color="text.secondary">
                             {division.budgetAllocated > 0
                               ? `${formatPercentage((division.totalSpend / division.budgetAllocated) * 100)} utilized`
                               : 'No budget allocated'}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className={`text-sm font-medium ${getVarianceColor(division.variancePercentage)}`}>
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={500} color={getVarianceColor(division.variancePercentage)}>
                             {formatCurrency(Math.abs(division.varianceAmount))}
-                          </div>
-                          <div className={`text-xs ${getVarianceColor(division.variancePercentage)}`}>
+                          </Typography>
+                          <Typography variant="caption" color={getVarianceColor(division.variancePercentage)}>
                             {formatPercentage(Math.abs(division.variancePercentage))}
                             {division.variancePercentage > 0 ? ' over' : ' under'}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">{division.poCount} POs</div>
-                          <div className="text-xs text-slate-500">
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{division.poCount} POs</Typography>
+                          <Typography variant="caption" color="text.secondary">
                             Avg: {formatCurrency(division.averagePOValue)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
                           {division.topVendors[0] && (
-                            <div>
-                              <div className="text-sm text-slate-900">{division.topVendors[0].vendorName}</div>
-                              <div className="text-xs text-slate-500">
+                            <Box>
+                              <Typography variant="body2">{division.topVendors[0].vendorName}</Typography>
+                              <Typography variant="caption" color="text.secondary">
                                 {formatCurrency(division.topVendors[0].amount)} ({division.topVendors[0].poCount} POs)
-                              </div>
-                            </div>
+                              </Typography>
+                            </Box>
                           )}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
 
             {/* Work Order Correlations */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-              <h3 className="text-lg font-semibold text-slate-900 mb-6">Work Order Analysis</h3>
-              <div className="space-y-6">
+            <Paper sx={{ p: 3, mb: 4 }}>
+              <Typography variant="h6" fontWeight="semibold" mb={3}>Work Order Analysis</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {data.workOrderCorrelations.slice(0, 5).map((workOrder, index) => (
-                  <div key={index} className="border border-slate-200 rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h4 className="font-medium text-slate-900">{workOrder.workOrderNumber}</h4>
-                        <p className="text-sm text-slate-600">{workOrder.description}</p>
-                        <p className="text-xs text-slate-500 mt-1">Phase: {workOrder.projectPhase}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-slate-900">
+                  <Paper key={index} variant="outlined" sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Box>
+                        <Typography variant="subtitle1" fontWeight={500}>{workOrder.workOrderNumber}</Typography>
+                        <Typography variant="body2" color="text.secondary">{workOrder.description}</Typography>
+                        <Typography variant="caption" color="text.secondary">Phase: {workOrder.projectPhase}</Typography>
+                      </Box>
+                      <Box sx={{ textAlign: 'right' }}>
+                        <Typography variant="body2" fontWeight={500}>
                           {formatCurrency(workOrder.actualSpend)} / {formatCurrency(workOrder.totalBudget)}
-                        </p>
-                        <p className="text-xs text-slate-500">{workOrder.relatedPOs} related POs</p>
-                      </div>
-                    </div>
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">{workOrder.relatedPOs} related POs</Typography>
+                      </Box>
+                    </Box>
 
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-slate-600">Completion Progress</span>
-                        <span className="font-medium">{formatPercentage(workOrder.completionPercentage)}</span>
-                      </div>
-                      <div className="w-full bg-slate-200 rounded-full h-2">
-                        <div
-                          className="bg-orange-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${workOrder.completionPercentage}%` }}
-                        />
-                      </div>
-                    </div>
+                    <Box sx={{ mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="text.secondary">Completion Progress</Typography>
+                        <Typography variant="body2" fontWeight={500}>{formatPercentage(workOrder.completionPercentage)}</Typography>
+                      </Box>
+                      <LinearProgress variant="determinate" value={workOrder.completionPercentage} sx={{ height: 8, borderRadius: 1 }} />
+                    </Box>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-slate-500">Planned Start:</span>
-                        <div className="font-medium">{new Date(workOrder.schedule.plannedStart).toLocaleDateString()}</div>
-                      </div>
-                      <div>
-                        <span className="text-slate-500">Actual Start:</span>
-                        <div className="font-medium">{new Date(workOrder.schedule.actualStart).toLocaleDateString()}</div>
-                      </div>
-                      <div>
-                        <span className="text-slate-500">Planned End:</span>
-                        <div className="font-medium">{new Date(workOrder.schedule.plannedEnd).toLocaleDateString()}</div>
-                      </div>
-                      <div>
-                        <span className="text-slate-500">Estimated End:</span>
-                        <div className="font-medium">{new Date(workOrder.schedule.estimatedEnd).toLocaleDateString()}</div>
-                      </div>
-                    </div>
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 6, md: 3 }}>
+                        <Typography variant="caption" color="text.secondary">Planned Start:</Typography>
+                        <Typography variant="body2" fontWeight={500}>
+                          {new Date(workOrder.schedule.plannedStart).toLocaleDateString()}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, md: 3 }}>
+                        <Typography variant="caption" color="text.secondary">Actual Start:</Typography>
+                        <Typography variant="body2" fontWeight={500}>
+                          {new Date(workOrder.schedule.actualStart).toLocaleDateString()}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, md: 3 }}>
+                        <Typography variant="caption" color="text.secondary">Planned End:</Typography>
+                        <Typography variant="body2" fontWeight={500}>
+                          {new Date(workOrder.schedule.plannedEnd).toLocaleDateString()}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 6, md: 3 }}>
+                        <Typography variant="caption" color="text.secondary">Estimated End:</Typography>
+                        <Typography variant="body2" fontWeight={500}>
+                          {new Date(workOrder.schedule.estimatedEnd).toLocaleDateString()}
+                        </Typography>
+                      </Grid>
+                    </Grid>
 
                     {workOrder.divisions.length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-sm font-medium text-slate-700 mb-2">Division Breakdown:</p>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="body2" fontWeight={500} mb={1}>Division Breakdown:</Typography>
+                        <Grid container spacing={1}>
                           {workOrder.divisions.map((div, divIndex) => (
-                            <div key={divIndex} className="flex justify-between items-center text-xs bg-slate-50 rounded p-2">
-                              <span className="text-slate-600">{div.divisionName}</span>
-                              <div className="text-right">
-                                <div className="font-medium text-slate-900">{formatCurrency(div.spend)}</div>
-                                <div className="text-slate-500">{formatPercentage(div.percentage)}</div>
-                              </div>
-                            </div>
+                            <Grid key={divIndex} size={{ xs: 12, md: 4 }}>
+                              <Paper sx={{ bgcolor: 'grey.50', p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="caption" color="text.secondary">{div.divisionName}</Typography>
+                                <Box sx={{ textAlign: 'right' }}>
+                                  <Typography variant="caption" fontWeight={500}>{formatCurrency(div.spend)}</Typography>
+                                  <Typography variant="caption" color="text.secondary" display="block">
+                                    {formatPercentage(div.percentage)}
+                                  </Typography>
+                                </Box>
+                              </Paper>
+                            </Grid>
                           ))}
-                        </div>
-                      </div>
+                        </Grid>
+                      </Box>
                     )}
-                  </div>
+                  </Paper>
                 ))}
-              </div>
-            </div>
+              </Box>
+            </Paper>
 
             {/* Alerts and Recommendations */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Grid container spacing={4}>
               {/* Alerts */}
               {data.alerts.length > 0 && (
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-6">Project Alerts</h3>
-                  <div className="space-y-3">
-                    {data.alerts.slice(0, 5).map((alert, index) => (
-                      <div key={index} className={`p-3 rounded-lg border-l-4 ${
-                        alert.severity === 'critical' ? 'border-red-500 bg-red-50' :
-                        alert.severity === 'warning' ? 'border-yellow-500 bg-yellow-50' :
-                        'border-blue-500 bg-blue-50'
-                      }`}>
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium text-slate-900">{alert.type}</h4>
-                          <span className="text-xs text-slate-500">{new Date(alert.date).toLocaleDateString()}</span>
-                        </div>
-                        <p className="text-sm text-slate-700 mt-1">{alert.message}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <Grid size={{ xs: 12, lg: 6 }}>
+                  <Paper sx={{ p: 3 }}>
+                    <Typography variant="h6" fontWeight="semibold" mb={3}>Project Alerts</Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      {data.alerts.slice(0, 5).map((alert, index) => (
+                        <Alert
+                          key={index}
+                          severity={alert.severity === 'critical' ? 'error' : alert.severity === 'warning' ? 'warning' : 'info'}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography variant="subtitle2">{alert.type}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {new Date(alert.date).toLocaleDateString()}
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2" mt={0.5}>{alert.message}</Typography>
+                        </Alert>
+                      ))}
+                    </Box>
+                  </Paper>
+                </Grid>
               )}
 
               {/* Recommendations */}
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 className="text-lg font-semibold text-slate-900 mb-6">Recommendations</h3>
-                <div className="space-y-4">
-                  {data.recommendations.slice(0, 4).map((rec, index) => (
-                    <div key={index} className={`p-4 rounded-lg border-l-4 ${
-                      rec.priority === 'high' ? 'border-red-500 bg-red-50' :
-                      rec.priority === 'medium' ? 'border-yellow-500 bg-yellow-50' :
-                      'border-green-500 bg-green-50'
-                    }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-slate-900">{rec.category}</h4>
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          rec.priority === 'high' ? 'bg-red-100 text-red-800' :
-                          rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-green-100 text-green-800'
-                        }`}>
-                          {rec.priority.charAt(0).toUpperCase() + rec.priority.slice(1)}
-                        </span>
-                      </div>
-                      <p className="text-sm text-slate-700 mb-2">{rec.recommendation}</p>
-                      <p className="text-xs text-slate-600 mb-2">
-                        <strong>Impact:</strong> {rec.impact}
-                      </p>
-                      {rec.actionItems.length > 0 && (
-                        <div className="mt-2">
-                          <p className="text-xs font-medium text-slate-700 mb-1">Action Items:</p>
-                          <ul className="text-xs text-slate-600 space-y-1">
-                            {rec.actionItems.slice(0, 3).map((item, itemIndex) => (
-                              <li key={itemIndex}>• {item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+              <Grid size={{ xs: 12, lg: 6 }}>
+                <Paper sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight="semibold" mb={3}>Recommendations</Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {data.recommendations.slice(0, 4).map((rec, index) => (
+                      <Alert
+                        key={index}
+                        severity={rec.priority === 'high' ? 'error' : rec.priority === 'medium' ? 'warning' : 'success'}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="subtitle2">{rec.category}</Typography>
+                          <Chip
+                            label={rec.priority.charAt(0).toUpperCase() + rec.priority.slice(1)}
+                            color={rec.priority === 'high' ? 'error' : rec.priority === 'medium' ? 'warning' : 'success'}
+                            size="small"
+                          />
+                        </Box>
+                        <Typography variant="body2" mb={1}>{rec.recommendation}</Typography>
+                        <Typography variant="caption" color="text.secondary" mb={1} display="block">
+                          <strong>Impact:</strong> {rec.impact}
+                        </Typography>
+                        {rec.actionItems.length > 0 && (
+                          <Box sx={{ mt: 1 }}>
+                            <Typography variant="caption" fontWeight={500}>Action Items:</Typography>
+                            <Box component="ul" sx={{ m: 0, pl: 2 }}>
+                              {rec.actionItems.slice(0, 3).map((item, itemIndex) => (
+                                <Typography component="li" key={itemIndex} variant="caption" color="text.secondary">
+                                  {item}
+                                </Typography>
+                              ))}
+                            </Box>
+                          </Box>
+                        )}
+                      </Alert>
+                    ))}
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
           </>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

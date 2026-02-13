@@ -4,6 +4,31 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
+import {
+  Box,
+  CircularProgress,
+  Grid,
+  Paper,
+  Typography,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Button,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Chip,
+  Card,
+  CardContent,
+  Modal,
+  IconButton,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 interface ArchiveInvoice {
   id: string;
@@ -163,9 +188,9 @@ export default function InvoiceArchivePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
@@ -191,126 +216,143 @@ export default function InvoiceArchivePage() {
     });
   };
 
-  const getStatusBadge = (status: string | null) => {
-    const styles: Record<string, string> = {
-      PAID: 'bg-green-100 text-green-800',
-      PENDING: 'bg-yellow-100 text-yellow-800',
-      PARTIAL: 'bg-orange-100 text-orange-800',
-    };
-    return styles[status || ''] || 'bg-slate-100 text-slate-800';
+  const getStatusColor = (status: string | null): 'success' | 'warning' | 'error' | 'default' => {
+    switch (status) {
+      case 'PAID': return 'success';
+      case 'PENDING': return 'warning';
+      case 'PARTIAL': return 'error';
+      default: return 'default';
+    }
   };
 
   return (
     <AppLayout pageTitle="Invoice Archive">
       {/* Stats Cards */}
       {stats && (
-        <div className="max-w-7xl mx-auto py-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-lg border border-slate-200 p-4">
-              <p className="text-sm text-slate-500">Total Invoices</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.total_invoices.toLocaleString()}</p>
-            </div>
-            <div className="bg-white rounded-lg border border-slate-200 p-4">
-              <p className="text-sm text-slate-500">Total Amount</p>
-              <p className="text-2xl font-bold text-slate-900">{formatCurrency(stats.total_amount)}</p>
-            </div>
-            <div className="bg-white rounded-lg border border-slate-200 p-4">
-              <p className="text-sm text-slate-500">Paid</p>
-              <p className="text-2xl font-bold text-green-600">{stats.paid_count.toLocaleString()}</p>
-            </div>
-            <div className="bg-white rounded-lg border border-slate-200 p-4">
-              <p className="text-sm text-slate-500">Pending</p>
-              <p className="text-2xl font-bold text-yellow-600">{stats.pending_count.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
+        <Box sx={{ maxWidth: 1200, mx: 'auto', py: 2 }}>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <Paper sx={{ p: 2, border: 1, borderColor: 'divider' }}>
+                <Typography variant="body2" color="text.secondary">Total Invoices</Typography>
+                <Typography variant="h5" fontWeight="bold">{stats.total_invoices.toLocaleString()}</Typography>
+              </Paper>
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <Paper sx={{ p: 2, border: 1, borderColor: 'divider' }}>
+                <Typography variant="body2" color="text.secondary">Total Amount</Typography>
+                <Typography variant="h5" fontWeight="bold">{formatCurrency(stats.total_amount)}</Typography>
+              </Paper>
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <Paper sx={{ p: 2, border: 1, borderColor: 'divider' }}>
+                <Typography variant="body2" color="text.secondary">Paid</Typography>
+                <Typography variant="h5" fontWeight="bold" color="success.main">{stats.paid_count.toLocaleString()}</Typography>
+              </Paper>
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <Paper sx={{ p: 2, border: 1, borderColor: 'divider' }}>
+                <Typography variant="body2" color="text.secondary">Pending</Typography>
+                <Typography variant="h5" fontWeight="bold" color="warning.main">{stats.pending_count.toLocaleString()}</Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Box>
       )}
 
       {/* Filters */}
-      <div className="max-w-7xl mx-auto py-4">
-        <div className="bg-white rounded-lg border border-slate-200 p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <Box sx={{ maxWidth: 1200, mx: 'auto', py: 2 }}>
+        <Paper sx={{ p: 2, border: 1, borderColor: 'divider' }}>
+          <Grid container spacing={2}>
             {/* Search */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Search</label>
-              <input
-                type="text"
+            <Grid size={{ xs: 12, md: 4 }}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Invoice #, vendor, notes..."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-            </div>
+            </Grid>
 
             {/* Vendor Filter */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Vendor</label>
-              <select
-                value={vendorId}
-                onChange={(e) => setVendorId(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Vendors</option>
-                {vendors.map((v) => (
-                  <option key={v.id} value={v.id}>{v.name}</option>
-                ))}
-              </select>
-            </div>
+            <Grid size={{ xs: 12, md: 2 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Vendor</InputLabel>
+                <Select
+                  value={vendorId}
+                  onChange={(e) => setVendorId(e.target.value)}
+                  label="Vendor"
+                >
+                  <MenuItem value="">All Vendors</MenuItem>
+                  {vendors.map((v) => (
+                    <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
             {/* Project Filter */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Project</label>
-              <select
-                value={projectId}
-                onChange={(e) => setProjectId(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Projects</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>{p.code} - {p.name || 'Unnamed'}</option>
-                ))}
-              </select>
-            </div>
+            <Grid size={{ xs: 12, md: 2 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Project</InputLabel>
+                <Select
+                  value={projectId}
+                  onChange={(e) => setProjectId(e.target.value)}
+                  label="Project"
+                >
+                  <MenuItem value="">All Projects</MenuItem>
+                  {projects.map((p) => (
+                    <MenuItem key={p.id} value={p.id}>{p.code} - {p.name || 'Unnamed'}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
             {/* Payment Status */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-              <select
-                value={paymentStatus}
-                onChange={(e) => setPaymentStatus(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Statuses</option>
-                <option value="PAID">Paid</option>
-                <option value="PENDING">Pending</option>
-                <option value="PARTIAL">Partial</option>
-              </select>
-            </div>
+            <Grid size={{ xs: 12, md: 2 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={paymentStatus}
+                  onChange={(e) => setPaymentStatus(e.target.value)}
+                  label="Status"
+                >
+                  <MenuItem value="">All Statuses</MenuItem>
+                  <MenuItem value="PAID">Paid</MenuItem>
+                  <MenuItem value="PENDING">Pending</MenuItem>
+                  <MenuItem value="PARTIAL">Partial</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
             {/* Date Range */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Date Range</label>
-              <div className="flex gap-2">
-                <input
+            <Grid size={{ xs: 12, md: 2 }}>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField
                   type="date"
+                  size="small"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="flex-1 px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  sx={{ flex: 1 }}
                 />
-                <input
+                <TextField
                   type="date"
+                  size="small"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="flex-1 px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  sx={{ flex: 1 }}
                 />
-              </div>
-            </div>
-          </div>
+              </Box>
+            </Grid>
+          </Grid>
 
           {/* Clear Filters */}
           {(search || vendorId || projectId || paymentStatus || dateFrom || dateTo) && (
-            <div className="mt-4 flex justify-end">
-              <button
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                variant="text"
+                size="small"
                 onClick={() => {
                   setSearch('');
                   setVendorId('');
@@ -319,265 +361,273 @@ export default function InvoiceArchivePage() {
                   setDateFrom('');
                   setDateTo('');
                 }}
-                className="text-sm text-blue-600 hover:text-blue-800"
               >
                 Clear all filters
-              </button>
-            </div>
+              </Button>
+            </Box>
           )}
-        </div>
-      </div>
+        </Paper>
+      </Box>
 
       {/* Invoice List */}
-      <div className="max-w-7xl mx-auto pb-8">
+      <Box sx={{ maxWidth: 1200, mx: 'auto', pb: 4 }}>
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-            <p className="text-red-800">{error}</p>
-          </div>
+          <Paper sx={{ p: 2, mb: 2, bgcolor: 'error.light', border: 1, borderColor: 'error.main' }}>
+            <Typography color="error.dark">{error}</Typography>
+          </Paper>
         )}
 
-        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <Paper sx={{ border: 1, borderColor: 'divider', overflow: 'hidden' }}>
           {/* Desktop Table */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Invoice #</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Vendor</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Project</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Date</th>
-                  <th className="text-right px-4 py-3 text-sm font-medium text-slate-700">Amount</th>
-                  <th className="text-center px-4 py-3 text-sm font-medium text-slate-700">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
+          <Box sx={{ display: { xs: 'none', md: 'block' }, overflowX: 'auto' }}>
+            <Table>
+              <TableHead sx={{ bgcolor: 'grey.50' }}>
+                <TableRow>
+                  <TableCell>Invoice #</TableCell>
+                  <TableCell>Vendor</TableCell>
+                  <TableCell>Project</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell align="right">Amount</TableCell>
+                  <TableCell align="center">Status</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
                 {invoices.map((invoice) => (
-                  <tr
+                  <TableRow
                     key={invoice.id}
                     onClick={() => fetchInvoiceDetail(invoice)}
-                    className="hover:bg-slate-50 cursor-pointer transition"
+                    sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'grey.50' } }}
                   >
-                    <td className="px-4 py-3 text-sm font-medium text-slate-900">
-                      {invoice.invoice_number || 'N/A'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
-                      {invoice.vendor_name || '-'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
-                      {invoice.project_code || '-'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
-                      {formatDate(invoice.invoice_date)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-slate-900 text-right font-medium">
-                      {formatCurrency(invoice.total_amount)}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(invoice.payment_status)}`}>
-                        {invoice.payment_status || 'Unknown'}
-                      </span>
-                    </td>
-                  </tr>
+                    <TableCell sx={{ fontWeight: 500 }}>{invoice.invoice_number || 'N/A'}</TableCell>
+                    <TableCell>{invoice.vendor_name || '-'}</TableCell>
+                    <TableCell>{invoice.project_code || '-'}</TableCell>
+                    <TableCell>{formatDate(invoice.invoice_date)}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 500 }}>{formatCurrency(invoice.total_amount)}</TableCell>
+                    <TableCell align="center">
+                      <Chip
+                        label={invoice.payment_status || 'Unknown'}
+                        color={getStatusColor(invoice.payment_status)}
+                        size="small"
+                      />
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </Box>
 
           {/* Mobile Cards */}
-          <div className="md:hidden divide-y divide-slate-200">
+          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
             {invoices.map((invoice) => (
-              <div
+              <Card
                 key={invoice.id}
                 onClick={() => fetchInvoiceDetail(invoice)}
-                className="p-4 hover:bg-slate-50 cursor-pointer transition"
+                sx={{ cursor: 'pointer', borderBottom: 1, borderColor: 'divider', borderRadius: 0, '&:hover': { bgcolor: 'grey.50' } }}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="font-medium text-slate-900">{invoice.invoice_number || 'N/A'}</p>
-                    <p className="text-sm text-slate-500">{invoice.vendor_name || '-'}</p>
-                  </div>
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(invoice.payment_status)}`}>
-                    {invoice.payment_status || 'Unknown'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-500">{formatDate(invoice.invoice_date)}</span>
-                  <span className="font-medium text-slate-900">{formatCurrency(invoice.total_amount)}</span>
-                </div>
-              </div>
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                    <Box>
+                      <Typography fontWeight={500}>{invoice.invoice_number || 'N/A'}</Typography>
+                      <Typography variant="body2" color="text.secondary">{invoice.vendor_name || '-'}</Typography>
+                    </Box>
+                    <Chip
+                      label={invoice.payment_status || 'Unknown'}
+                      color={getStatusColor(invoice.payment_status)}
+                      size="small"
+                    />
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">{formatDate(invoice.invoice_date)}</Typography>
+                    <Typography fontWeight={500}>{formatCurrency(invoice.total_amount)}</Typography>
+                  </Box>
+                </CardContent>
+              </Card>
             ))}
-          </div>
+          </Box>
 
           {/* Empty State */}
           {!loading && invoices.length === 0 && (
-            <div className="p-8 text-center">
-              <p className="text-slate-500">No invoices found matching your filters.</p>
-            </div>
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography color="text.secondary">No invoices found matching your filters.</Typography>
+            </Box>
           )}
 
           {/* Loading */}
           {loading && (
-            <div className="p-8 flex justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
+            <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}>
+              <CircularProgress />
+            </Box>
           )}
 
           {/* Load More */}
           {!loading && hasMore && invoices.length > 0 && (
-            <div className="p-4 border-t border-slate-200">
-              <button
+            <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+              <Button
+                fullWidth
                 onClick={() => {
                   setOffset(prev => prev + limit);
                   fetchInvoices(false);
                 }}
-                className="w-full py-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
               >
                 Load More
-              </button>
-            </div>
+              </Button>
+            </Box>
           )}
-        </div>
-      </div>
+        </Paper>
+      </Box>
 
       {/* Invoice Detail Modal */}
-      {selectedInvoice && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-slate-200 p-4 flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-900">
-                Invoice {selectedInvoice.invoice_number || 'Details'}
-              </h2>
-              <button
-                onClick={() => {
-                  setSelectedInvoice(null);
-                  setInvoiceFiles([]);
-                }}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+      <Modal
+        open={!!selectedInvoice}
+        onClose={() => {
+          setSelectedInvoice(null);
+          setInvoiceFiles([]);
+        }}
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: { xs: '90%', sm: 600 },
+          maxHeight: '90vh',
+          overflow: 'auto',
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          boxShadow: 24,
+        }}>
+          {selectedInvoice && (
+            <>
+              {/* Modal Header */}
+              <Box sx={{ position: 'sticky', top: 0, bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h6" fontWeight="bold">
+                  Invoice {selectedInvoice.invoice_number || 'Details'}
+                </Typography>
+                <IconButton
+                  onClick={() => {
+                    setSelectedInvoice(null);
+                    setInvoiceFiles([]);
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Box>
 
-            {/* Modal Body */}
-            <div className="p-4 space-y-6">
-              {/* Status */}
-              <div className="flex justify-between items-center">
-                <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${getStatusBadge(selectedInvoice.payment_status)}`}>
-                  {selectedInvoice.payment_status || 'Unknown'}
-                </span>
-                {selectedInvoice.document_type && (
-                  <span className="text-sm text-slate-500">{selectedInvoice.document_type}</span>
+              {/* Modal Body */}
+              <Box sx={{ p: 3 }}>
+                {/* Status */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                  <Chip
+                    label={selectedInvoice.payment_status || 'Unknown'}
+                    color={getStatusColor(selectedInvoice.payment_status)}
+                  />
+                  {selectedInvoice.document_type && (
+                    <Typography variant="body2" color="text.secondary">{selectedInvoice.document_type}</Typography>
+                  )}
+                </Box>
+
+                {/* Details Grid */}
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid size={{ xs: 6 }}>
+                    <Typography variant="body2" color="text.secondary">Vendor</Typography>
+                    <Typography fontWeight={500}>{selectedInvoice.vendor_name || '-'}</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6 }}>
+                    <Typography variant="body2" color="text.secondary">Project</Typography>
+                    <Typography fontWeight={500}>{selectedInvoice.project_code || '-'}</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6 }}>
+                    <Typography variant="body2" color="text.secondary">Invoice Date</Typography>
+                    <Typography fontWeight={500}>{formatDate(selectedInvoice.invoice_date)}</Typography>
+                  </Grid>
+                  <Grid size={{ xs: 6 }}>
+                    <Typography variant="body2" color="text.secondary">Due Date</Typography>
+                    <Typography fontWeight={500}>{formatDate(selectedInvoice.due_date)}</Typography>
+                  </Grid>
+                  {selectedInvoice.payment_date && (
+                    <Grid size={{ xs: 6 }}>
+                      <Typography variant="body2" color="text.secondary">Payment Date</Typography>
+                      <Typography fontWeight={500}>{formatDate(selectedInvoice.payment_date)}</Typography>
+                    </Grid>
+                  )}
+                  <Grid size={{ xs: 6 }}>
+                    <Typography variant="body2" color="text.secondary">Category</Typography>
+                    <Typography fontWeight={500}>
+                      {selectedInvoice.category || '-'}
+                      {selectedInvoice.subcategory && ` / ${selectedInvoice.subcategory}`}
+                    </Typography>
+                  </Grid>
+                </Grid>
+
+                {/* Amounts */}
+                <Paper sx={{ bgcolor: 'grey.50', p: 2, mb: 3 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Subtotal</Typography>
+                    <Typography variant="body2">{formatCurrency(selectedInvoice.subtotal)}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Tax</Typography>
+                    <Typography variant="body2">{formatCurrency(selectedInvoice.tax_amount)}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 1, borderTop: 1, borderColor: 'divider' }}>
+                    <Typography fontWeight={500}>Total</Typography>
+                    <Typography fontWeight={500}>{formatCurrency(selectedInvoice.total_amount)}</Typography>
+                  </Box>
+                </Paper>
+
+                {/* Notes */}
+                {selectedInvoice.notes && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Notes</Typography>
+                    <Paper sx={{ bgcolor: 'grey.50', p: 1.5 }}>
+                      <Typography variant="body2">{selectedInvoice.notes}</Typography>
+                    </Paper>
+                  </Box>
                 )}
-              </div>
 
-              {/* Details Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-slate-500">Vendor</p>
-                  <p className="font-medium text-slate-900">{selectedInvoice.vendor_name || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Project</p>
-                  <p className="font-medium text-slate-900">{selectedInvoice.project_code || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Invoice Date</p>
-                  <p className="font-medium text-slate-900">{formatDate(selectedInvoice.invoice_date)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">Due Date</p>
-                  <p className="font-medium text-slate-900">{formatDate(selectedInvoice.due_date)}</p>
-                </div>
-                {selectedInvoice.payment_date && (
-                  <div>
-                    <p className="text-sm text-slate-500">Payment Date</p>
-                    <p className="font-medium text-slate-900">{formatDate(selectedInvoice.payment_date)}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm text-slate-500">Category</p>
-                  <p className="font-medium text-slate-900">
-                    {selectedInvoice.category || '-'}
-                    {selectedInvoice.subcategory && ` / ${selectedInvoice.subcategory}`}
-                  </p>
-                </div>
-              </div>
-
-              {/* Amounts */}
-              <div className="bg-slate-50 rounded-lg p-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Subtotal</span>
-                    <span className="text-slate-900">{formatCurrency(selectedInvoice.subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Tax</span>
-                    <span className="text-slate-900">{formatCurrency(selectedInvoice.tax_amount)}</span>
-                  </div>
-                  <div className="flex justify-between font-medium pt-2 border-t border-slate-200">
-                    <span className="text-slate-900">Total</span>
-                    <span className="text-slate-900">{formatCurrency(selectedInvoice.total_amount)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Notes */}
-              {selectedInvoice.notes && (
-                <div>
-                  <p className="text-sm text-slate-500 mb-1">Notes</p>
-                  <p className="text-slate-900 text-sm bg-slate-50 rounded-lg p-3">{selectedInvoice.notes}</p>
-                </div>
-              )}
-
-              {/* Files */}
-              {invoiceFiles.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-slate-700 mb-2">Attached Files</p>
-                  <div className="space-y-2">
+                {/* Files */}
+                {invoiceFiles.length > 0 && (
+                  <Box>
+                    <Typography variant="body2" fontWeight={500} sx={{ mb: 1 }}>Attached Files</Typography>
                     {invoiceFiles.map((file) => (
-                      <div
-                        key={file.id}
-                        className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg"
-                      >
-                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-slate-900 truncate">{file.original_filename}</p>
+                      <Paper key={file.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5, mb: 1, bgcolor: 'grey.50' }}>
+                        <DescriptionIcon sx={{ color: 'text.secondary' }} />
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography variant="body2" fontWeight={500} noWrap>{file.original_filename}</Typography>
                           {file.file_size && (
-                            <p className="text-xs text-slate-500">
+                            <Typography variant="caption" color="text.secondary">
                               {(file.file_size / 1024).toFixed(1)} KB
-                            </p>
+                            </Typography>
                           )}
-                        </div>
+                        </Box>
                         {file.file_extension?.toUpperCase() && (
-                          <span className="text-xs text-slate-500 uppercase">{file.file_extension}</span>
+                          <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase' }}>
+                            {file.file_extension}
+                          </Typography>
                         )}
-                      </div>
+                      </Paper>
                     ))}
-                  </div>
-                </div>
-              )}
-            </div>
+                  </Box>
+                )}
+              </Box>
 
-            {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-white border-t border-slate-200 p-4">
-              <button
-                onClick={() => {
-                  setSelectedInvoice(null);
-                  setInvoiceFiles([]);
-                }}
-                className="w-full py-3 bg-slate-100 text-slate-700 font-medium rounded-lg hover:bg-slate-200 transition"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              {/* Modal Footer */}
+              <Box sx={{ position: 'sticky', bottom: 0, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider', p: 2 }}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={() => {
+                    setSelectedInvoice(null);
+                    setInvoiceFiles([]);
+                  }}
+                >
+                  Close
+                </Button>
+              </Box>
+            </>
+          )}
+        </Box>
+      </Modal>
     </AppLayout>
   );
 }

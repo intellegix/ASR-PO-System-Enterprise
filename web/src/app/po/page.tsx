@@ -7,6 +7,39 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
+import { PONumberDisplay, PONumberLegend } from '@/components/mui';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Checkbox,
+  Chip,
+  CircularProgress,
+  Grid,
+  IconButton,
+  MenuItem,
+  Paper,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+  type SelectChangeEvent,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import FilterListOffIcon from '@mui/icons-material/FilterListOff';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface PO {
   id: string;
@@ -74,6 +107,21 @@ function triggerDownload(csv: string, filename: string): void {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
+  Draft: { bg: '#f1f5f9', color: '#475569' },
+  Submitted: { bg: '#fef3c7', color: '#92400e' },
+  Approved: { bg: '#dcfce7', color: '#166534' },
+  Issued: { bg: '#dbeafe', color: '#1e40af' },
+  Received: { bg: '#f3e8ff', color: '#6b21a8' },
+  Invoiced: { bg: '#e0e7ff', color: '#3730a3' },
+  Paid: { bg: '#d1fae5', color: '#065f46' },
+  Cancelled: { bg: '#f3f4f6', color: '#6b7280' },
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  Submitted: 'Pending Approval',
+};
 
 export default function POListPage() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -328,9 +376,9 @@ export default function POListPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
@@ -356,428 +404,472 @@ export default function POListPage() {
     });
   };
 
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      Draft: 'bg-slate-100 text-slate-700',
-      Submitted: 'bg-amber-100 text-amber-700',
-      Approved: 'bg-green-100 text-green-700',
-      Issued: 'bg-blue-100 text-blue-700',
-      Received: 'bg-purple-100 text-purple-700',
-      Invoiced: 'bg-indigo-100 text-indigo-700',
-      Paid: 'bg-emerald-100 text-emerald-700',
-      Cancelled: 'bg-gray-100 text-gray-500',
-    };
-    return styles[status] || 'bg-slate-100 text-slate-700';
-  };
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      Submitted: 'Pending Approval',
-    };
-    return labels[status] || status;
-  };
-
-  const sortIndicator = (field: SortField) => {
-    if (sortField !== field) return <span className="text-slate-300 ml-1">{'\u25B2'}</span>;
+  const getStatusChip = (status: string, vendorId: string | null) => {
+    const colors = STATUS_COLORS[status] || STATUS_COLORS.Draft;
+    const label = STATUS_LABELS[status] || status;
     return (
-      <span className="text-orange-500 ml-1">
-        {sortDirection === 'asc' ? '\u25B2' : '\u25BC'}
-      </span>
+      <Box sx={{ display: 'inline-flex', gap: 0.5, flexWrap: 'wrap' }}>
+        <Chip
+          label={label}
+          size="small"
+          sx={{ bgcolor: colors.bg, color: colors.color, fontWeight: 500, fontSize: '0.75rem' }}
+        />
+        {status === 'Draft' && !vendorId && (
+          <Chip
+            label="Incomplete"
+            size="small"
+            sx={{ bgcolor: '#fef9c3', color: '#a16207', fontWeight: 500, fontSize: '0.75rem' }}
+          />
+        )}
+      </Box>
     );
   };
 
-  const SortableHeader = ({ field, label, align = 'left' }: { field: SortField; label: string; align?: 'left' | 'right' | 'center' }) => (
-    <th
-      className={`px-4 py-3 text-sm font-medium text-slate-700 cursor-pointer select-none hover:bg-slate-100 transition text-${align}`}
+  const SortableHeaderCell = ({ field, label, align = 'left' }: { field: SortField; label: React.ReactNode; align?: 'left' | 'right' | 'center' }) => (
+    <TableCell
+      align={align}
+      sx={{
+        fontWeight: 600,
+        fontSize: '0.8125rem',
+        color: 'text.secondary',
+        cursor: 'pointer',
+        userSelect: 'none',
+        '&:hover': { bgcolor: 'action.hover' },
+        whiteSpace: 'nowrap',
+      }}
       onClick={() => handleSort(field)}
     >
-      <span className="inline-flex items-center gap-0.5">
+      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
         {label}
-        {sortIndicator(field)}
-      </span>
-    </th>
+        {sortField === field ? (
+          sortDirection === 'asc' ? (
+            <ArrowUpwardIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+          ) : (
+            <ArrowDownwardIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+          )
+        ) : (
+          <ArrowUpwardIcon sx={{ fontSize: 16, color: 'action.disabled' }} />
+        )}
+      </Box>
+    </TableCell>
   );
 
   return (
     <AppLayout pageTitle="Purchase Orders">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-slate-500">{filteredPOs.length} POs found</p>
-          <div className="flex items-center gap-3">
-            <button
+      <Box sx={{ maxWidth: 1280, mx: 'auto' }}>
+        {/* Header bar */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            {filteredPOs.length} POs found
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Button
               onClick={handleExportAll}
               disabled={filteredPOs.length === 0}
-              className="inline-flex items-center gap-2 bg-white text-slate-700 border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50 transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="outlined"
+              color="secondary"
+              startIcon={<FileDownloadIcon />}
+              size="small"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
               Export CSV
-            </button>
-            <Link
+            </Button>
+            <Button
+              component={Link}
               href="/po/create"
-              className="inline-flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition font-medium"
+              variant="contained"
+              startIcon={<AddIcon />}
+              size="small"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span className="hidden sm:inline">New PO</span>
-            </Link>
-          </div>
-        </div>
+              New PO
+            </Button>
+          </Box>
+        </Box>
 
-        <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Search</label>
-              <input
-                type="text"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                placeholder="PO number or vendor..."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Statuses</option>
-                <option value="Draft">Draft</option>
-                <option value="Incomplete">Incomplete (No Vendor)</option>
-                <option value="Submitted">Pending Approval</option>
-                <option value="Approved">Approved</option>
-                <option value="Issued">Issued</option>
-                <option value="Received">Received</option>
-                <option value="Invoiced">Invoiced</option>
-                <option value="Paid">Paid</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Vendor</label>
-              <select
-                value={vendorFilter}
-                onChange={(e) => setVendorFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Vendors</option>
-                {vendors.map((v) => (
-                  <option key={v.id} value={v.vendor_name}>
-                    {v.vendor_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Date From</label>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Date To</label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Min Amount</label>
-              <input
-                type="number"
-                value={amountMin}
-                onChange={(e) => setAmountMin(e.target.value)}
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Max Amount</label>
-              <input
-                type="number"
-                value={amountMax}
-                onChange={(e) => setAmountMax(e.target.value)}
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            {hasActiveFilters && (
-              <div className="flex items-end">
-                <button
-                  onClick={clearAllFilters}
-                  className="w-full px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 border border-blue-200 rounded-lg hover:bg-blue-50 transition"
+        {/* Filters */}
+        <Card sx={{ mb: 2 }}>
+          <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <TextField
+                  label="Search"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  placeholder="PO number or vendor..."
+                  size="small"
+                  fullWidth
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <TextField
+                  label="Status"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  select
+                  size="small"
+                  fullWidth
                 >
-                  Clear all filters
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto pb-20">
-        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-          {loading ? (
-            <div className="p-8 flex justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-          ) : filteredPOs.length === 0 ? (
-            <div className="p-8 text-center">
-              <svg className="w-12 h-12 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <p className="text-slate-500 mb-4">
-                {hasActiveFilters ? 'No purchase orders match your filters' : 'No purchase orders found'}
-              </p>
-              {hasActiveFilters ? (
-                <button
-                  onClick={clearAllFilters}
-                  className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
+                  <MenuItem value="">All Statuses</MenuItem>
+                  <MenuItem value="Draft">Draft</MenuItem>
+                  <MenuItem value="Incomplete">Incomplete (No Vendor)</MenuItem>
+                  <MenuItem value="Submitted">Pending Approval</MenuItem>
+                  <MenuItem value="Approved">Approved</MenuItem>
+                  <MenuItem value="Issued">Issued</MenuItem>
+                  <MenuItem value="Received">Received</MenuItem>
+                  <MenuItem value="Invoiced">Invoiced</MenuItem>
+                  <MenuItem value="Paid">Paid</MenuItem>
+                  <MenuItem value="Cancelled">Cancelled</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <TextField
+                  label="Vendor"
+                  value={vendorFilter}
+                  onChange={(e) => setVendorFilter(e.target.value)}
+                  select
+                  size="small"
+                  fullWidth
                 >
-                  Clear filters
-                </button>
-              ) : (
-                <Link
-                  href="/po/create"
-                  className="inline-flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Create your first PO
-                </Link>
+                  <MenuItem value="">All Vendors</MenuItem>
+                  {vendors.map((v) => (
+                    <MenuItem key={v.id} value={v.vendor_name}>
+                      {v.vendor_name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <TextField
+                  label="Date From"
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  size="small"
+                  fullWidth
+                  slotProps={{ inputLabel: { shrink: true } }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <TextField
+                  label="Date To"
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  size="small"
+                  fullWidth
+                  slotProps={{ inputLabel: { shrink: true } }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <TextField
+                  label="Min Amount"
+                  type="number"
+                  value={amountMin}
+                  onChange={(e) => setAmountMin(e.target.value)}
+                  placeholder="0.00"
+                  size="small"
+                  fullWidth
+                  slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <TextField
+                  label="Max Amount"
+                  type="number"
+                  value={amountMax}
+                  onChange={(e) => setAmountMax(e.target.value)}
+                  placeholder="0.00"
+                  size="small"
+                  fullWidth
+                  slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                />
+              </Grid>
+              {hasActiveFilters && (
+                <Grid size={{ xs: 12, sm: 6, lg: 3 }} sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                  <Button
+                    onClick={clearAllFilters}
+                    startIcon={<FilterListOffIcon />}
+                    color="primary"
+                    fullWidth
+                    size="small"
+                    sx={{ height: 40 }}
+                  >
+                    Clear all filters
+                  </Button>
+                </Grid>
               )}
-            </div>
+            </Grid>
+          </CardContent>
+        </Card>
+
+        {/* Table / Cards */}
+        <Card sx={{ mb: 10 }}>
+          {loading ? (
+            <CardContent sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress />
+            </CardContent>
+          ) : filteredPOs.length === 0 ? (
+            <CardContent sx={{ textAlign: 'center', py: 6 }}>
+              <DescriptionOutlinedIcon sx={{ fontSize: 48, color: 'action.disabled', mb: 2 }} />
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                {hasActiveFilters ? 'No purchase orders match your filters' : 'No purchase orders found'}
+              </Typography>
+              {hasActiveFilters ? (
+                <Button onClick={clearAllFilters} startIcon={<FilterListOffIcon />}>
+                  Clear filters
+                </Button>
+              ) : (
+                <Button component={Link} href="/po/create" variant="contained" startIcon={<AddIcon />}>
+                  Create your first PO
+                </Button>
+              )}
+            </CardContent>
           ) : (
             <>
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-50 border-b border-slate-200">
-                    <tr>
-                      <th className="px-4 py-3 w-10">
-                        <input
-                          type="checkbox"
+              {/* Desktop Table */}
+              <TableContainer sx={{ display: { xs: 'none', md: 'block' } }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: 'grey.50' }}>
+                      <TableCell padding="checkbox">
+                        <Checkbox
                           checked={allCurrentPageSelected}
                           onChange={toggleSelectAll}
-                          className="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500"
+                          size="small"
+                          sx={{ color: 'action.active', '&.Mui-checked': { color: 'primary.main' } }}
                         />
-                      </th>
-                      <SortableHeader field="po_number" label="PO Number" />
-                      <SortableHeader field="vendor" label="Vendor" />
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Project</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Division</th>
-                      <SortableHeader field="amount" label="Amount" align="right" />
-                      <SortableHeader field="status" label="Status" align="center" />
-                      <SortableHeader field="created_at" label="Created" />
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
+                      </TableCell>
+                      <SortableHeaderCell
+                        field="po_number"
+                        label={
+                          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                            PO Number <PONumberLegend />
+                          </Box>
+                        }
+                      />
+                      <SortableHeaderCell field="vendor" label="Vendor" />
+                      <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary' }}>Project</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary' }}>Division</TableCell>
+                      <SortableHeaderCell field="amount" label="Amount" align="right" />
+                      <SortableHeaderCell field="status" label="Status" align="center" />
+                      <SortableHeaderCell field="created_at" label="Created" />
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
                     {paginatedPOs.map((po) => (
-                      <tr
+                      <TableRow
                         key={po.id}
-                        className={`hover:bg-slate-50 cursor-pointer transition ${selectedIds.has(po.id) ? 'bg-orange-50' : ''}`}
+                        hover
+                        sx={{
+                          cursor: 'pointer',
+                          bgcolor: selectedIds.has(po.id) ? 'rgba(249, 115, 22, 0.04)' : 'transparent',
+                        }}
                       >
-                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                          <input
-                            type="checkbox"
+                        <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
                             checked={selectedIds.has(po.id)}
                             onChange={() => toggleSelect(po.id)}
-                            className="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500"
+                            size="small"
+                            sx={{ color: 'action.active', '&.Mui-checked': { color: 'primary.main' } }}
                           />
-                        </td>
-                        <td
-                          className="px-4 py-3 text-sm font-mono font-medium text-slate-900"
-                          onClick={() => router.push(`/po/view?id=${po.id}`)}
-                        >
-                          {po.po_number}
-                        </td>
-                        <td
-                          className="px-4 py-3 text-sm text-slate-600"
-                          onClick={() => router.push(`/po/view?id=${po.id}`)}
-                        >
-                          {po.vendors?.vendor_name || (po.vendor_id ? '-' : <span className="text-yellow-600 italic">TBD</span>)}
-                        </td>
-                        <td
-                          className="px-4 py-3 text-sm text-slate-600"
-                          onClick={() => router.push(`/po/view?id=${po.id}`)}
-                        >
+                        </TableCell>
+                        <TableCell onClick={() => router.push(`/po/view?id=${po.id}`)}>
+                          <PONumberDisplay poNumber={po.po_number} size="medium" />
+                        </TableCell>
+                        <TableCell onClick={() => router.push(`/po/view?id=${po.id}`)} sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
+                          {po.vendors?.vendor_name || (po.vendor_id ? '-' : (
+                            <Typography component="span" sx={{ color: 'warning.dark', fontStyle: 'italic', fontSize: '0.875rem' }}>TBD</Typography>
+                          ))}
+                        </TableCell>
+                        <TableCell onClick={() => router.push(`/po/view?id=${po.id}`)} sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
                           {po.projects?.project_code || '-'}
-                        </td>
-                        <td
-                          className="px-4 py-3 text-sm text-slate-600"
-                          onClick={() => router.push(`/po/view?id=${po.id}`)}
-                        >
+                        </TableCell>
+                        <TableCell onClick={() => router.push(`/po/view?id=${po.id}`)} sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
                           {po.divisions?.division_name || '-'}
-                        </td>
-                        <td
-                          className="px-4 py-3 text-sm text-slate-900 text-right font-medium"
+                        </TableCell>
+                        <TableCell
+                          align="right"
                           onClick={() => router.push(`/po/view?id=${po.id}`)}
+                          sx={{ fontWeight: 500, fontSize: '0.875rem' }}
                         >
                           {formatCurrency(po.total_amount)}
-                        </td>
-                        <td
-                          className="px-4 py-3 text-center"
-                          onClick={() => router.push(`/po/view?id=${po.id}`)}
-                        >
-                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(po.status)}`}>
-                            {getStatusLabel(po.status)}
-                          </span>
-                          {po.status === 'Draft' && !po.vendor_id && (
-                            <span className="inline-flex ml-1 px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
-                              Incomplete
-                            </span>
-                          )}
-                        </td>
-                        <td
-                          className="px-4 py-3 text-sm text-slate-500"
-                          onClick={() => router.push(`/po/view?id=${po.id}`)}
-                        >
+                        </TableCell>
+                        <TableCell align="center" onClick={() => router.push(`/po/view?id=${po.id}`)}>
+                          {getStatusChip(po.status, po.vendor_id)}
+                        </TableCell>
+                        <TableCell onClick={() => router.push(`/po/view?id=${po.id}`)} sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
                           {formatDate(po.created_at)}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </TableBody>
+                </Table>
+              </TableContainer>
 
-              <div className="md:hidden divide-y divide-slate-200">
+              {/* Mobile Cards */}
+              <Box sx={{ display: { xs: 'block', md: 'none' } }}>
                 {paginatedPOs.map((po) => (
-                  <div
+                  <Box
                     key={po.id}
-                    className={`p-4 hover:bg-slate-50 cursor-pointer transition ${selectedIds.has(po.id) ? 'bg-orange-50' : ''}`}
+                    sx={{
+                      p: 2,
+                      borderBottom: 1,
+                      borderColor: 'divider',
+                      cursor: 'pointer',
+                      bgcolor: selectedIds.has(po.id) ? 'rgba(249, 115, 22, 0.04)' : 'transparent',
+                      '&:hover': { bgcolor: 'action.hover' },
+                    }}
                   >
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="checkbox"
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                      <Checkbox
                         checked={selectedIds.has(po.id)}
                         onChange={() => toggleSelect(po.id)}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-4 h-4 mt-1 rounded border-slate-300 text-orange-500 focus:ring-orange-500"
+                        size="small"
+                        sx={{ mt: 0.25, color: 'action.active', '&.Mui-checked': { color: 'primary.main' } }}
                       />
-                      <div className="flex-1" onClick={() => router.push(`/po/view?id=${po.id}`)}>
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <p className="font-mono font-medium text-slate-900">{po.po_number}</p>
-                            <p className="text-sm text-slate-500">{po.vendors?.vendor_name || (po.vendor_id ? '-' : <span className="text-yellow-600 italic">TBD</span>)}</p>
-                          </div>
-                          <div className="flex flex-wrap gap-1">
-                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(po.status)}`}>
-                              {getStatusLabel(po.status)}
-                            </span>
-                            {po.status === 'Draft' && !po.vendor_id && (
-                              <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
-                                Incomplete
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-slate-500">{po.divisions?.division_name}</span>
-                          <span className="font-medium text-slate-900">{formatCurrency(po.total_amount)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                      <Box sx={{ flex: 1 }} onClick={() => router.push(`/po/view?id=${po.id}`)}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                          <Box>
+                            <PONumberDisplay poNumber={po.po_number} size="medium" />
+                            <Typography variant="body2" color="text.secondary">
+                              {po.vendors?.vendor_name || (po.vendor_id ? '-' : (
+                                <Typography component="span" sx={{ color: 'warning.dark', fontStyle: 'italic', fontSize: 'inherit' }}>TBD</Typography>
+                              ))}
+                            </Typography>
+                          </Box>
+                          {getStatusChip(po.status, po.vendor_id)}
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Typography variant="body2" color="text.secondary">
+                            {po.divisions?.division_name}
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {formatCurrency(po.total_amount)}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Box>
                 ))}
-              </div>
+              </Box>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t border-slate-200 bg-slate-50">
-                <div className="flex items-center gap-4 text-sm text-slate-600">
-                  <span>
+              {/* Pagination */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 2,
+                  px: 2,
+                  py: 1.5,
+                  borderTop: 1,
+                  borderColor: 'divider',
+                  bgcolor: 'grey.50',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
                     Showing {startIndex + 1}-{endIndex} of {filteredPOs.length}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="rowsPerPage" className="text-slate-500">Rows:</label>
-                    <select
-                      id="rowsPerPage"
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Rows:</Typography>
+                    <Select
                       value={rowsPerPage}
-                      onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                      className="px-2 py-1 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      onChange={(e: SelectChangeEvent<number>) => setRowsPerPage(Number(e.target.value))}
+                      size="small"
+                      sx={{ minWidth: 60, '& .MuiSelect-select': { py: 0.5, fontSize: '0.875rem' } }}
                     >
-                      <option value={10}>10</option>
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                    </select>
-                  </div>
-                </div>
+                      <MenuItem value={10}>10</MenuItem>
+                      <MenuItem value={25}>25</MenuItem>
+                      <MenuItem value={50}>50</MenuItem>
+                    </Select>
+                  </Box>
+                </Box>
 
-                <div className="flex items-center gap-1">
-                  <button
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    size="small"
+                    variant="outlined"
+                    color="secondary"
+                    startIcon={<NavigateBeforeIcon />}
+                    sx={{ minWidth: 'auto', px: 1.5 }}
                   >
-                    Previous
-                  </button>
+                    Prev
+                  </Button>
                   {getPageNumbers().map((p, i) =>
                     p === 'ellipsis' ? (
-                      <span key={`ellipsis-${i}`} className="px-2 py-1.5 text-sm text-slate-400">
+                      <Typography key={`ellipsis-${i}`} variant="body2" sx={{ px: 1, color: 'text.disabled' }}>
                         ...
-                      </span>
+                      </Typography>
                     ) : (
-                      <button
+                      <Button
                         key={p}
                         onClick={() => setPage(p)}
-                        className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition ${
-                          page === p
-                            ? 'bg-orange-500 text-white border-orange-500'
-                            : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                        }`}
+                        size="small"
+                        variant={page === p ? 'contained' : 'outlined'}
+                        color={page === p ? 'primary' : 'secondary'}
+                        sx={{ minWidth: 36, px: 1 }}
                       >
                         {p}
-                      </button>
+                      </Button>
                     )
                   )}
-                  <button
+                  <Button
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
-                    className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    size="small"
+                    variant="outlined"
+                    color="secondary"
+                    endIcon={<NavigateNextIcon />}
+                    sx={{ minWidth: 'auto', px: 1.5 }}
                   >
                     Next
-                  </button>
-                </div>
-              </div>
+                  </Button>
+                </Box>
+              </Box>
             </>
           )}
-        </div>
-      </div>
+        </Card>
+      </Box>
 
+      {/* Bulk action bar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white rounded-xl px-6 py-3 shadow-lg flex items-center gap-4 z-50">
-          <span className="text-sm font-medium">{selectedIds.size} selected</span>
-          <button
+        <Paper
+          elevation={8}
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            bgcolor: 'grey.900',
+            color: 'white',
+            borderRadius: 3,
+            px: 3,
+            py: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            zIndex: 50,
+          }}
+        >
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            {selectedIds.size} selected
+          </Typography>
+          <Button
             onClick={handleExportSelected}
-            className="text-sm font-medium bg-orange-500 hover:bg-orange-600 px-4 py-1.5 rounded-lg transition"
+            variant="contained"
+            size="small"
+            sx={{ textTransform: 'none' }}
           >
             Export Selected
-          </button>
-          <button
-            onClick={clearSelection}
-            className="text-sm text-slate-400 hover:text-white transition"
-          >
-            Clear
-          </button>
-        </div>
+          </Button>
+          <IconButton onClick={clearSelection} size="small" sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Paper>
       )}
     </AppLayout>
   );

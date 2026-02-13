@@ -1,5 +1,10 @@
 'use client';
 
+import { Box, Button, Typography, Chip } from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import BusinessIcon from '@mui/icons-material/Business';
+import BuildIcon from '@mui/icons-material/Build';
+
 interface Division {
   id: string;
   division_code: string;
@@ -14,56 +19,107 @@ interface DivisionPickerProps {
   onSelect: (division: Division) => void;
 }
 
-const DIVISION_ICONS: Record<string, string> = {
-  'CAPEX': 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
-  'Roofing': 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
-  'Service Work': 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+const DIVISION_ICONS: Record<string, typeof HomeIcon> = {
+  'CAPEX': HomeIcon,
+  'Roofing': BusinessIcon,
+  'Service Work': BuildIcon,
 };
 
 export default function DivisionPicker({ divisions, selectedId, userDivisionId, onSelect }: DivisionPickerProps) {
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold text-slate-800 mb-1">Pick Division</h2>
-        <p className="text-sm text-slate-500">Which division is this purchase for?</p>
-      </div>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
+          Pick Division
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Which division is this purchase for?
+        </Typography>
+      </Box>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
         {divisions.map((div) => {
           const isSelected = selectedId === div.id;
           const isUserDivision = div.id === userDivisionId;
-          const iconPath = DIVISION_ICONS[div.division_name] || 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5';
+          const IconComponent = DIVISION_ICONS[div.division_name] || BusinessIcon;
 
           return (
-            <button
+            <Button
               key={div.id}
               onClick={() => onSelect(div)}
-              className={`relative flex items-center gap-4 p-4 rounded-xl border-2 transition text-left ${
-                isSelected
-                  ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-200'
-                  : 'border-slate-200 bg-white hover:border-orange-300 hover:bg-orange-50/50'
-              }`}
+              variant={isSelected ? 'contained' : 'outlined'}
+              color={isSelected ? 'warning' : 'inherit'}
+              sx={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                p: 2,
+                borderRadius: 3,
+                textAlign: 'left',
+                justifyContent: 'flex-start',
+                textTransform: 'none',
+                borderWidth: 2,
+                ...(isSelected ? {
+                  borderColor: 'warning.main',
+                  bgcolor: 'warning.lighter',
+                  boxShadow: '0 0 0 2px rgba(255, 152, 0, 0.2)',
+                  '&:hover': {
+                    bgcolor: 'warning.light'
+                  }
+                } : {
+                  borderColor: 'grey.300',
+                  color: 'text.primary',
+                  '&:hover': {
+                    borderColor: 'warning.light',
+                    bgcolor: 'warning.lighter'
+                  }
+                })
+              }}
             >
-              <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${
-                isSelected ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-600'
-              }`}>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
-                </svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-slate-900 truncate">{div.division_name}</p>
-                <p className="text-sm text-slate-500">{div.cost_center_prefix}</p>
-              </div>
+              <Box
+                sx={{
+                  flexShrink: 0,
+                  width: 48,
+                  height: 48,
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: isSelected ? 'warning.main' : 'grey.100',
+                  color: isSelected ? 'white' : 'text.secondary'
+                }}
+              >
+                <IconComponent sx={{ width: 24, height: 24 }} />
+              </Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="body1" sx={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {div.division_name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {div.cost_center_prefix}
+                </Typography>
+              </Box>
               {isUserDivision && (
-                <span className="absolute top-2 right-2 text-[10px] font-medium bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
-                  Your Division
-                </span>
+                <Chip
+                  label="Your Division"
+                  size="small"
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    height: 20,
+                    fontSize: 10,
+                    fontWeight: 500,
+                    bgcolor: 'info.lighter',
+                    color: 'info.dark'
+                  }}
+                />
               )}
-            </button>
+            </Button>
           );
         })}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

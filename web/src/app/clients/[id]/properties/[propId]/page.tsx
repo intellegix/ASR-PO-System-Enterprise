@@ -5,6 +5,19 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
+import {
+  Box,
+  Typography,
+  Card,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  CircularProgress,
+} from '@mui/material';
 
 interface Project {
   id: string;
@@ -67,9 +80,9 @@ export default function PropertyDetailPage({
   if (authLoading || loading) {
     return (
       <AppLayout pageTitle="Property">
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-        </div>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh' }}>
+          <CircularProgress sx={{ color: 'warning.main' }} />
+        </Box>
       </AppLayout>
     );
   }
@@ -82,10 +95,16 @@ export default function PropertyDetailPage({
   if (error || !property) {
     return (
       <AppLayout pageTitle="Property">
-        <div className="max-w-4xl mx-auto text-center py-12">
-          <p className="text-red-600 mb-4">{error || 'Property not found'}</p>
-          <Link href="/clients" className="text-orange-600 hover:text-orange-700">Back to Clients</Link>
-        </div>
+        <Box sx={{ maxWidth: '1024px', mx: 'auto', textAlign: 'center', py: 6 }}>
+          <Typography color="error" sx={{ mb: 2 }}>
+            {error || 'Property not found'}
+          </Typography>
+          <Link href="/clients" style={{ color: '#ff6f00', textDecoration: 'none' }}>
+            <Typography sx={{ '&:hover': { textDecoration: 'underline' } }}>
+              Back to Clients
+            </Typography>
+          </Link>
+        </Box>
       </AppLayout>
     );
   }
@@ -98,102 +117,134 @@ export default function PropertyDetailPage({
 
   return (
     <AppLayout pageTitle={property.property_name}>
-      <div className="max-w-5xl mx-auto space-y-6">
+      <Box sx={{ maxWidth: '1200px', mx: 'auto', '& > *:not(:last-child)': { mb: 3 } }}>
         {/* Breadcrumb */}
-        <nav className="text-sm text-slate-500">
-          <Link href="/clients" className="hover:text-orange-600">Clients</Link>
-          <span className="mx-2">/</span>
-          <Link href={`/clients/${clientId}`} className="hover:text-orange-600">{property.clients.client_name}</Link>
-          <span className="mx-2">/</span>
-          <span className="text-slate-900 font-medium">{property.property_name}</span>
-        </nav>
+        <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+          <Link href="/clients" style={{ color: 'inherit', textDecoration: 'none' }}>
+            <Box component="span" sx={{ '&:hover': { color: 'warning.main' } }}>
+              Clients
+            </Box>
+          </Link>
+          <Box component="span" sx={{ mx: 1 }}>/</Box>
+          <Link href={`/clients/${clientId}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+            <Box component="span" sx={{ '&:hover': { color: 'warning.main' } }}>
+              {property.clients.client_name}
+            </Box>
+          </Link>
+          <Box component="span" sx={{ mx: 1 }}>/</Box>
+          <Box component="span" sx={{ color: 'text.primary', fontWeight: 'medium' }}>
+            {property.property_name}
+          </Box>
+        </Box>
 
         {/* Property info header */}
-        <div className="bg-white rounded-lg border border-slate-200 p-6">
-          <h1 className="text-2xl font-bold text-slate-900">{property.property_name}</h1>
+        <Card sx={{ border: 1, borderColor: 'divider', p: 3 }}>
+          <Typography variant="h4" fontWeight="bold" color="text.primary">
+            {property.property_name}
+          </Typography>
           {property.property_address && (
-            <p className="text-sm text-slate-600 mt-1">{property.property_address}</p>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              {property.property_address}
+            </Typography>
           )}
           {(property.city || property.state) && (
-            <p className="text-sm text-slate-500">
+            <Typography variant="body2" color="text.secondary">
               {[property.city, property.state, property.zip].filter(Boolean).join(', ')}
-            </p>
+            </Typography>
           )}
           {property.notes && (
-            <p className="text-sm text-slate-500 mt-2 italic">{property.notes}</p>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
+              {property.notes}
+            </Typography>
           )}
-        </div>
+        </Card>
 
         {/* Projects table */}
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">
+        <Box>
+          <Typography variant="h6" fontWeight="semibold" color="text.primary" sx={{ mb: 2 }}>
             Projects ({property.projects.length})
-          </h2>
+          </Typography>
 
           {property.projects.length === 0 ? (
-            <div className="bg-white rounded-lg border border-slate-200 p-8 text-center">
-              <p className="text-slate-500">No projects linked to this property.</p>
-            </div>
+            <Card sx={{ border: 1, borderColor: 'divider', p: 4, textAlign: 'center' }}>
+              <Typography color="text.secondary">No projects linked to this property.</Typography>
+            </Card>
           ) : (
             <>
               {/* Desktop table */}
-              <div className="hidden md:block bg-white rounded-lg border border-slate-200 overflow-hidden">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Code</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Name</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Budget</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">POs</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {property.projects.map((project) => (
-                      <tr key={project.id} className="hover:bg-slate-50 transition">
-                        <td className="px-4 py-3 text-sm font-mono text-slate-600">{project.project_code}</td>
-                        <td className="px-4 py-3 text-sm font-medium text-slate-900">{project.project_name}</td>
-                        <td className="px-4 py-3">
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${
-                            project.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
-                          }`}>
-                            {project.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600 text-right">{formatCurrency(project.budget_total)}</td>
-                        <td className="px-4 py-3 text-sm text-slate-600 text-center">{project.po_count || 0}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                <Card sx={{ border: 1, borderColor: 'divider', overflow: 'hidden' }}>
+                  <TableContainer>
+                    <Table>
+                      <TableHead sx={{ bgcolor: 'grey.50' }}>
+                        <TableRow>
+                          <TableCell sx={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Code</TableCell>
+                          <TableCell sx={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Name</TableCell>
+                          <TableCell sx={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Status</TableCell>
+                          <TableCell align="right" sx={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>Budget</TableCell>
+                          <TableCell align="center" sx={{ textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600 }}>POs</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {property.projects.map((project) => (
+                          <TableRow key={project.id} hover sx={{ transition: 'background-color 0.2s' }}>
+                            <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.875rem' }}>
+                              {project.project_code}
+                            </TableCell>
+                            <TableCell sx={{ fontSize: '0.875rem', fontWeight: 'medium' }}>
+                              {project.project_name}
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={project.status}
+                                color={project.status === 'Active' ? 'success' : 'default'}
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontSize: '0.875rem' }}>
+                              {formatCurrency(project.budget_total)}
+                            </TableCell>
+                            <TableCell align="center" sx={{ fontSize: '0.875rem' }}>
+                              {project.po_count || 0}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Card>
+              </Box>
 
               {/* Mobile cards */}
-              <div className="md:hidden space-y-3">
+              <Box sx={{ display: { xs: 'block', md: 'none' }, '& > *:not(:last-child)': { mb: 1.5 } }}>
                 {property.projects.map((project) => (
-                  <div key={project.id} className="bg-white rounded-lg border border-slate-200 p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-medium text-slate-900">{project.project_name}</p>
-                        <p className="text-sm text-slate-500 font-mono">{project.project_code}</p>
-                      </div>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        project.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        {project.status}
-                      </span>
-                    </div>
-                    <div className="flex gap-4 mt-2 text-xs text-slate-500">
+                  <Card key={project.id} sx={{ border: 1, borderColor: 'divider', p: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                      <Box>
+                        <Typography fontWeight="medium" color="text.primary">
+                          {project.project_name}
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontFamily: 'monospace' }} color="text.secondary">
+                          {project.project_code}
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={project.status}
+                        color={project.status === 'Active' ? 'success' : 'default'}
+                        size="small"
+                      />
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2, mt: 1, fontSize: '0.75rem', color: 'text.secondary' }}>
                       <span>Budget: {formatCurrency(project.budget_total)}</span>
                       <span>{project.po_count || 0} POs</span>
-                    </div>
-                  </div>
+                    </Box>
+                  </Card>
                 ))}
-              </div>
+              </Box>
             </>
           )}
-        </div>
-      </div>
+        </Box>
+      </Box>
     </AppLayout>
   );
 }

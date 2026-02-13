@@ -4,6 +4,26 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import AppLayout from '@/components/layout/AppLayout';
+import {
+  Box,
+  Typography,
+  Button,
+  Tabs,
+  Tab,
+  TextField,
+  MenuItem,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  CircularProgress,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 type TabType = 'vendor' | 'customer';
 
@@ -42,18 +62,18 @@ export default function InvoicesPage() {
     },
   });
 
-  const statusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      Pending: 'bg-yellow-100 text-yellow-800',
-      Approved: 'bg-blue-100 text-blue-800',
-      Paid: 'bg-green-100 text-green-800',
-      Disputed: 'bg-red-100 text-red-800',
-      Draft: 'bg-gray-100 text-gray-800',
-      Sent: 'bg-blue-100 text-blue-800',
-      Overdue: 'bg-red-100 text-red-800',
-      Cancelled: 'bg-gray-100 text-gray-500',
+  const getChipColor = (status: string): 'warning' | 'info' | 'success' | 'error' => {
+    const colors: Record<string, 'warning' | 'info' | 'success' | 'error'> = {
+      Pending: 'warning',
+      Approved: 'info',
+      Paid: 'success',
+      Disputed: 'error',
+      Draft: 'warning',
+      Sent: 'info',
+      Overdue: 'error',
+      Cancelled: 'error',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status] || 'warning';
   };
 
   interface VendorInvoice {
@@ -111,247 +131,229 @@ export default function InvoicesPage() {
 
   return (
     <AppLayout pageTitle="Invoices">
-      <div className="max-w-7xl mx-auto">
+      <Box sx={{ maxWidth: 1280, mx: 'auto' }}>
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-          <div>
-            <p className="text-sm text-slate-500">Manage vendor and customer invoices</p>
-          </div>
-          <div className="flex gap-3 mt-4 sm:mt-0">
-            <Link
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, justifyContent: { sm: 'space-between' }, mb: 3 }}>
+          <Box>
+            <Typography variant="body2" color="text.secondary">Manage vendor and customer invoices</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1.5, mt: { xs: 2, sm: 0 } }}>
+            <Button
+              component={Link}
               href="/invoices/vendor/create"
-              className="inline-flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition font-medium text-sm"
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{ bgcolor: 'orange.main', '&:hover': { bgcolor: 'orange.dark' } }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
               Record Vendor Invoice
-            </Link>
-            <Link
+            </Button>
+            <Button
+              component={Link}
               href="/invoices/customer/create"
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium text-sm"
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
               Create Customer Invoice
-            </Link>
-          </div>
-        </div>
+            </Button>
+          </Box>
+        </Box>
 
         {/* Tabs */}
-        <div className="border-b border-slate-200 mb-6">
-          <nav className="flex gap-6">
-            <button
-              onClick={() => setActiveTab('vendor')}
-              className={`pb-3 text-sm font-medium border-b-2 transition ${
-                activeTab === 'vendor'
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Vendor Invoices (AP)
-              {vendorInvoices?.length > 0 && (
-                <span className="ml-2 bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded-full">
-                  {vendorInvoices.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('customer')}
-              className={`pb-3 text-sm font-medium border-b-2 transition ${
-                activeTab === 'customer'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Customer Invoices (AR)
-              {customerInvoices?.length > 0 && (
-                <span className="ml-2 bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded-full">
-                  {customerInvoices.length}
-                </span>
-              )}
-            </button>
-          </nav>
-        </div>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+          <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
+            <Tab
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  Vendor Invoices (AP)
+                  {vendorInvoices?.length > 0 && (
+                    <Chip label={vendorInvoices.length} size="small" sx={{ bgcolor: 'grey.200', color: 'grey.700' }} />
+                  )}
+                </Box>
+              }
+              value="vendor"
+            />
+            <Tab
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  Customer Invoices (AR)
+                  {customerInvoices?.length > 0 && (
+                    <Chip label={customerInvoices.length} size="small" sx={{ bgcolor: 'grey.200', color: 'grey.700' }} />
+                  )}
+                </Box>
+              }
+              value="customer"
+            />
+          </Tabs>
+        </Box>
 
         {/* Search & Filters */}
-        <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Search</label>
-              <input
-                type="text"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                placeholder={activeTab === 'vendor' ? 'Invoice # or vendor...' : 'Invoice #, customer, or project...'}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Statuses</option>
-                {activeTab === 'vendor' ? (
-                  <>
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Paid">Paid</option>
-                    <option value="Disputed">Disputed</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="Draft">Draft</option>
-                    <option value="Sent">Sent</option>
-                    <option value="Paid">Paid</option>
-                    <option value="Overdue">Overdue</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </>
-                )}
-              </select>
-            </div>
+        <Paper sx={{ p: 2, mb: 2 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
+            <TextField
+              label="Search"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder={activeTab === 'vendor' ? 'Invoice # or vendor...' : 'Invoice #, customer, or project...'}
+              size="small"
+              fullWidth
+            />
+            <TextField
+              select
+              label="Status"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              size="small"
+              fullWidth
+            >
+              <MenuItem value="">All Statuses</MenuItem>
+              {activeTab === 'vendor' ? (
+                <>
+                  <MenuItem value="Pending">Pending</MenuItem>
+                  <MenuItem value="Approved">Approved</MenuItem>
+                  <MenuItem value="Paid">Paid</MenuItem>
+                  <MenuItem value="Disputed">Disputed</MenuItem>
+                </>
+              ) : (
+                <>
+                  <MenuItem value="Draft">Draft</MenuItem>
+                  <MenuItem value="Sent">Sent</MenuItem>
+                  <MenuItem value="Paid">Paid</MenuItem>
+                  <MenuItem value="Overdue">Overdue</MenuItem>
+                  <MenuItem value="Cancelled">Cancelled</MenuItem>
+                </>
+              )}
+            </TextField>
             {(debouncedSearch || statusFilter) && (
-              <div className="flex items-end">
-                <button
+              <Box sx={{ display: 'flex', alignItems: 'end' }}>
+                <Button
                   onClick={() => { setSearchText(''); setDebouncedSearch(''); setStatusFilter(''); }}
-                  className="w-full px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 border border-blue-200 rounded-lg hover:bg-blue-50 transition"
+                  variant="outlined"
+                  color="primary"
+                  fullWidth
                 >
                   Clear filters
-                </button>
-              </div>
+                </Button>
+              </Box>
             )}
-          </div>
-        </div>
+          </Box>
+        </Paper>
 
         {/* Vendor Invoices Tab */}
         {activeTab === 'vendor' && (
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <Paper>
             {vendorLoading ? (
-              <div className="p-8 text-center text-slate-500">Loading vendor invoices...</div>
+              <Box sx={{ p: 4, textAlign: 'center' }}>
+                <CircularProgress />
+              </Box>
             ) : filteredVendorInvoices.length === 0 ? (
-              <div className="p-8 text-center">
-                <svg className="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <p className="text-slate-500 mb-3">
+              <Box sx={{ p: 4, textAlign: 'center' }}>
+                <DescriptionIcon sx={{ fontSize: 48, color: 'grey.300', mb: 1.5 }} />
+                <Typography color="text.secondary" sx={{ mb: 1.5 }}>
                   {(debouncedSearch || statusFilter) ? 'No invoices match your filters' : 'No vendor invoices recorded yet'}
-                </p>
+                </Typography>
                 {!(debouncedSearch || statusFilter) && (
-                  <Link
-                    href="/invoices/vendor/create"
-                    className="text-orange-600 hover:text-orange-700 font-medium text-sm"
-                  >
+                  <Button component={Link} href="/invoices/vendor/create" color="primary">
                     Record your first vendor invoice
-                  </Link>
+                  </Button>
                 )}
-              </div>
+              </Box>
             ) : (
-              <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px]">
-                <thead className="bg-slate-50 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  <tr>
-                    <th className="px-4 sm:px-6 py-3">Invoice #</th>
-                    <th className="px-4 sm:px-6 py-3">Vendor</th>
-                    <th className="px-4 sm:px-6 py-3">PO #</th>
-                    <th className="px-4 sm:px-6 py-3">Amount</th>
-                    <th className="px-4 sm:px-6 py-3">Status</th>
-                    <th className="px-4 sm:px-6 py-3">Received</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredVendorInvoices.map((inv: VendorInvoice) => (
-                    <tr key={inv.id} className="hover:bg-slate-50 transition">
-                      <td className="px-4 sm:px-6 py-4 text-sm font-medium text-slate-900">{inv.invoice_number}</td>
-                      <td className="px-4 sm:px-6 py-4 text-sm text-slate-600">{inv.vendors?.vendor_name}</td>
-                      <td className="px-4 sm:px-6 py-4 text-sm text-slate-600">{inv.po_headers?.po_number || '-'}</td>
-                      <td className="px-4 sm:px-6 py-4 text-sm font-medium text-slate-900">
-                        ${Number(inv.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="px-4 sm:px-6 py-4">
-                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColor(inv.status)}`}>
-                          {inv.status}
-                        </span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 text-sm text-slate-500">
-                        {new Date(inv.date_received).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Invoice #</TableCell>
+                      <TableCell>Vendor</TableCell>
+                      <TableCell>PO #</TableCell>
+                      <TableCell>Amount</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Received</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredVendorInvoices.map((inv: VendorInvoice) => (
+                      <TableRow key={inv.id} hover>
+                        <TableCell sx={{ fontWeight: 500 }}>{inv.invoice_number}</TableCell>
+                        <TableCell>{inv.vendors?.vendor_name}</TableCell>
+                        <TableCell>{inv.po_headers?.po_number || '-'}</TableCell>
+                        <TableCell sx={{ fontWeight: 500 }}>
+                          ${Number(inv.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell>
+                          <Chip label={inv.status} color={getChipColor(inv.status)} size="small" />
+                        </TableCell>
+                        <TableCell>
+                          {new Date(inv.date_received).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             )}
-          </div>
+          </Paper>
         )}
 
         {/* Customer Invoices Tab */}
         {activeTab === 'customer' && (
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <Paper>
             {customerLoading ? (
-              <div className="p-8 text-center text-slate-500">Loading customer invoices...</div>
+              <Box sx={{ p: 4, textAlign: 'center' }}>
+                <CircularProgress />
+              </Box>
             ) : filteredCustomerInvoices.length === 0 ? (
-              <div className="p-8 text-center">
-                <svg className="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <p className="text-slate-500 mb-3">
+              <Box sx={{ p: 4, textAlign: 'center' }}>
+                <DescriptionIcon sx={{ fontSize: 48, color: 'grey.300', mb: 1.5 }} />
+                <Typography color="text.secondary" sx={{ mb: 1.5 }}>
                   {(debouncedSearch || statusFilter) ? 'No invoices match your filters' : 'No customer invoices created yet'}
-                </p>
+                </Typography>
                 {!(debouncedSearch || statusFilter) && (
-                  <Link
-                    href="/invoices/customer/create"
-                    className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-                  >
+                  <Button component={Link} href="/invoices/customer/create" color="primary">
                     Create your first customer invoice
-                  </Link>
+                  </Button>
                 )}
-              </div>
+              </Box>
             ) : (
-              <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px]">
-                <thead className="bg-slate-50 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  <tr>
-                    <th className="px-4 sm:px-6 py-3">Invoice #</th>
-                    <th className="px-4 sm:px-6 py-3">Customer</th>
-                    <th className="px-4 sm:px-6 py-3">Project</th>
-                    <th className="px-4 sm:px-6 py-3">Amount</th>
-                    <th className="px-4 sm:px-6 py-3">Status</th>
-                    <th className="px-4 sm:px-6 py-3">Issued</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredCustomerInvoices.map((inv: CustomerInvoice) => (
-                    <tr key={inv.id} className="hover:bg-slate-50 transition">
-                      <td className="px-4 sm:px-6 py-4 text-sm font-medium text-slate-900">{inv.invoice_number}</td>
-                      <td className="px-4 sm:px-6 py-4 text-sm text-slate-600">{inv.customer_name}</td>
-                      <td className="px-4 sm:px-6 py-4 text-sm text-slate-600">
-                        {inv.projects?.project_code} - {inv.projects?.project_name}
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 text-sm font-medium text-slate-900">
-                        ${Number(inv.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="px-4 sm:px-6 py-4">
-                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColor(inv.status)}`}>
-                          {inv.status}
-                        </span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 text-sm text-slate-500">
-                        {new Date(inv.date_issued).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Invoice #</TableCell>
+                      <TableCell>Customer</TableCell>
+                      <TableCell>Project</TableCell>
+                      <TableCell>Amount</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Issued</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredCustomerInvoices.map((inv: CustomerInvoice) => (
+                      <TableRow key={inv.id} hover>
+                        <TableCell sx={{ fontWeight: 500 }}>{inv.invoice_number}</TableCell>
+                        <TableCell>{inv.customer_name}</TableCell>
+                        <TableCell>
+                          {inv.projects?.project_code} - {inv.projects?.project_name}
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 500 }}>
+                          ${Number(inv.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell>
+                          <Chip label={inv.status} color={getChipColor(inv.status)} size="small" />
+                        </TableCell>
+                        <TableCell>
+                          {new Date(inv.date_issued).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             )}
-          </div>
+          </Paper>
         )}
 
-      </div>
+      </Box>
     </AppLayout>
   );
 }

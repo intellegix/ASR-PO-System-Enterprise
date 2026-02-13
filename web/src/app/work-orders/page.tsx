@@ -4,6 +4,23 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
+import {
+  Box,
+  Typography,
+  TextField,
+  MenuItem,
+  Button,
+  Card,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  CircularProgress,
+} from '@mui/material';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 
 interface WorkOrder {
   id: string;
@@ -34,15 +51,15 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'Cancelled', label: 'Cancelled' },
 ];
 
-function getStatusBadge(status: string): string {
-  const styles: Record<string, string> = {
-    Pending: 'bg-amber-100 text-amber-700',
-    InProgress: 'bg-blue-100 text-blue-700',
-    Completed: 'bg-green-100 text-green-700',
-    OnHold: 'bg-orange-100 text-orange-700',
-    Cancelled: 'bg-gray-100 text-gray-500',
+function getStatusColor(status: string): 'warning' | 'info' | 'success' | 'error' {
+  const colors: Record<string, 'warning' | 'info' | 'success' | 'error'> = {
+    Pending: 'warning',
+    InProgress: 'info',
+    Completed: 'success',
+    OnHold: 'error',
+    Cancelled: 'error',
   };
-  return styles[status] || 'bg-slate-100 text-slate-700';
+  return colors[status] || 'info';
 }
 
 function getStatusLabel(status: string): string {
@@ -85,9 +102,9 @@ export default function WorkOrdersPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
@@ -113,151 +130,179 @@ export default function WorkOrdersPage() {
 
   return (
     <AppLayout pageTitle="Work Orders">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">Work Orders</h1>
-          <p className="text-sm text-slate-500 mt-1">
+      <Box sx={{ maxWidth: '1280px', mx: 'auto' }}>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h4" fontWeight="bold" color="text.primary">
+            Work Orders
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
             {filteredWorkOrders.length} work order{filteredWorkOrders.length !== 1 ? 's' : ''} found
-          </p>
-        </div>
+          </Typography>
+        </Box>
 
-        <div className="bg-white rounded-lg border border-slate-200 p-4 mb-6">
-          <div className="flex flex-wrap gap-4">
-            <div className="flex-1 min-w-[150px]">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-              <select
+        <Card sx={{ p: 2, mb: 3, border: 1, borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ flex: '1 1 150px', minWidth: '150px' }}>
+              <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 0.5 }}>
+                Status
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                size="small"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {STATUS_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
+                  <MenuItem key={opt.value} value={opt.value}>
                     {opt.label}
-                  </option>
+                  </MenuItem>
                 ))}
-              </select>
-            </div>
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Search</label>
-              <input
-                type="text"
+              </TextField>
+            </Box>
+            <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 0.5 }}>
+                Search
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by title or WO number..."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-            </div>
+            </Box>
             {(statusFilter || searchQuery) && (
-              <div className="flex items-end">
-                <button
+              <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                <Button
                   onClick={() => {
                     setStatusFilter('');
                     setSearchQuery('');
                   }}
-                  className="px-3 py-2 text-sm text-blue-600 hover:text-blue-800"
+                  size="small"
+                  sx={{ textTransform: 'none' }}
                 >
                   Clear filters
-                </button>
-              </div>
+                </Button>
+              </Box>
             )}
-          </div>
-        </div>
+          </Box>
+        </Card>
 
-        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <Card sx={{ border: 1, borderColor: 'divider', overflow: 'hidden' }}>
           {loading ? (
-            <div className="p-8 flex justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
+            <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}>
+              <CircularProgress />
+            </Box>
           ) : filteredWorkOrders.length === 0 ? (
-            <div className="p-8 text-center">
-              <svg className="w-12 h-12 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <p className="text-slate-500">
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <AssignmentIcon sx={{ fontSize: 48, color: 'action.disabled', mb: 2 }} />
+              <Typography color="text.secondary">
                 {statusFilter || searchQuery
                   ? 'No work orders match your filters'
                   : 'No work orders found'}
-              </p>
-            </div>
+              </Typography>
+            </Box>
           ) : (
             <>
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-50 border-b border-slate-200">
-                    <tr>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">WO Number</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Title</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Project</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Division</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Trade</th>
-                      <th className="text-center px-4 py-3 text-sm font-medium text-slate-700">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {filteredWorkOrders.map((wo) => (
-                      <tr
-                        key={wo.id}
-                        className="hover:bg-slate-50 cursor-pointer transition"
-                      >
-                        <td className="px-4 py-3 text-sm font-mono font-medium text-slate-900">
-                          {wo.work_order_number}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600 max-w-xs truncate">
-                          {wo.title}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
-                          {wo.projects?.project_code || '-'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
-                          {wo.divisions?.division_name || '-'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
-                          {wo.primary_trade || '-'}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(wo.status)}`}>
-                            {getStatusLabel(wo.status)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Box sx={{ display: { xs: 'none', md: 'block' }, overflowX: 'auto' }}>
+                <TableContainer>
+                  <Table>
+                    <TableHead sx={{ bgcolor: 'grey.50' }}>
+                      <TableRow>
+                        <TableCell>WO Number</TableCell>
+                        <TableCell>Title</TableCell>
+                        <TableCell>Project</TableCell>
+                        <TableCell>Division</TableCell>
+                        <TableCell>Trade</TableCell>
+                        <TableCell align="center">Status</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filteredWorkOrders.map((wo) => (
+                        <TableRow
+                          key={wo.id}
+                          hover
+                          sx={{ cursor: 'pointer', transition: 'background-color 0.2s' }}
+                        >
+                          <TableCell sx={{ fontFamily: 'monospace', fontWeight: 'medium' }}>
+                            {wo.work_order_number}
+                          </TableCell>
+                          <TableCell sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {wo.title}
+                          </TableCell>
+                          <TableCell>
+                            {wo.projects?.project_code || '-'}
+                          </TableCell>
+                          <TableCell>
+                            {wo.divisions?.division_name || '-'}
+                          </TableCell>
+                          <TableCell>
+                            {wo.primary_trade || '-'}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Chip
+                              label={getStatusLabel(wo.status)}
+                              color={getStatusColor(wo.status)}
+                              size="small"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
 
-              <div className="md:hidden divide-y divide-slate-200">
+              <Box sx={{ display: { xs: 'block', md: 'none' } }}>
                 {filteredWorkOrders.map((wo) => (
-                  <div
+                  <Box
                     key={wo.id}
-                    className="p-4 hover:bg-slate-50 cursor-pointer transition"
+                    sx={{
+                      p: 2,
+                      borderBottom: 1,
+                      borderColor: 'divider',
+                      '&:hover': { bgcolor: 'grey.50' },
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s',
+                    }}
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-mono font-medium text-slate-900">{wo.work_order_number}</p>
-                        <p className="text-sm text-slate-600 mt-0.5">{wo.title}</p>
-                      </div>
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full shrink-0 ml-2 ${getStatusBadge(wo.status)}`}>
-                        {getStatusLabel(wo.status)}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm mt-2">
-                      <span className="text-slate-500">
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                      <Box>
+                        <Typography sx={{ fontFamily: 'monospace', fontWeight: 'medium' }} color="text.primary">
+                          {wo.work_order_number}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+                          {wo.title}
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={getStatusLabel(wo.status)}
+                        color={getStatusColor(wo.status)}
+                        size="small"
+                        sx={{ flexShrink: 0, ml: 1 }}
+                      />
+                    </Box>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, fontSize: '0.875rem', mt: 1 }}>
+                      <Typography variant="body2" color="text.secondary">
                         {wo.projects?.project_code || '-'}
-                      </span>
-                      <span className="text-slate-500">
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
                         {wo.divisions?.division_name || '-'}
-                      </span>
+                      </Typography>
                       {wo.primary_trade && (
-                        <span className="text-slate-500">{wo.primary_trade}</span>
+                        <Typography variant="body2" color="text.secondary">
+                          {wo.primary_trade}
+                        </Typography>
                       )}
-                    </div>
-                  </div>
+                    </Box>
+                  </Box>
                 ))}
-              </div>
+              </Box>
             </>
           )}
-        </div>
-      </div>
+        </Card>
+      </Box>
     </AppLayout>
   );
 }
