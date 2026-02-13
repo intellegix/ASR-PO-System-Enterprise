@@ -3,7 +3,7 @@
  * Tests PO creation, completion, and approval flows with mocked dependencies
  */
 
-import { mockUserSession } from '../../helpers/mock-session';
+import { mockUserSession as _mockUserSession } from '../../helpers/mock-session';
 import type { UserRole } from '@/lib/auth/permissions';
 
 jest.mock('@/lib/db', () => ({

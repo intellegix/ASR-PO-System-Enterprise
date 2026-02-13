@@ -39,7 +39,7 @@ jest.mock('bcryptjs', () => ({
 }));
 
 describe('Admin Routes Integration Tests', () => {
-  let getServerSession: jest.Mock;
+  let _getServerSession: jest.Mock;
   let prisma: {
     users: {
       findUnique: jest.Mock;
@@ -55,7 +55,7 @@ describe('Admin Routes Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    getServerSession = require('next-auth').getServerSession;
+    _getServerSession = require('next-auth').getServerSession;
     prisma = require('@/lib/db').default;
     bcrypt = require('bcryptjs');
   });
@@ -64,7 +64,6 @@ describe('Admin Routes Integration Tests', () => {
     test('null session triggers unauthorized flow', async () => {
       // Arrange
       const session = mockNoSession();
-      const { isAdmin } = await import('@/lib/auth/permissions');
 
       // Act
       const isAuthorized = (session as Record<string, unknown> | null)?.user ? true : false;

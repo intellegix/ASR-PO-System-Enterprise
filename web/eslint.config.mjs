@@ -19,6 +19,13 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // Allow require() in test files (needed for jest.mock setup)
+  {
+    files: ["tests/**/*.ts", "tests/**/*.tsx"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
@@ -26,6 +33,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Utility scripts (not part of the Next.js app)
+    "scripts/**",
+    "*.js",
   ]),
 ]);
 

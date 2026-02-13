@@ -790,7 +790,7 @@ describe('Validation Schemas', () => {
       const invalidPO = {
         vendorId: '123e4567-e89b-12d3-a456-426614174000',
         lineItems: [validLineItem],
-        status: 'Submitted' as any,
+        status: 'Submitted' as unknown as string,
       };
       const result = completePOSchema.safeParse(invalidPO);
       expect(result.success).toBe(false);
