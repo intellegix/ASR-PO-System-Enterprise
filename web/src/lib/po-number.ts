@@ -60,7 +60,7 @@ export function generatePONumber(components: PONumberComponents): string {
  */
 export function parsePONumber(poNumber: string): PONumberComponents | null {
   // v2 format: (leaderId)(divCode 2-3 chars)(woNum 4 digits)-(purchaseSeq)
-  const v2Regex = /^(\d{2}|OM)([A-Z]{2,3})(\d{4})-(\d+)$/i;
+  const v2Regex = /^(\d{2}|OM)(CD[12]|[A-Z]{2})(\d{4})-(\d+)$/i;
   const v2Match = poNumber.match(v2Regex);
   if (v2Match) {
     return {

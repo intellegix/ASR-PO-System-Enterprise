@@ -21,12 +21,6 @@ export interface ClarkRepMatch {
   property: string;
 }
 
-export interface PropertyInfo {
-  property: string;
-  clarkRep: string;
-  contracts: string[];
-}
-
 const CLARK_REPS_DATA: ClarkRepData[] = [
   {
     name: 'Billie Brown',
@@ -139,40 +133,6 @@ for (const rep of CLARK_REPS_DATA) {
       });
     }
   }
-}
-
-/**
- * Find the Clark rep and property for a given contract/job code.
- * Tries exact match first, then normalized match.
- */
-export function findClarkRepForJob(contractCode: string): ClarkRepMatch | null {
-  const normalized = contractCode.toUpperCase().replace(/\s+/g, ' ').trim();
-  return contractIndex.get(normalized) || null;
-}
-
-/**
- * Get all properties grouped by Clark rep.
- */
-export function getAllProperties(): PropertyInfo[] {
-  const result: PropertyInfo[] = [];
-  for (const rep of CLARK_REPS_DATA) {
-    for (const prop of rep.properties) {
-      result.push({
-        property: prop.name,
-        clarkRep: rep.name,
-        contracts: prop.jobs,
-      });
-    }
-  }
-  return result;
-}
-
-/**
- * Get the raw Clark reps data for API responses.
- * Returns hardcoded fallback data (used by Raken sync for initial lookup).
- */
-export function getClarkRepsData(): ClarkRepData[] {
-  return CLARK_REPS_DATA;
 }
 
 /**

@@ -160,7 +160,7 @@ const getDivisionKPIs = async (divisionId: string, userRole: string, userDivisio
         id: po.id,
         poNumber: po.po_number,
         amount: po.total_amount?.toNumber() || 0,
-        vendor: po.vendors?.vendor_name,
+        vendor: po.vendors?.vendor_name || 'TBD',
         daysOld: po.created_at ? Math.floor((now.getTime() - po.created_at.getTime()) / (1000 * 60 * 60 * 24)) : 0,
       })) : [],
     },
@@ -244,7 +244,7 @@ const getHandler = async (
     // Get vendor details
     const vendorDetails = await prisma.vendors.findMany({
       where: {
-        id: { in: topVendors.map(v => v.vendor_id) },
+        id: { in: topVendors.map(v => v.vendor_id).filter((id): id is string => id !== null) },
       },
       select: {
         id: true,

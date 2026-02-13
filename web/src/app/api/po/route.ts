@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
-import { generatePONumber, generateSupplierConfirmCode, LEADER_ID_MAP } from '@/lib/po-number';
+import { generatePONumber, LEADER_ID_MAP } from '@/lib/po-number';
 import { createPOSchema, poQuerySchema } from '@/lib/validation/schemas';
 import { withValidation, withRateLimit } from '@/lib/validation/middleware';
 import log, { auditLog } from '@/lib/logging/logger';
@@ -174,16 +174,12 @@ const postHandler = withValidation(
     });
     const purchaseSequence = existingPOCount + 1;
 
-    // Generate supplier confirmation code
-    const supplierConfirmCode = generateSupplierConfirmCode(vendor.vendor_code);
-
-    // Generate PO number: [PurchaserID][DivisionCode][WO#]-[PurchaseSeq][SupplierLast4]
+    // Generate PO number: [PurchaserID][DivisionCode][WO#]-[PurchaseSeq]
     const poNumber = generatePONumber({
       leaderId: purchaserId,
       divisionCode: division.cost_center_prefix || 'XX',
       workOrderNumber: workOrderSequence,
       purchaseSequence,
-      supplierConfirmLast4: supplierConfirmCode,
     });
 
     // Calculate totals

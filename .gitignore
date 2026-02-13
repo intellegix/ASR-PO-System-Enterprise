@@ -138,3 +138,8 @@ temp/
 *.njsproj
 *.sln
 *.sw?
+.vercel
+.env*.local
+
+# Misc
+response.json

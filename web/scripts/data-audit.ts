@@ -196,8 +196,8 @@ async function auditDatabase(): Promise<AuditResults> {
     results.purchaseOrders.testPOs = pos.filter(po =>
       po.notes_internal?.toLowerCase().includes('test') ||
       po.notes_vendor?.toLowerCase().includes('test') ||
-      po.vendors.vendor_name.toLowerCase().includes('test') ||
-      po.projects.project_name.toLowerCase().includes('test') ||
+      po.vendors?.vendor_name.toLowerCase().includes('test') ||
+      po.projects?.project_name.toLowerCase().includes('test') ||
       po.po_number.includes('TEST') ||
       po.total_amount.toNumber() === 0.01 || // Common test amount
       po.total_amount.toNumber() === 1.00 ||

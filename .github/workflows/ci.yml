@@ -31,7 +31,6 @@ jobs:
 
       - name: Type check
         run: npm run type-check
-        continue-on-error: true # TODO: remove once pre-existing TS errors are fixed
 
       - name: Lint
         run: npm run lint
@@ -39,7 +38,6 @@ jobs:
 
       - name: Test
         run: npm run test:ci
-        continue-on-error: true # TODO: remove once pre-existing test failures are fixed
 
       - name: Build
         run: npm run build

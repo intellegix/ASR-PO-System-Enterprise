@@ -31,7 +31,7 @@ interface POSummaryData {
     poCount: number;
   }>;
   topVendors: Array<{
-    vendorId: string;
+    vendorId: string | null;
     vendorName: string;
     totalAmount: number;
     poCount: number;
@@ -200,7 +200,7 @@ const generatePOSummaryReport = async (
 
       const vendorDetails = await prisma.vendors.findMany({
         where: {
-          id: { in: vendorData.map(v => v.vendor_id) },
+          id: { in: vendorData.map(v => v.vendor_id).filter((id): id is string => id !== null) },
         },
         select: { id: true, vendor_name: true },
       });
