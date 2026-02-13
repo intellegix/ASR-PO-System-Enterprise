@@ -14,19 +14,12 @@ export const dynamic = 'force-dynamic';
 const getPendingApprovals = async (userRole: string, userDivisionId: string | null) => {
   const now = new Date();
 
-  // Build WHERE clause based on user permissions
-  const whereClause: Record<string, unknown> = {
-    status: 'Submitted',
-    deleted_at: null,
-  };
-
-  // Filter by division if user has limited access
-  if ((userRole === 'DIVISION_LEADER' || userRole === 'OPERATIONS_MANAGER') && userDivisionId) {
-    whereClause.division_id = userDivisionId;
-  }
-
+  // All users see all pending POs across all divisions
   const pendingPOs = await prisma.po_headers.findMany({
-    where: whereClause,
+    where: {
+      status: 'Submitted',
+      deleted_at: null,
+    },
     select: {
       id: true,
       po_number: true,

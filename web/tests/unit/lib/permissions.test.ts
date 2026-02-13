@@ -1,98 +1,144 @@
 /**
- * Test Suite for RBAC Permission System
- * Tests role-based access control for the ASR PO System
+ * Test Suite for Simplified 2-Role RBAC Permission System
+ * Phase 1: USER / ADMIN model with legacy role backward compatibility
  */
 
 import {
   hasPermission,
+  isAdmin,
+  normalizeRole,
   canApprovePO,
   canEditPO,
   canCancelPO,
   canCreatePOInDivision,
   canIssuePO,
   canViewFullPODetails,
-  isReadOnlyForPO,
   canModifyDivisionAssignments,
   getRoleDisplayName,
   getAvailableActions,
-  APPROVAL_THRESHOLDS,
   type UserRole,
   type Permission,
 } from '@/lib/auth/permissions';
 
-describe('RBAC Permission System', () => {
-  // Sample division IDs for testing
+describe('Simplified 2-Role RBAC Permission System', () => {
   const division1 = 'div-001';
   const division2 = 'div-002';
+
+  // ============================================
+  // normalizeRole TESTS
+  // ============================================
+
+  describe('normalizeRole', () => {
+    test('maps ADMIN to ADMIN', () => {
+      expect(normalizeRole('ADMIN')).toBe('ADMIN');
+    });
+
+    test('maps USER to USER', () => {
+      expect(normalizeRole('USER')).toBe('USER');
+    });
+
+    test('maps legacy admin roles to ADMIN', () => {
+      expect(normalizeRole('DIRECTOR_OF_SYSTEMS_INTEGRATIONS')).toBe('ADMIN');
+      expect(normalizeRole('MAJORITY_OWNER')).toBe('ADMIN');
+    });
+
+    test('maps legacy non-admin roles to USER', () => {
+      expect(normalizeRole('DIVISION_LEADER')).toBe('USER');
+      expect(normalizeRole('OPERATIONS_MANAGER')).toBe('USER');
+      expect(normalizeRole('ACCOUNTING')).toBe('USER');
+    });
+
+    test('maps unknown roles to USER', () => {
+      expect(normalizeRole('UNKNOWN_ROLE')).toBe('USER');
+    });
+  });
+
+  // ============================================
+  // isAdmin TESTS
+  // ============================================
+
+  describe('isAdmin', () => {
+    test('ADMIN role is admin', () => {
+      expect(isAdmin('ADMIN')).toBe(true);
+    });
+
+    test('USER role is not admin', () => {
+      expect(isAdmin('USER')).toBe(false);
+    });
+
+    test('legacy admin roles are admin', () => {
+      expect(isAdmin('DIRECTOR_OF_SYSTEMS_INTEGRATIONS')).toBe(true);
+      expect(isAdmin('MAJORITY_OWNER')).toBe(true);
+    });
+
+    test('legacy non-admin roles are not admin', () => {
+      expect(isAdmin('DIVISION_LEADER')).toBe(false);
+      expect(isAdmin('OPERATIONS_MANAGER')).toBe(false);
+      expect(isAdmin('ACCOUNTING')).toBe(false);
+    });
+  });
 
   // ============================================
   // hasPermission TESTS
   // ============================================
 
   describe('hasPermission', () => {
-    describe('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', () => {
-      test('should have all permissions', () => {
-        const permissions: Permission[] = [
-          'po:create',
-          'po:create:any_division',
-          'po:read',
-          'po:approve',
-          'po:edit',
-          'po:cancel',
-          'po:delete',
-          'report:view',
-          'user:manage',
-          'division:modify_assignments',
+    describe('ADMIN role', () => {
+      test('has all permissions', () => {
+        const adminPerms: Permission[] = [
+          'po:create', 'po:read', 'po:approve', 'po:edit', 'po:cancel',
+          'po:delete', 'po:export', 'report:view', 'report:export',
+          'settings:edit', 'user:manage', 'division:modify_assignments',
         ];
-
-        permissions.forEach((permission) => {
-          expect(hasPermission('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', permission)).toBe(true);
+        adminPerms.forEach((perm) => {
+          expect(hasPermission('ADMIN', perm)).toBe(true);
         });
       });
     });
 
-    describe('DIVISION_LEADER', () => {
-      test('should have division leader permissions', () => {
-        expect(hasPermission('DIVISION_LEADER', 'po:create')).toBe(true);
-        expect(hasPermission('DIVISION_LEADER', 'po:create:any_division')).toBe(true);
-        expect(hasPermission('DIVISION_LEADER', 'po:read:all_divisions')).toBe(true);
-        expect(hasPermission('DIVISION_LEADER', 'po:approve:own_division')).toBe(true);
-        expect(hasPermission('DIVISION_LEADER', 'po:issue')).toBe(true);
+    describe('USER role', () => {
+      test('has CRUD and report permissions', () => {
+        const userPerms: Permission[] = [
+          'po:create', 'po:read', 'po:approve', 'po:edit', 'po:cancel',
+          'po:delete', 'po:export', 'po:issue', 'wo:create', 'wo:read',
+          'wo:edit', 'vendor:read', 'vendor:create', 'vendor:edit',
+          'project:read', 'project:create', 'project:edit',
+          'report:view', 'report:export', 'settings:view',
+        ];
+        userPerms.forEach((perm) => {
+          expect(hasPermission('USER', perm)).toBe(true);
+        });
       });
 
-      test('should NOT have admin permissions', () => {
-        expect(hasPermission('DIVISION_LEADER', 'user:manage')).toBe(false);
-        expect(hasPermission('DIVISION_LEADER', 'division:modify_assignments')).toBe(false);
-        expect(hasPermission('DIVISION_LEADER', 'po:delete')).toBe(false);
+      test('does NOT have admin-only permissions', () => {
+        expect(hasPermission('USER', 'settings:edit')).toBe(false);
+        expect(hasPermission('USER', 'user:manage')).toBe(false);
+        expect(hasPermission('USER', 'division:modify_assignments')).toBe(false);
       });
     });
 
-    describe('OPERATIONS_MANAGER', () => {
-      test('should have limited permissions', () => {
-        expect(hasPermission('OPERATIONS_MANAGER', 'po:create')).toBe(true);
-        expect(hasPermission('OPERATIONS_MANAGER', 'po:read')).toBe(true);
-        expect(hasPermission('OPERATIONS_MANAGER', 'report:view')).toBe(true);
+    describe('legacy roles via normalizeRole', () => {
+      test('DIRECTOR_OF_SYSTEMS_INTEGRATIONS has admin permissions', () => {
+        expect(hasPermission('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'user:manage')).toBe(true);
+        expect(hasPermission('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'settings:edit')).toBe(true);
       });
 
-      test('should NOT have approval or admin permissions', () => {
-        expect(hasPermission('OPERATIONS_MANAGER', 'po:approve')).toBe(false);
-        expect(hasPermission('OPERATIONS_MANAGER', 'po:approve:own_division')).toBe(false);
-        expect(hasPermission('OPERATIONS_MANAGER', 'po:issue')).toBe(false);
+      test('DIVISION_LEADER has user permissions (not admin)', () => {
+        expect(hasPermission('DIVISION_LEADER', 'po:create')).toBe(true);
+        expect(hasPermission('DIVISION_LEADER', 'po:approve')).toBe(true);
+        expect(hasPermission('DIVISION_LEADER', 'user:manage')).toBe(false);
+      });
+
+      test('OPERATIONS_MANAGER has user permissions (not admin)', () => {
+        expect(hasPermission('OPERATIONS_MANAGER', 'po:create')).toBe(true);
+        expect(hasPermission('OPERATIONS_MANAGER', 'po:approve')).toBe(true);
         expect(hasPermission('OPERATIONS_MANAGER', 'user:manage')).toBe(false);
       });
-    });
 
-    describe('ACCOUNTING', () => {
-      test('should have read-only permissions', () => {
+      test('ACCOUNTING has user permissions (not admin)', () => {
         expect(hasPermission('ACCOUNTING', 'po:read')).toBe(true);
-        expect(hasPermission('ACCOUNTING', 'po:export')).toBe(true);
-        expect(hasPermission('ACCOUNTING', 'report:view')).toBe(true);
-      });
-
-      test('should NOT have write or admin permissions', () => {
-        expect(hasPermission('ACCOUNTING', 'po:create')).toBe(false);
-        expect(hasPermission('ACCOUNTING', 'po:edit')).toBe(false);
-        expect(hasPermission('ACCOUNTING', 'po:approve')).toBe(false);
+        expect(hasPermission('ACCOUNTING', 'po:create')).toBe(true);
+        expect(hasPermission('ACCOUNTING', 'po:approve')).toBe(true);
         expect(hasPermission('ACCOUNTING', 'user:manage')).toBe(false);
       });
     });
@@ -103,26 +149,13 @@ describe('RBAC Permission System', () => {
   // ============================================
 
   describe('canCreatePOInDivision', () => {
-    test('DIRECTOR_OF_SYSTEMS_INTEGRATIONS can create in any division', () => {
-      expect(canCreatePOInDivision('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division1)).toBe(true);
-      expect(canCreatePOInDivision('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division2)).toBe(true);
-      expect(canCreatePOInDivision('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', null, division2)).toBe(true);
-    });
-
-    test('DIVISION_LEADER can create in any division', () => {
-      expect(canCreatePOInDivision('DIVISION_LEADER', division1, division1)).toBe(true);
-      expect(canCreatePOInDivision('DIVISION_LEADER', division1, division2)).toBe(true);
-    });
-
-    test('OPERATIONS_MANAGER can only create in own division', () => {
-      expect(canCreatePOInDivision('OPERATIONS_MANAGER', division1, division1)).toBe(true);
-      expect(canCreatePOInDivision('OPERATIONS_MANAGER', division1, division2)).toBe(false);
-      expect(canCreatePOInDivision('OPERATIONS_MANAGER', null, division1)).toBe(false);
-    });
-
-    test('ACCOUNTING cannot create POs', () => {
-      expect(canCreatePOInDivision('ACCOUNTING', division1, division1)).toBe(false);
-      expect(canCreatePOInDivision('ACCOUNTING', division1, division2)).toBe(false);
+    test('all roles can create in any division', () => {
+      const roles: UserRole[] = ['USER', 'ADMIN', 'DIVISION_LEADER', 'OPERATIONS_MANAGER', 'ACCOUNTING'];
+      roles.forEach((role) => {
+        expect(canCreatePOInDivision(role, division1, division1)).toBe(true);
+        expect(canCreatePOInDivision(role, division1, division2)).toBe(true);
+        expect(canCreatePOInDivision(role, null, division2)).toBe(true);
+      });
     });
   });
 
@@ -131,51 +164,18 @@ describe('RBAC Permission System', () => {
   // ============================================
 
   describe('canApprovePO', () => {
-    test('DIRECTOR_OF_SYSTEMS_INTEGRATIONS can approve any PO regardless of amount', () => {
-      const result1 = canApprovePO('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division2, 1000);
-      expect(result1.canApprove).toBe(true);
-
-      const result2 = canApprovePO('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division2, 100000);
-      expect(result2.canApprove).toBe(true);
+    test('all roles can approve any PO regardless of amount or division', () => {
+      const roles: UserRole[] = ['USER', 'ADMIN', 'DIVISION_LEADER', 'OPERATIONS_MANAGER', 'ACCOUNTING'];
+      roles.forEach((role) => {
+        const result = canApprovePO(role, division1, division2, 100000);
+        expect(result.canApprove).toBe(true);
+        expect(result.reason).toBeUndefined();
+      });
     });
 
-    test('DIVISION_LEADER can approve own division under $25K', () => {
-      const result = canApprovePO('DIVISION_LEADER', division1, division1, 10000);
+    test('handles null division ID', () => {
+      const result = canApprovePO('USER', null, division1, 5000);
       expect(result.canApprove).toBe(true);
-    });
-
-    test('DIVISION_LEADER cannot approve other divisions', () => {
-      const result = canApprovePO('DIVISION_LEADER', division1, division2, 1000);
-      expect(result.canApprove).toBe(false);
-      expect(result.reason).toContain('Can only approve POs in your division');
-    });
-
-    test('DIVISION_LEADER cannot approve over $25K', () => {
-      const result = canApprovePO('DIVISION_LEADER', division1, division1, 30000);
-      expect(result.canApprove).toBe(false);
-      expect(result.reason).toContain('Requires majority owner co-approval');
-    });
-
-    test('DIVISION_LEADER can approve exactly $25K', () => {
-      const result = canApprovePO('DIVISION_LEADER', division1, division1, 25000);
-      expect(result.canApprove).toBe(true);
-    });
-
-    test('OPERATIONS_MANAGER cannot approve any PO', () => {
-      const result = canApprovePO('OPERATIONS_MANAGER', division1, division1, 1000);
-      expect(result.canApprove).toBe(false);
-      expect(result.reason).toContain('Operations Manager POs require owner approval');
-    });
-
-    test('ACCOUNTING cannot approve any PO', () => {
-      const result = canApprovePO('ACCOUNTING', division1, division1, 1000);
-      expect(result.canApprove).toBe(false);
-      expect(result.reason).toContain('Accounting users cannot approve POs');
-    });
-
-    test('handles null division ID correctly', () => {
-      const result = canApprovePO('DIVISION_LEADER', null, division1, 1000);
-      expect(result.canApprove).toBe(false);
     });
   });
 
@@ -184,34 +184,22 @@ describe('RBAC Permission System', () => {
   // ============================================
 
   describe('canEditPO', () => {
-    test('can only edit Draft or Rejected POs', () => {
-      expect(canEditPO('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division1, 'Draft')).toBe(true);
-      expect(canEditPO('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division1, 'Rejected')).toBe(true);
-
-      const nonEditableStatuses = ['Submitted', 'Approved', 'Issued', 'Received', 'Invoiced', 'Paid', 'Cancelled'];
-      nonEditableStatuses.forEach((status) => {
-        expect(canEditPO('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division1, status)).toBe(false);
+    test('can edit Draft POs regardless of role or division', () => {
+      const roles: UserRole[] = ['USER', 'ADMIN', 'DIVISION_LEADER', 'OPERATIONS_MANAGER', 'ACCOUNTING'];
+      roles.forEach((role) => {
+        expect(canEditPO(role, division1, division2, 'Draft')).toBe(true);
       });
     });
 
-    test('DIRECTOR_OF_SYSTEMS_INTEGRATIONS can edit any division when status allows', () => {
-      expect(canEditPO('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division2, 'Draft')).toBe(true);
-      expect(canEditPO('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', null, division2, 'Rejected')).toBe(true);
+    test('can edit Rejected POs', () => {
+      expect(canEditPO('USER', division1, division2, 'Rejected')).toBe(true);
     });
 
-    test('DIVISION_LEADER can only edit own division', () => {
-      expect(canEditPO('DIVISION_LEADER', division1, division1, 'Draft')).toBe(true);
-      expect(canEditPO('DIVISION_LEADER', division1, division2, 'Draft')).toBe(false);
-    });
-
-    test('OPERATIONS_MANAGER can only edit own division', () => {
-      expect(canEditPO('OPERATIONS_MANAGER', division1, division1, 'Draft')).toBe(true);
-      expect(canEditPO('OPERATIONS_MANAGER', division1, division2, 'Draft')).toBe(false);
-    });
-
-    test('ACCOUNTING cannot edit any PO', () => {
-      expect(canEditPO('ACCOUNTING', division1, division1, 'Draft')).toBe(false);
-      expect(canEditPO('ACCOUNTING', division1, division1, 'Rejected')).toBe(false);
+    test('cannot edit non-Draft/Rejected POs', () => {
+      const statuses = ['Submitted', 'Approved', 'Issued', 'Received', 'Invoiced', 'Paid', 'Cancelled'];
+      statuses.forEach((status) => {
+        expect(canEditPO('ADMIN', division1, division1, status)).toBe(false);
+      });
     });
   });
 
@@ -220,25 +208,13 @@ describe('RBAC Permission System', () => {
   // ============================================
 
   describe('canCancelPO', () => {
-    test('DIRECTOR_OF_SYSTEMS_INTEGRATIONS can cancel any division', () => {
-      expect(canCancelPO('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division1)).toBe(true);
-      expect(canCancelPO('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division2)).toBe(true);
-      expect(canCancelPO('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', null, division2)).toBe(true);
-    });
-
-    test('DIVISION_LEADER can only cancel own division', () => {
-      expect(canCancelPO('DIVISION_LEADER', division1, division1)).toBe(true);
-      expect(canCancelPO('DIVISION_LEADER', division1, division2)).toBe(false);
-    });
-
-    test('OPERATIONS_MANAGER cannot cancel', () => {
-      expect(canCancelPO('OPERATIONS_MANAGER', division1, division1)).toBe(false);
-      expect(canCancelPO('OPERATIONS_MANAGER', division1, division2)).toBe(false);
-    });
-
-    test('ACCOUNTING cannot cancel', () => {
-      expect(canCancelPO('ACCOUNTING', division1, division1)).toBe(false);
-      expect(canCancelPO('ACCOUNTING', division1, division2)).toBe(false);
+    test('all roles can cancel any PO', () => {
+      const roles: UserRole[] = ['USER', 'ADMIN', 'DIVISION_LEADER', 'OPERATIONS_MANAGER', 'ACCOUNTING'];
+      roles.forEach((role) => {
+        expect(canCancelPO(role, division1, division1)).toBe(true);
+        expect(canCancelPO(role, division1, division2)).toBe(true);
+        expect(canCancelPO(role, null, division2)).toBe(true);
+      });
     });
   });
 
@@ -247,20 +223,11 @@ describe('RBAC Permission System', () => {
   // ============================================
 
   describe('canIssuePO', () => {
-    test('DIRECTOR_OF_SYSTEMS_INTEGRATIONS can issue', () => {
-      expect(canIssuePO('DIRECTOR_OF_SYSTEMS_INTEGRATIONS')).toBe(true);
-    });
-
-    test('DIVISION_LEADER can issue', () => {
-      expect(canIssuePO('DIVISION_LEADER')).toBe(true);
-    });
-
-    test('OPERATIONS_MANAGER cannot issue', () => {
-      expect(canIssuePO('OPERATIONS_MANAGER')).toBe(false);
-    });
-
-    test('ACCOUNTING cannot issue', () => {
-      expect(canIssuePO('ACCOUNTING')).toBe(false);
+    test('all roles can issue POs', () => {
+      const roles: UserRole[] = ['USER', 'ADMIN', 'DIVISION_LEADER', 'OPERATIONS_MANAGER', 'ACCOUNTING'];
+      roles.forEach((role) => {
+        expect(canIssuePO(role)).toBe(true);
+      });
     });
   });
 
@@ -269,14 +236,8 @@ describe('RBAC Permission System', () => {
   // ============================================
 
   describe('canViewFullPODetails', () => {
-    test('all roles can view full details', () => {
-      const roles: UserRole[] = [
-        'DIRECTOR_OF_SYSTEMS_INTEGRATIONS',
-        'DIVISION_LEADER',
-        'OPERATIONS_MANAGER',
-        'ACCOUNTING',
-      ];
-
+    test('all roles can view full details across divisions', () => {
+      const roles: UserRole[] = ['USER', 'ADMIN', 'DIVISION_LEADER', 'OPERATIONS_MANAGER', 'ACCOUNTING'];
       roles.forEach((role) => {
         expect(canViewFullPODetails(role, division1, division1)).toBe(true);
         expect(canViewFullPODetails(role, division1, division2)).toBe(true);
@@ -285,38 +246,24 @@ describe('RBAC Permission System', () => {
   });
 
   // ============================================
-  // isReadOnlyForPO TESTS
-  // ============================================
-
-  describe('isReadOnlyForPO', () => {
-    test('DIRECTOR_OF_SYSTEMS_INTEGRATIONS is never read-only', () => {
-      expect(isReadOnlyForPO('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division1)).toBe(false);
-      expect(isReadOnlyForPO('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division2)).toBe(false);
-    });
-
-    test('ACCOUNTING is always read-only', () => {
-      expect(isReadOnlyForPO('ACCOUNTING', division1, division1)).toBe(true);
-      expect(isReadOnlyForPO('ACCOUNTING', division1, division2)).toBe(true);
-    });
-
-    test('DIVISION_LEADER is read-only for other divisions', () => {
-      expect(isReadOnlyForPO('DIVISION_LEADER', division1, division1)).toBe(false);
-      expect(isReadOnlyForPO('DIVISION_LEADER', division1, division2)).toBe(true);
-    });
-
-    test('OPERATIONS_MANAGER is read-only for other divisions', () => {
-      expect(isReadOnlyForPO('OPERATIONS_MANAGER', division1, division1)).toBe(false);
-      expect(isReadOnlyForPO('OPERATIONS_MANAGER', division1, division2)).toBe(true);
-    });
-  });
-
-  // ============================================
   // canModifyDivisionAssignments TESTS
   // ============================================
 
   describe('canModifyDivisionAssignments', () => {
-    test('only DIRECTOR_OF_SYSTEMS_INTEGRATIONS can modify division assignments', () => {
+    test('ADMIN can modify division assignments', () => {
+      expect(canModifyDivisionAssignments('ADMIN')).toBe(true);
+    });
+
+    test('USER cannot modify division assignments', () => {
+      expect(canModifyDivisionAssignments('USER')).toBe(false);
+    });
+
+    test('legacy admin roles can modify', () => {
       expect(canModifyDivisionAssignments('DIRECTOR_OF_SYSTEMS_INTEGRATIONS')).toBe(true);
+      expect(canModifyDivisionAssignments('MAJORITY_OWNER')).toBe(true);
+    });
+
+    test('legacy non-admin roles cannot modify', () => {
       expect(canModifyDivisionAssignments('DIVISION_LEADER')).toBe(false);
       expect(canModifyDivisionAssignments('OPERATIONS_MANAGER')).toBe(false);
       expect(canModifyDivisionAssignments('ACCOUNTING')).toBe(false);
@@ -328,21 +275,31 @@ describe('RBAC Permission System', () => {
   // ============================================
 
   describe('getRoleDisplayName', () => {
-    test('returns correct display names', () => {
+    test('returns correct display names for new roles', () => {
+      expect(getRoleDisplayName('ADMIN')).toBe('Administrator');
+      expect(getRoleDisplayName('USER')).toBe('User');
+    });
+
+    test('returns correct display names for legacy roles', () => {
       expect(getRoleDisplayName('DIRECTOR_OF_SYSTEMS_INTEGRATIONS')).toBe('Director of Systems Integrations');
+      expect(getRoleDisplayName('MAJORITY_OWNER')).toBe('Majority Owner');
       expect(getRoleDisplayName('DIVISION_LEADER')).toBe('Division Leader');
       expect(getRoleDisplayName('OPERATIONS_MANAGER')).toBe('Operations Manager');
       expect(getRoleDisplayName('ACCOUNTING')).toBe('Accounting');
     });
+
+    test('returns role string for unknown roles', () => {
+      expect(getRoleDisplayName('UNKNOWN_ROLE')).toBe('UNKNOWN_ROLE');
+    });
   });
 
   // ============================================
-  // getAvailableActions TESTS (integration)
+  // getAvailableActions TESTS
   // ============================================
 
   describe('getAvailableActions', () => {
-    test('DIRECTOR_OF_SYSTEMS_INTEGRATIONS has all actions on Draft PO', () => {
-      const actions = getAvailableActions('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division1, 'Draft', 5000);
+    test('all actions on Draft PO for any user', () => {
+      const actions = getAvailableActions('USER', division1, division2, 'Draft', 5000);
       expect(actions).toContain('view');
       expect(actions).toContain('edit');
       expect(actions).toContain('approve');
@@ -351,81 +308,28 @@ describe('RBAC Permission System', () => {
       expect(actions).toContain('export');
     });
 
-    test('DIVISION_LEADER has edit/approve/reject on own division Draft PO under $25K', () => {
-      const actions = getAvailableActions('DIVISION_LEADER', division1, division1, 'Draft', 10000);
-      expect(actions).toContain('view');
-      expect(actions).toContain('edit');
-      expect(actions).toContain('approve');
-      expect(actions).toContain('reject');
-      expect(actions).toContain('cancel');
-      expect(actions).toContain('export');
-    });
+    test('issue action only on Approved status', () => {
+      const approved = getAvailableActions('USER', division1, division1, 'Approved', 5000);
+      expect(approved).toContain('issue');
 
-    test('DIVISION_LEADER cannot approve own division Draft PO over $25K', () => {
-      const actions = getAvailableActions('DIVISION_LEADER', division1, division1, 'Draft', 30000);
-      expect(actions).toContain('view');
-      expect(actions).toContain('edit');
-      expect(actions).not.toContain('approve');
-      expect(actions).not.toContain('reject');
-    });
-
-    test('DIVISION_LEADER read-only on other division', () => {
-      const actions = getAvailableActions('DIVISION_LEADER', division1, division2, 'Draft', 5000);
-      expect(actions).toContain('view');
-      expect(actions).toContain('export');
-      expect(actions).not.toContain('edit');
-      expect(actions).not.toContain('approve');
-      expect(actions).not.toContain('cancel');
-    });
-
-    test('OPERATIONS_MANAGER has limited actions on own division', () => {
-      const actions = getAvailableActions('OPERATIONS_MANAGER', division1, division1, 'Draft', 1000);
-      expect(actions).toContain('view');
-      expect(actions).toContain('edit');
-      expect(actions).toContain('export');
-      expect(actions).not.toContain('approve');
-      expect(actions).not.toContain('cancel');
-    });
-
-    test('ACCOUNTING has only view/export', () => {
-      const actions = getAvailableActions('ACCOUNTING', division1, division1, 'Draft', 5000);
-      expect(actions).toContain('view');
-      expect(actions).toContain('export');
-      expect(actions).not.toContain('edit');
-      expect(actions).not.toContain('approve');
-      expect(actions).not.toContain('cancel');
-    });
-
-    test('issue action available only for Approved status', () => {
-      const actions = getAvailableActions('DIVISION_LEADER', division1, division1, 'Approved', 5000);
-      expect(actions).toContain('issue');
-
-      const draftActions = getAvailableActions('DIVISION_LEADER', division1, division1, 'Draft', 5000);
-      expect(draftActions).not.toContain('issue');
+      const draft = getAvailableActions('USER', division1, division1, 'Draft', 5000);
+      expect(draft).not.toContain('issue');
     });
 
     test('no cancel action on Cancelled or Paid status', () => {
-      const cancelledActions = getAvailableActions('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division1, 'Cancelled', 5000);
-      expect(cancelledActions).not.toContain('cancel');
-
-      const paidActions = getAvailableActions('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division1, 'Paid', 5000);
-      expect(paidActions).not.toContain('cancel');
+      expect(getAvailableActions('ADMIN', division1, division1, 'Cancelled', 5000)).not.toContain('cancel');
+      expect(getAvailableActions('ADMIN', division1, division1, 'Paid', 5000)).not.toContain('cancel');
     });
 
     test('no edit action on non-Draft/Rejected status', () => {
-      const actions = getAvailableActions('DIRECTOR_OF_SYSTEMS_INTEGRATIONS', division1, division1, 'Approved', 5000);
-      expect(actions).not.toContain('edit');
+      expect(getAvailableActions('ADMIN', division1, division1, 'Approved', 5000)).not.toContain('edit');
+      expect(getAvailableActions('ADMIN', division1, division1, 'Issued', 5000)).not.toContain('edit');
     });
-  });
 
-  // ============================================
-  // APPROVAL_THRESHOLDS TESTS
-  // ============================================
-
-  describe('APPROVAL_THRESHOLDS', () => {
-    test('thresholds are set to expected values', () => {
-      expect(APPROVAL_THRESHOLDS.OPERATIONS_MANAGER_LIMIT).toBe(2500);
-      expect(APPROVAL_THRESHOLDS.OWNER_APPROVAL_REQUIRED).toBe(25000);
+    test('approve/reject available on Submitted status', () => {
+      const actions = getAvailableActions('USER', division1, division1, 'Submitted', 5000);
+      expect(actions).toContain('approve');
+      expect(actions).toContain('reject');
     });
   });
 });

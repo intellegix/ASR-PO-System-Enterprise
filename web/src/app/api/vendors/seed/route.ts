@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { withRateLimit } from '@/lib/validation/middleware';
+import { isAdmin } from '@/lib/auth/permissions';
 import log, { auditLog } from '@/lib/logging/logger';
 import prisma from '@/lib/db';
 
@@ -96,7 +97,7 @@ const postHandler = async (_request: NextRequest): Promise<NextResponse> => {
     where: { id: session.user.id },
     select: { role: true },
   });
-  if (!user || !['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER'].includes(user.role)) {
+  if (!user || !isAdmin(user.role)) {
     return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
   }
 

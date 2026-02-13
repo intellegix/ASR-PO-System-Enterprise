@@ -260,11 +260,7 @@ const getHandler = async (_request: NextRequest) => {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Only MAJORITY_OWNER and ACCOUNTING can access cross-division view
-    if (!['MAJORITY_OWNER', 'ACCOUNTING'].includes(user.role)) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
-    }
-
+    // All users can access cross-division view
     // Check if user has permission to view reports
     if (!hasPermission(user.role as UserRole, 'report:view')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });

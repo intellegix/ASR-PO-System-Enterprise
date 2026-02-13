@@ -4,7 +4,30 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { isAdmin as checkIsAdmin } from '@/lib/auth/permissions';
 import AppLayout from '@/components/layout/AppLayout';
+import {
+  Box,
+  Typography,
+  TextField,
+  MenuItem,
+  Button,
+  Card,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  CircularProgress,
+  Alert,
+  IconButton,
+} from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import CheckIcon from '@mui/icons-material/Check';
+import ApartmentIcon from '@mui/icons-material/Apartment';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 interface Division {
   id: string;
@@ -41,7 +64,7 @@ export default function ProjectsPage() {
   const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
 
-  const isAdmin = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER'].includes(user?.role || '');
+  const userIsAdmin = checkIsAdmin(user?.role || '');
 
   const { data: divisions = [] } = useQuery<Division[]>({
     queryKey: ['divisions'],
@@ -50,7 +73,7 @@ export default function ProjectsPage() {
       if (!response.ok) throw new Error('Failed to fetch divisions');
       return response.json();
     },
-    enabled: isAuthenticated && isAdmin,
+    enabled: isAuthenticated && userIsAdmin,
   });
 
   const divisionAssignMutation = useMutation({
@@ -134,9 +157,9 @@ export default function ProjectsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
@@ -168,318 +191,289 @@ export default function ProjectsPage() {
 
   return (
     <AppLayout pageTitle="Projects">
-      <div className="max-w-7xl mx-auto">
+      <Box sx={{ maxWidth: '1280px', mx: 'auto' }}>
         {syncMessage && (
-          <div
-            className={`mb-6 rounded-lg border p-4 flex items-start gap-3 ${
-              syncMessage.type === 'success'
-                ? 'bg-green-50 border-green-200'
-                : 'bg-red-50 border-red-200'
-            }`}
+          <Alert
+            severity={syncMessage.type}
+            onClose={() => setSyncMessage(null)}
+            sx={{ mb: 3 }}
           >
-            <svg
-              className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
-                syncMessage.type === 'success' ? 'text-green-500' : 'text-red-500'
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              {syncMessage.type === 'success' ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              )}
-            </svg>
-            <div className="flex-1">
-              <p className={syncMessage.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                {syncMessage.text}
-              </p>
-            </div>
-            <button
-              onClick={() => setSyncMessage(null)}
-              className={syncMessage.type === 'success' ? 'text-green-500 hover:text-green-700' : 'text-red-500 hover:text-red-700'}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+            {syncMessage.text}
+          </Alert>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">Projects</h1>
-            <p className="text-sm text-slate-500">
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, justifyContent: 'space-between', gap: 2, mb: 3 }}>
+          <Box>
+            <Typography variant="h5" fontWeight="bold" color="text.primary">
+              Projects
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
               {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-          {isAdmin && (
-            <button
+            </Typography>
+          </Box>
+          {userIsAdmin && (
+            <Button
+              variant="contained"
               onClick={() => syncMutation.mutate()}
               disabled={syncMutation.isPending}
-              className="inline-flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              startIcon={syncMutation.isPending ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon />}
+              sx={{ bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' } }}
             >
-              {syncMutation.isPending ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              )}
               {syncMutation.isPending ? 'Syncing...' : 'Sync from Raken'}
-            </button>
+            </Button>
           )}
-        </div>
+        </Box>
 
-        <div className="bg-white rounded-lg border border-slate-200 p-4 mb-6">
-          <div className="flex flex-wrap gap-4">
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Search</label>
-              <input
-                type="text"
+        <Card sx={{ p: 2, mb: 3, border: 1, borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ flex: '1 1 200px', minWidth: '200px' }}>
+              <Typography variant="body2" fontWeight="medium" color="text.primary" sx={{ mb: 0.5 }}>
+                Search
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Project code, name, or Clark rep..."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-            </div>
+            </Box>
             {search && (
-              <div className="flex items-end">
-                <button
-                  onClick={() => setSearch('')}
-                  className="px-3 py-2 text-sm text-blue-600 hover:text-blue-800"
-                >
+              <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                <Button onClick={() => setSearch('')} size="small" sx={{ textTransform: 'none' }}>
                   Clear filter
-                </button>
-              </div>
+                </Button>
+              </Box>
             )}
-          </div>
-        </div>
+          </Box>
+        </Card>
 
-        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+        <Card sx={{ border: 1, borderColor: 'divider', overflow: 'hidden' }}>
           {projectsLoading ? (
-            <div className="p-8 flex justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
+            <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}>
+              <CircularProgress />
+            </Box>
           ) : filteredProjects.length === 0 ? (
-            <div className="p-8 text-center">
-              <svg className="w-12 h-12 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <p className="text-slate-500 mb-2">No projects found</p>
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <ApartmentIcon sx={{ fontSize: 48, color: 'action.disabled', mb: 2 }} />
+              <Typography color="text.secondary" sx={{ mb: 1 }}>
+                No projects found
+              </Typography>
               {search && (
-                <p className="text-sm text-slate-400">Try adjusting your search terms.</p>
+                <Typography variant="body2" color="text.disabled">
+                  Try adjusting your search terms.
+                </Typography>
               )}
-            </div>
+            </Box>
           ) : (
             <>
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-50 border-b border-slate-200">
-                    <tr>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Project Code</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Project Name</th>
-                      {isAdmin && (
-                        <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Division</th>
-                      )}
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">District</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Clark Rep</th>
-                      <th className="text-center px-4 py-3 text-sm font-medium text-slate-700">Raken Status</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-slate-700">Address</th>
-                      {isAdmin && (
-                        <th className="text-center px-4 py-3 text-sm font-medium text-slate-700 w-20">Actions</th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {filteredProjects.map((project) => (
-                      <tr key={project.id} className="hover:bg-slate-50 transition">
-                        <td className="px-4 py-3 text-sm font-mono font-medium text-slate-900">
-                          {project.project_code}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
-                          {project.project_name || '-'}
-                        </td>
-                        {isAdmin && (
-                          <td className="px-4 py-3">
-                            <select
-                              value={project.primary_division_id || ''}
-                              onChange={(e) => divisionAssignMutation.mutate({
-                                projectId: project.id,
-                                divisionId: e.target.value || null,
-                              })}
-                              className="px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
-                            >
-                              <option value="">Unassigned</option>
-                              {divisions.map((d) => (
-                                <option key={d.id} value={d.id}>{d.division_name}</option>
-                              ))}
-                            </select>
-                          </td>
-                        )}
-                        <td className="px-4 py-3 text-sm text-slate-600">
-                          {project.district_name || '-'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
-                          {project.clark_rep || '-'}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {project.raken_uuid ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              Synced
-                              {project.last_synced_at && (
-                                <span className="ml-1 text-green-600 font-normal">
-                                  {formatSyncDate(project.last_synced_at)}
-                                </span>
-                              )}
-                            </span>
-                          ) : (
-                            <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-500">
-                              Local Only
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600 max-w-[200px] truncate">
-                          {project.property_address || '-'}
-                        </td>
-                        {isAdmin && (
-                          <td className="px-4 py-3 text-center">
-                            {deleteTarget?.id === project.id ? (
-                              <span className="inline-flex items-center gap-2 text-sm">
-                                <span className="text-slate-600">Delete?</span>
-                                <button
-                                  onClick={() => deleteMutation.mutate(project.id)}
-                                  disabled={deleteMutation.isPending}
-                                  className="text-red-600 hover:text-red-800 font-medium"
-                                >
-                                  {deleteMutation.isPending ? '...' : 'Yes'}
-                                </button>
-                                <button
-                                  onClick={() => setDeleteTarget(null)}
-                                  className="text-slate-500 hover:text-slate-700 font-medium"
-                                >
-                                  No
-                                </button>
-                              </span>
-                            ) : (
-                              <button
-                                onClick={() => setDeleteTarget(project)}
-                                className="text-slate-400 hover:text-red-500 transition"
-                                title="Delete project"
+              <Box sx={{ display: { xs: 'none', md: 'block' }, overflowX: 'auto' }}>
+                <TableContainer>
+                  <Table>
+                    <TableHead sx={{ bgcolor: 'grey.50' }}>
+                      <TableRow>
+                        <TableCell>Project Code</TableCell>
+                        <TableCell>Project Name</TableCell>
+                        {userIsAdmin && <TableCell>Division</TableCell>}
+                        <TableCell>District</TableCell>
+                        <TableCell>Clark Rep</TableCell>
+                        <TableCell align="center">Raken Status</TableCell>
+                        <TableCell>Address</TableCell>
+                        {userIsAdmin && <TableCell align="center" sx={{ width: 80 }}>Actions</TableCell>}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filteredProjects.map((project) => (
+                        <TableRow key={project.id} hover>
+                          <TableCell sx={{ fontFamily: 'monospace', fontWeight: 'medium' }}>
+                            {project.project_code}
+                          </TableCell>
+                          <TableCell>{project.project_name || '-'}</TableCell>
+                          {userIsAdmin && (
+                            <TableCell>
+                              <TextField
+                                select
+                                size="small"
+                                value={project.primary_division_id || ''}
+                                onChange={(e) => divisionAssignMutation.mutate({
+                                  projectId: project.id,
+                                  divisionId: e.target.value || null,
+                                })}
+                                sx={{ minWidth: 140 }}
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
+                                <MenuItem value="">Unassigned</MenuItem>
+                                {divisions.map((d) => (
+                                  <MenuItem key={d.id} value={d.id}>{d.division_name}</MenuItem>
+                                ))}
+                              </TextField>
+                            </TableCell>
+                          )}
+                          <TableCell>{project.district_name || '-'}</TableCell>
+                          <TableCell>{project.clark_rep || '-'}</TableCell>
+                          <TableCell align="center">
+                            {project.raken_uuid ? (
+                              <Chip
+                                icon={<CheckIcon />}
+                                label={`Synced ${project.last_synced_at ? formatSyncDate(project.last_synced_at) : ''}`}
+                                color="success"
+                                size="small"
+                              />
+                            ) : (
+                              <Chip label="Local Only" size="small" />
                             )}
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          </TableCell>
+                          <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {project.property_address || '-'}
+                          </TableCell>
+                          {userIsAdmin && (
+                            <TableCell align="center">
+                              {deleteTarget?.id === project.id ? (
+                                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+                                  <Typography variant="body2" color="text.secondary">Delete?</Typography>
+                                  <Button
+                                    size="small"
+                                    onClick={() => deleteMutation.mutate(project.id)}
+                                    disabled={deleteMutation.isPending}
+                                    color="error"
+                                    sx={{ minWidth: 'auto', textTransform: 'none' }}
+                                  >
+                                    {deleteMutation.isPending ? '...' : 'Yes'}
+                                  </Button>
+                                  <Button
+                                    size="small"
+                                    onClick={() => setDeleteTarget(null)}
+                                    sx={{ minWidth: 'auto', textTransform: 'none' }}
+                                  >
+                                    No
+                                  </Button>
+                                </Box>
+                              ) : (
+                                <IconButton
+                                  size="small"
+                                  onClick={() => setDeleteTarget(project)}
+                                  sx={{ color: 'action.disabled', '&:hover': { color: 'error.main' } }}
+                                  title="Delete project"
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              )}
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
 
-              <div className="md:hidden divide-y divide-slate-200">
+              <Box sx={{ display: { xs: 'block', md: 'none' } }}>
                 {filteredProjects.map((project) => (
-                  <div key={project.id} className="p-4 hover:bg-slate-50 transition">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-mono font-medium text-slate-900">{project.project_code}</p>
-                        <p className="text-sm text-slate-600">{project.project_name || '-'}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {isAdmin && (
+                  <Box
+                    key={project.id}
+                    sx={{
+                      p: 2,
+                      borderBottom: 1,
+                      borderColor: 'divider',
+                      '&:hover': { bgcolor: 'grey.50' },
+                      transition: 'background-color 0.2s',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                      <Box>
+                        <Typography sx={{ fontFamily: 'monospace', fontWeight: 'medium' }} color="text.primary">
+                          {project.project_code}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {project.project_name || '-'}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {userIsAdmin && (
                           deleteTarget?.id === project.id ? (
-                            <span className="inline-flex items-center gap-2 text-sm">
-                              <span className="text-slate-600">Delete?</span>
-                              <button
+                            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="body2" color="text.secondary">Delete?</Typography>
+                              <Button
+                                size="small"
                                 onClick={() => deleteMutation.mutate(project.id)}
                                 disabled={deleteMutation.isPending}
-                                className="text-red-600 hover:text-red-800 font-medium"
+                                color="error"
+                                sx={{ minWidth: 'auto', textTransform: 'none' }}
                               >
                                 {deleteMutation.isPending ? '...' : 'Yes'}
-                              </button>
-                              <button
+                              </Button>
+                              <Button
+                                size="small"
                                 onClick={() => setDeleteTarget(null)}
-                                className="text-slate-500 hover:text-slate-700 font-medium"
+                                sx={{ minWidth: 'auto', textTransform: 'none' }}
                               >
                                 No
-                              </button>
-                            </span>
+                              </Button>
+                            </Box>
                           ) : (
-                            <button
+                            <IconButton
+                              size="small"
                               onClick={() => setDeleteTarget(project)}
-                              className="text-slate-400 hover:text-red-500 transition"
+                              sx={{ color: 'action.disabled', '&:hover': { color: 'error.main' } }}
                               title="Delete project"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
                           )
                         )}
                         {project.raken_uuid ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            Synced
-                          </span>
+                          <Chip icon={<CheckIcon />} label="Synced" color="success" size="small" />
                         ) : (
-                          <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-500">
-                            Local Only
-                          </span>
+                          <Chip label="Local Only" size="small" />
                         )}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      {isAdmin && (
-                        <div className="col-span-2 mb-1">
-                          <p className="text-slate-400 text-xs mb-1">Division</p>
-                          <select
+                      </Box>
+                    </Box>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, fontSize: '0.875rem' }}>
+                      {userIsAdmin && (
+                        <Box sx={{ gridColumn: '1 / -1', mb: 0.5 }}>
+                          <Typography variant="caption" color="text.disabled" sx={{ mb: 0.5 }}>Division</Typography>
+                          <TextField
+                            select
+                            size="small"
+                            fullWidth
                             value={project.primary_division_id || ''}
                             onChange={(e) => divisionAssignMutation.mutate({
                               projectId: project.id,
                               divisionId: e.target.value || null,
                             })}
-                            className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-orange-500 bg-white"
                           >
-                            <option value="">Unassigned</option>
+                            <MenuItem value="">Unassigned</MenuItem>
                             {divisions.map((d) => (
-                              <option key={d.id} value={d.id}>{d.division_name}</option>
+                              <MenuItem key={d.id} value={d.id}>{d.division_name}</MenuItem>
                             ))}
-                          </select>
-                        </div>
+                          </TextField>
+                        </Box>
                       )}
-                      <div>
-                        <p className="text-slate-400 text-xs">District</p>
-                        <p className="text-slate-600">{project.district_name || '-'}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-400 text-xs">Clark Rep</p>
-                        <p className="text-slate-600">{project.clark_rep || '-'}</p>
-                      </div>
-                    </div>
+                      <Box>
+                        <Typography variant="caption" color="text.disabled">District</Typography>
+                        <Typography variant="body2" color="text.secondary">{project.district_name || '-'}</Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="text.disabled">Clark Rep</Typography>
+                        <Typography variant="body2" color="text.secondary">{project.clark_rep || '-'}</Typography>
+                      </Box>
+                    </Box>
                     {project.property_address && (
-                      <p className="text-xs text-slate-400 mt-2 truncate">{project.property_address}</p>
+                      <Typography variant="caption" color="text.disabled" sx={{ mt: 1, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {project.property_address}
+                      </Typography>
                     )}
                     {project.raken_uuid && project.last_synced_at && (
-                      <p className="text-xs text-green-600 mt-1">
+                      <Typography variant="caption" color="success.main" sx={{ mt: 0.5, display: 'block' }}>
                         Last synced: {formatSyncDate(project.last_synced_at)}
-                      </p>
+                      </Typography>
                     )}
-                  </div>
+                  </Box>
                 ))}
-              </div>
+              </Box>
             </>
           )}
-        </div>
-      </div>
+        </Card>
+      </Box>
     </AppLayout>
   );
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
-import { hasPermission, type UserRole } from '@/lib/auth/permissions';
+import { hasPermission, isAdmin, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 import { cachedDashboardData } from '@/lib/cache/dashboard-cache';
@@ -17,7 +17,7 @@ interface KPIFilter {
 }
 
 // Get lightweight KPI metrics
-const getQuickKPIs = async (filter: KPIFilter, userRole: string, userDivisionId: string | null) => {
+const getQuickKPIs = async (filter: KPIFilter, _userRole: string, _userDivisionId: string | null) => {
   const now = new Date();
   const { divisionId, timeframe = 'current_month' } = filter;
 
@@ -39,20 +39,15 @@ const getQuickKPIs = async (filter: KPIFilter, userRole: string, userDivisionId:
 
   const timeRange = timeRanges[timeframe];
 
-  // Build WHERE clause based on permissions and filters
+  // All users can see all divisions, optionally filtered by divisionId
   const whereClause: Record<string, unknown> = {
     deleted_at: null,
     created_at: { gte: timeRange.start },
   };
 
-  // Add division filter if specified or if user has limited access
+  // Add division filter if specified
   if (divisionId) {
     whereClause.division_id = divisionId;
-  } else if (userRole === 'DIVISION_LEADER' || userRole === 'OPERATIONS_MANAGER') {
-    // These roles can only see their own division by default
-    if (userDivisionId) {
-      whereClause.division_id = userDivisionId;
-    }
   }
 
   // Get PO data
@@ -116,7 +111,7 @@ const getQuickKPIs = async (filter: KPIFilter, userRole: string, userDivisionId:
     scope: {
       divisionId: divisionId || null,
       divisionName: divisionId ? pos[0]?.divisions?.division_name || null : null,
-      isCompanyWide: !divisionId && ['MAJORITY_OWNER', 'ACCOUNTING'].includes(userRole),
+      isCompanyWide: !divisionId,
     },
   };
 };
@@ -208,9 +203,9 @@ const getHandler = async (request: NextRequest) => {
       () => getQuickKPIs({ divisionId, timeframe }, user.role, user.division_id)
     );
 
-    // Add system health if requested (only for MAJORITY_OWNER)
+    // Add system health if requested (admin only)
     let systemHealth = null;
-    if (includeHealth && user.role === 'MAJORITY_OWNER') {
+    if (includeHealth && isAdmin(user.role)) {
       systemHealth = await getSystemHealth();
     }
 
@@ -220,7 +215,7 @@ const getHandler = async (request: NextRequest) => {
       userContext: {
         role: user.role,
         divisionId: user.division_id,
-        canViewAllDivisions: ['MAJORITY_OWNER', 'ACCOUNTING'].includes(user.role),
+        canViewAllDivisions: true, // All users can view all divisions
       },
       lastUpdated: new Date().toISOString(),
     };

@@ -51,9 +51,8 @@ const getHandler = async (request: NextRequest) => {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check permissions - audit trail requires elevated access
-    if (!hasPermission(user.role as UserRole, 'report:view') ||
-        !['MAJORITY_OWNER', 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'DIVISION_LEADER', 'ACCOUNTING'].includes(user.role)) {
+    // Check permissions - all authenticated users can view audit trail
+    if (!hasPermission(user.role as UserRole, 'report:view')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -135,12 +134,7 @@ const getHandler = async (request: NextRequest) => {
       ];
     }
 
-    // Apply division filtering for division leaders
-    if (user.role === 'DIVISION_LEADER' && user.division_id) {
-      whereClause.actor_division_id = user.division_id;
-    }
-
-    // Fetch audit trail entries
+    // Fetch audit trail entries (all users see all divisions)
     const auditEntries = await prisma.po_approvals.findMany({
       where: whereClause,
       include: {

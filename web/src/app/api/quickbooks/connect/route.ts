@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { createOAuthClient, QB_SCOPES, validateQBConfig } from '@/lib/quickbooks/config';
+import { isAdmin } from '@/lib/auth/permissions';
 import prisma from '@/lib/db';
 // Force dynamic rendering for API route
 export const dynamic = 'force-dynamic';
@@ -21,9 +22,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Only allow admin users to connect QuickBooks
-    if (!['MAJORITY_OWNER', 'OPERATIONS_MANAGER'].includes(session.user.role)) {
+    if (!isAdmin(session.user.role)) {
       return NextResponse.json(
-        { error: 'Insufficient permissions. Only owners and operations managers can connect QuickBooks.' },
+        { error: 'Insufficient permissions. Only administrators can connect QuickBooks.' },
         { status: 403 }
       );
     }

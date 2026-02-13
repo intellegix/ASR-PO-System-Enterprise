@@ -4,34 +4,36 @@ import Link from 'next/link';
 import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { getRoleDisplayName, type UserRole } from '@/lib/auth/permissions';
+import { getRoleDisplayName, isAdmin, type UserRole } from '@/lib/auth/permissions';
 import AppLayout from '@/components/layout/AppLayout';
 import KPIMetrics from './widgets/KPIMetrics';
 import PendingApprovals from './widgets/PendingApprovals';
 import DivisionPerformance from './widgets/DivisionPerformance';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Alert,
+  CircularProgress,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import SyncIcon from '@mui/icons-material/Sync';
 
-interface IconProps {
-  className?: string;
+interface SyncData {
+  created: number;
+  updated: number;
+  errors?: unknown[];
 }
-
-const PlusIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-  </svg>
-);
-
-const RefreshIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-  </svg>
-);
 
 export default function Dashboard() {
   const { user } = useAuth();
 
   const role = (user?.role || 'DIVISION_LEADER') as UserRole;
   const userDivisionId = user?.divisionId;
-  const canViewAllDivisions = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'ACCOUNTING'].includes(role);
+  const canViewAllDivisions = true;
 
   const queryClient = useQueryClient();
   const { data: syncStatus } = useQuery({
@@ -65,122 +67,152 @@ export default function Dashboard() {
     }
   }, [syncMutation]);
 
-  const isAdmin = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER'].includes(role);
+  const userIsAdmin = isAdmin(role);
 
   return (
     <AppLayout pageTitle="Dashboard">
       {/* Welcome banner */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 lg:p-8 text-white mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold mb-1">Welcome back, {user?.name?.split(' ')[0] || 'User'}!</h2>
-            <p className="text-orange-100">
-              {user?.divisionName || 'All Divisions'} &bull; {getRoleDisplayName(role)}
-            </p>
-          </div>
-          <Link
-            href="/po/create"
-            className="inline-flex items-center justify-center gap-2 bg-white text-orange-600 font-semibold px-6 py-3 rounded-xl hover:bg-orange-50 transition"
-          >
-            <PlusIcon />
-            <span>Create New PO</span>
-          </Link>
-        </div>
-      </div>
+      <Card
+        sx={{
+          background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+          color: 'white',
+          mb: 3,
+          borderRadius: 4,
+        }}
+      >
+        <CardContent sx={{ p: { xs: 3, lg: 4 } }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, alignItems: { lg: 'center' }, justifyContent: 'space-between', gap: 2 }}>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+                Welcome back, {user?.name?.split(' ')[0] || 'User'}!
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                {user?.divisionName || 'All Divisions'} &bull; {getRoleDisplayName(role)}
+              </Typography>
+            </Box>
+            <Button
+              component={Link}
+              href="/po/create"
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{
+                bgcolor: 'white',
+                color: '#ea580c',
+                fontWeight: 600,
+                px: 3,
+                py: 1.5,
+                borderRadius: 3,
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
+              }}
+            >
+              Create New PO
+            </Button>
+          </Box>
+        </CardContent>
+      </Card>
 
       {/* Real-time KPI Metrics */}
-      <KPIMetrics
-        divisionId={canViewAllDivisions ? undefined : userDivisionId || undefined}
-        timeframe="current_month"
-        className="mb-6"
-      />
+      <Box sx={{ mb: 3 }}>
+        <KPIMetrics
+          divisionId={canViewAllDivisions ? undefined : userDivisionId || undefined}
+          timeframe="current_month"
+        />
+      </Box>
 
       {/* Dashboard content grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <PendingApprovals
-          limit={8}
-          className="lg:col-span-1"
-        />
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <PendingApprovals
+            limit={8}
+          />
+        </Grid>
 
         {canViewAllDivisions && (
-          <DivisionPerformance className="lg:col-span-1" />
+          <Grid size={{ xs: 12, md: 6 }}>
+            <DivisionPerformance />
+          </Grid>
         )}
 
         {!canViewAllDivisions && userDivisionId && (
-          <div className="bg-white rounded-xl shadow-sm lg:col-span-1">
-            <div className="px-6 py-4 border-b border-slate-100">
-              <h3 className="font-semibold text-slate-900">Division Activity</h3>
-              <p className="text-sm text-slate-500">Your division&apos;s recent activity</p>
-            </div>
-            <div className="p-6">
-              <KPIMetrics
-                divisionId={userDivisionId}
-                timeframe="last_30_days"
-                className="mb-4"
-              />
-              <div className="text-center mt-6">
-                <Link
-                  href="/reports"
-                  className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium"
-                >
-                  <span>View detailed reports</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
-              </div>
-            </div>
-          </div>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
+                  Division Activity
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Your division&apos;s recent activity
+                </Typography>
+                <Box sx={{ mb: 2 }}>
+                  <KPIMetrics
+                    divisionId={userDivisionId}
+                    timeframe="last_30_days"
+                  />
+                </Box>
+                <Box sx={{ textAlign: 'center', mt: 3 }}>
+                  <Button
+                    component={Link}
+                    href="/reports"
+                    color="primary"
+                  >
+                    View detailed reports
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
         )}
-      </div>
+      </Grid>
 
       {/* Raken Sync Card - Admin only */}
-      {isAdmin && (
-        <div className="mt-6 bg-white rounded-xl shadow-sm">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-slate-900 flex items-center gap-2">
-                <RefreshIcon className="w-5 h-5 text-orange-500" />
+      {userIsAdmin && (
+        <Card sx={{ mt: 3 }}>
+          <Box sx={{ px: 3, py: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <SyncIcon sx={{ color: 'primary.main' }} />
                 Raken Project Sync
-              </h3>
-              <p className="text-sm text-slate-500">
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
                 Sync active contracts from Raken into the PO System
-              </p>
-            </div>
-            <button
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
               onClick={handleSync}
               disabled={syncMutation.isPending}
-              className="inline-flex items-center gap-2 bg-orange-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              startIcon={syncMutation.isPending ? <CircularProgress size={16} color="inherit" /> : <SyncIcon />}
             >
-              <RefreshIcon className={`w-4 h-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
               {syncMutation.isPending ? 'Syncing...' : 'Sync Now'}
-            </button>
-          </div>
-          <div className="p-6">
+            </Button>
+          </Box>
+          <CardContent>
             {syncMutation.isSuccess && syncMutation.data && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
-                Sync complete: {syncMutation.data.created} created, {syncMutation.data.updated} updated
-                {syncMutation.data.errors?.length > 0 && (
-                  <span className="text-amber-600"> ({syncMutation.data.errors.length} errors)</span>
+              <Alert severity="success" sx={{ mb: 2 }}>
+                Sync complete: {(syncMutation.data as SyncData).created} created, {(syncMutation.data as SyncData).updated} updated
+                {(syncMutation.data as SyncData).errors && (syncMutation.data as SyncData).errors!.length > 0 && (
+                  <Typography component="span" sx={{ color: 'warning.main' }}>
+                    {' '}({(syncMutation.data as SyncData).errors!.length} errors)
+                  </Typography>
                 )}
-              </div>
+              </Alert>
             )}
             {syncMutation.isError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+              <Alert severity="error" sx={{ mb: 2 }}>
                 Sync failed: {syncMutation.error instanceof Error ? syncMutation.error.message : 'Unknown error'}
-              </div>
+              </Alert>
             )}
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-2xl font-bold text-slate-900">{syncStatus?.syncedProjects ?? '—'}</p>
-                <p className="text-xs text-slate-500">Raken Projects</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900">{syncStatus?.totalProjects ?? '—'}</p>
-                <p className="text-xs text-slate-500">Total Projects</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-900">
+            <Grid container spacing={2} sx={{ textAlign: 'center' }}>
+              <Grid size={{ xs: 4 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700 }}>{syncStatus?.syncedProjects ?? '\u2014'}</Typography>
+                <Typography variant="caption" color="text.secondary">Raken Projects</Typography>
+              </Grid>
+              <Grid size={{ xs: 4 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700 }}>{syncStatus?.totalProjects ?? '\u2014'}</Typography>
+                <Typography variant="caption" color="text.secondary">Total Projects</Typography>
+              </Grid>
+              <Grid size={{ xs: 4 }}>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
                   {syncStatus?.lastSyncedAt
                     ? new Date(syncStatus.lastSyncedAt).toLocaleDateString('en-US', {
                         month: 'short',
@@ -189,12 +221,12 @@ export default function Dashboard() {
                         minute: '2-digit',
                       })
                     : 'Never'}
-                </p>
-                <p className="text-xs text-slate-500">Last Synced</p>
-              </div>
-            </div>
-          </div>
-        </div>
+                </Typography>
+                <Typography variant="caption" color="text.secondary">Last Synced</Typography>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
       )}
     </AppLayout>
   );

@@ -188,7 +188,7 @@ describe('Validation Schemas', () => {
         firstName: 'John',
         lastName: 'Doe',
         phone: '555-123-4567',
-        role: 'DIVISION_LEADER' as const,
+        role: 'USER' as const,
         divisionId: '123e4567-e89b-12d3-a456-426614174000',
       };
       const result = createUserSchema.safeParse(validUser);
@@ -222,7 +222,7 @@ describe('Validation Schemas', () => {
         firstName: 'John',
         lastName: 'Doe',
         phone: '555-123-4567',
-        role: 'ACCOUNTING' as const,
+        role: 'ADMIN' as const,
       };
       const result = createUserSchema.safeParse(validUser);
       expect(result.success).toBe(true);

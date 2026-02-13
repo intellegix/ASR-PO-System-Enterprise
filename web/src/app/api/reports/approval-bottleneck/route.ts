@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
-import { hasPermission, type UserRole } from '@/lib/auth/permissions';
+import { hasPermission, isAdmin, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 
@@ -306,8 +306,8 @@ const generateApprovalBottleneckReport = async (
     let currentPendingCount = 0;
     let oldestPendingDays = 0;
 
-    if (user.role === 'MAJORITY_OWNER' || user.role === 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS') {
-      // Can approve any high-value PO
+    if (isAdmin(user.role)) {
+      // Admins can approve any high-value PO
       const highValuePending = pendingPOs.filter(po => (po.total_amount?.toNumber() || 0) > 10000);
       currentPendingCount = highValuePending.length;
     } else if (user.division_id) {
@@ -692,9 +692,8 @@ const getHandler = async (request: NextRequest): Promise<NextResponse> => {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check permissions - this report requires elevated permissions
-    if (!hasPermission(user.role as UserRole, 'report:view') ||
-        !['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'].includes(user.role)) {
+    // Check permissions - all authenticated users can view reports
+    if (!hasPermission(user.role as UserRole, 'report:view')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -706,12 +705,8 @@ const getHandler = async (request: NextRequest): Promise<NextResponse> => {
     const userId = searchParams.get('userId') || undefined;
     const format = searchParams.get('format') || 'json';
 
-    // Apply division filtering based on user permissions
-    let divisionFilter = divisionId;
-    if (user.role === 'DIVISION_LEADER' && user.division_id) {
-      // Division leaders can only see their own division
-      divisionFilter = user.division_id;
-    }
+    // No division filtering — all users see all division data
+    const divisionFilter = divisionId;
 
     // Generate report data
     const reportData = await generateApprovalBottleneckReport(startDate, endDate, divisionFilter, userId);

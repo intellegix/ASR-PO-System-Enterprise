@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { withRateLimit } from '@/lib/validation/middleware';
+import { isAdmin } from '@/lib/auth/permissions';
 import log from '@/lib/logging/logger';
 import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ADMIN_ROLES = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER'];
 
 const deleteHandler = async (
   _request: NextRequest,
@@ -26,7 +26,7 @@ const deleteHandler = async (
       select: { role: true },
     });
 
-    if (!user || !ADMIN_ROLES.includes(user.role || '')) {
+    if (!user || !isAdmin(user.role || '')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -97,7 +97,7 @@ const patchHandler = async (
       select: { role: true },
     });
 
-    if (!user || !ADMIN_ROLES.includes(user.role || '')) {
+    if (!user || !isAdmin(user.role || '')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 

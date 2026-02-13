@@ -54,7 +54,7 @@ const baseUserSchema = z.object({
   firstName: sanitizedTextSchema(50),
   lastName: sanitizedTextSchema(50),
   phone: phoneSchema,
-  role: z.enum(['MAJORITY_OWNER', 'DIVISION_LEADER', 'OPERATIONS_MANAGER', 'ACCOUNTING']),
+  role: z.enum(['USER', 'ADMIN']),
   divisionId: uuidSchema.optional(),
 });
 

@@ -25,24 +25,16 @@ const getHandler = async (_request: NextRequest) => {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check permissions
-    if (!hasPermission(user.role as UserRole, 'report:view') ||
-        !['MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'].includes(user.role)) {
+    // Check permissions - all authenticated users can view filters
+    if (!hasPermission(user.role as UserRole, 'report:view')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
-    // Get available users who have performed actions
-    const usersWhere: Record<string, unknown> = {
-      is_active: true,
-    };
-
-    // Division leaders only see users from their division
-    if (user.role === 'DIVISION_LEADER' && user.division_id) {
-      usersWhere.division_id = user.division_id;
-    }
-
+    // Get available users who have performed actions (all divisions)
     const users = await prisma.users.findMany({
-      where: usersWhere,
+      where: {
+        is_active: true,
+      },
       select: {
         id: true,
         first_name: true,

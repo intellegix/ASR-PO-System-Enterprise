@@ -15,9 +15,6 @@ import { syncSinglePO } from '@/lib/quickbooks/service';
 export const dynamic = 'force-dynamic';
 
 
-// Approval threshold - POs over this amount require owner approval
-const OWNER_APPROVAL_THRESHOLD = 25000;
-
 type POAction = 'submit' | 'approve' | 'reject' | 'issue' | 'receive' | 'pay' | 'cancel';
 
 interface ActionRequest {
@@ -62,11 +59,6 @@ const postHandler = async (
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const userRole = user.role;
-    const userDivisionId = user.division_id;
-    const poAmount = Number(currentPO.total_amount);
-    const requiresOwnerApproval = poAmount > OWNER_APPROVAL_THRESHOLD;
-
     let newStatus: string;
     let auditAction: string;
 
@@ -92,40 +84,7 @@ const postHandler = async (
           );
         }
 
-        // Check approval permissions
-        // Majority Owner can approve any PO
-        // Division Leader can approve their division's POs under threshold
-        // Operations Manager can approve any PO under threshold
-        if (userRole === 'MAJORITY_OWNER') {
-          // Can approve anything
-        } else if (userRole === 'DIVISION_LEADER') {
-          // Can only approve own division's POs under threshold
-          if (userDivisionId !== currentPO.division_id) {
-            return NextResponse.json(
-              { error: 'You can only approve POs in your division' },
-              { status: 403 }
-            );
-          }
-          if (requiresOwnerApproval) {
-            return NextResponse.json(
-              { error: `POs over $${OWNER_APPROVAL_THRESHOLD.toLocaleString()} require owner approval` },
-              { status: 403 }
-            );
-          }
-        } else if (userRole === 'OPERATIONS_MANAGER') {
-          if (requiresOwnerApproval) {
-            return NextResponse.json(
-              { error: `POs over $${OWNER_APPROVAL_THRESHOLD.toLocaleString()} require owner approval` },
-              { status: 403 }
-            );
-          }
-        } else {
-          return NextResponse.json(
-            { error: 'You do not have permission to approve POs' },
-            { status: 403 }
-          );
-        }
-
+        // All authenticated users can approve POs (no role/division restrictions)
         newStatus = 'Approved';
         auditAction = 'POApproved';
         break;
@@ -139,21 +98,7 @@ const postHandler = async (
           );
         }
 
-        // Same permission check as approve
-        if (userRole === 'ACCOUNTING') {
-          return NextResponse.json(
-            { error: 'You do not have permission to reject POs' },
-            { status: 403 }
-          );
-        }
-
-        if (userRole === 'DIVISION_LEADER' && userDivisionId !== currentPO.division_id) {
-          return NextResponse.json(
-            { error: 'You can only reject POs in your division' },
-            { status: 403 }
-          );
-        }
-
+        // All authenticated users can reject POs (no role/division restrictions)
         newStatus = 'Rejected';
         auditAction = 'PORejected';
         break;
@@ -185,7 +130,7 @@ const postHandler = async (
         break;
 
       case 'pay':
-        // Mark as paid - only from Received status, only accounting can do this
+        // Mark as paid - only from Received status
         if (currentPO.status !== 'Received') {
           return NextResponse.json(
             { error: 'PO must be received before marking as paid' },
@@ -193,14 +138,7 @@ const postHandler = async (
           );
         }
 
-        // Only accounting and majority owners can mark POs as paid
-        if (userRole !== 'ACCOUNTING' && userRole !== 'MAJORITY_OWNER') {
-          return NextResponse.json(
-            { error: 'Only accounting staff can mark POs as paid' },
-            { status: 403 }
-          );
-        }
-
+        // All authenticated users can mark POs as paid
         newStatus = 'Paid';
         auditAction = 'POPaid';
         break;

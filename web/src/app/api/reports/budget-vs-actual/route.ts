@@ -580,12 +580,8 @@ const getHandler = async (request: NextRequest): Promise<NextResponse> => {
     const projectId = searchParams.get('projectId') || undefined;
     const format = searchParams.get('format') || 'json';
 
-    // Apply division filtering based on user permissions
-    let divisionFilter = divisionId;
-    if (!['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER', 'ACCOUNTING'].includes(user.role) && user.division_id) {
-      // Non-cross-division users can only see their own division
-      divisionFilter = user.division_id;
-    }
+    // No division filtering — all users see all division data
+    const divisionFilter = divisionId;
 
     // Generate report data
     const reportData = await generateBudgetActualReport(startDate, endDate, divisionFilter, projectId);

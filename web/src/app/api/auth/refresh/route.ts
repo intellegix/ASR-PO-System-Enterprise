@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import { normalizeRole, isAdmin } from '@/lib/auth/permissions';
 import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -98,14 +99,14 @@ export async function POST(request: NextRequest) {
 }
 
 function getUserPermissions(role: string): string[] {
-  const rolePermissions: Record<string, string[]> = {
-    MAJORITY_OWNER: ['admin', 'read', 'write', 'approve', 'delete', 'reports'],
-    DIVISION_LEADER: ['read', 'write', 'approve', 'reports'],
-    OPERATIONS_MANAGER: ['read', 'write', 'reports'],
-    PROJECT_MANAGER: ['read', 'write'],
-    ACCOUNTING: ['read', 'reports', 'approve'],
-    USER: ['read'],
-  };
+  // Simplified 2-role permission system
+  const _normalized = normalizeRole(role);
 
-  return rolePermissions[role] || ['read'];
+  if (isAdmin(role)) {
+    // ADMIN gets all permissions including settings and user management
+    return ['admin', 'read', 'write', 'approve', 'delete', 'reports', 'settings', 'users'];
+  } else {
+    // USER gets everything except settings and user management
+    return ['read', 'write', 'approve', 'delete', 'reports'];
+  }
 }

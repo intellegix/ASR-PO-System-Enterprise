@@ -1,8 +1,21 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  Link as MuiLink,
+} from '@mui/material';
+import {
+  Warning as AlertIcon,
+  BarChart as ChartBarIcon,
+  TrendingUp as TrendUpIcon,
+  TrendingDown as TrendDownIcon,
+  Remove as TrendNeutralIcon,
+} from '@mui/icons-material';
 
 interface DivisionMetric {
   division: {
@@ -49,49 +62,22 @@ interface DivisionPerformanceProps {
 }
 
 const TrendIcon = ({ value, isTime = false }: { value: number; isTime?: boolean }) => {
-  const isGood = isTime ? value < 24 : value > 0; // For time: <24 hours is good, for others: positive is good
+  const isGood = isTime ? value < 24 : value > 0;
   const isNeutral = isTime ? value >= 24 && value <= 48 : value === 0;
 
   if (isNeutral) {
-    return (
-      <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
-      </svg>
-    );
+    return <TrendNeutralIcon sx={{ fontSize: 16, color: 'text.secondary' }} />;
   }
 
   return isGood ? (
-    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-    </svg>
+    <TrendUpIcon sx={{ fontSize: 16, color: 'success.main' }} />
   ) : (
-    <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-    </svg>
+    <TrendDownIcon sx={{ fontSize: 16, color: 'error.main' }} />
   );
 };
 
-interface IconProps {
-  className?: string;
-}
-
-const AlertIcon = ({ className = "w-4 h-4 text-amber-500" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 18.5c-.77.833.192 2.5 1.732 2.5z" />
-  </svg>
-);
-
-const ChartBarIcon = ({ className = "w-5 h-5" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-  </svg>
-);
-
 export default function DivisionPerformance({ className = '' }: DivisionPerformanceProps) {
-  const { data: session } = useSession();
-
-  // Only show to MAJORITY_OWNER and ACCOUNTING
-  const canViewCrossDivision = ['MAJORITY_OWNER', 'ACCOUNTING'].includes(session?.user?.role || '');
+  const canViewCrossDivision = true;
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['cross-division-kpis'],
@@ -106,54 +92,52 @@ export default function DivisionPerformance({ className = '' }: DivisionPerforma
       return result.kpis;
     },
     enabled: canViewCrossDivision,
-    refetchInterval: 3 * 60 * 1000, // 3 minutes
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: 3 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
   });
 
   if (!canViewCrossDivision) {
-    return null; // Don't show this widget for users without cross-division access
+    return null;
   }
 
   if (isLoading) {
     return (
-      <div className={`bg-white rounded-xl shadow-sm ${className}`}>
-        <div className="px-6 py-4 border-b border-slate-100">
-          <div className="h-6 bg-slate-200 rounded animate-pulse w-1/3"></div>
-        </div>
-        <div className="p-6 space-y-4">
+      <Paper sx={{ borderRadius: 3 }} className={className}>
+        <Box sx={{ px: 3, py: 2, borderBottom: 1, borderColor: 'divider' }}>
+          <Box sx={{ height: 24, bgcolor: 'grey.200', borderRadius: 1, width: '33%', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        </Box>
+        <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex items-center justify-between animate-pulse">
-              <div className="flex-1">
-                <div className="h-4 bg-slate-200 rounded w-1/4 mb-2"></div>
-                <div className="h-3 bg-slate-200 rounded w-1/2"></div>
-              </div>
-              <div className="h-8 bg-slate-200 rounded w-16"></div>
-            </div>
+            <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', animation: 'pulse 1.5s ease-in-out infinite' }}>
+              <Box sx={{ flex: 1 }}>
+                <Box sx={{ height: 16, bgcolor: 'grey.200', borderRadius: 1, width: '25%', mb: 1 }} />
+                <Box sx={{ height: 12, bgcolor: 'grey.200', borderRadius: 1, width: '50%' }} />
+              </Box>
+              <Box sx={{ height: 32, bgcolor: 'grey.200', borderRadius: 1, width: 64 }} />
+            </Box>
           ))}
-        </div>
-      </div>
+        </Box>
+      </Paper>
     );
   }
 
   if (error) {
     return (
-      <div className={`bg-white rounded-xl shadow-sm p-6 ${className}`}>
-        <div className="flex items-center gap-2 text-red-600">
+      <Paper sx={{ borderRadius: 3, p: 3 }} className={className}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'error.main' }}>
           <AlertIcon />
-          <span className="font-medium">Failed to load division performance</span>
-        </div>
-      </div>
+          <Typography fontWeight={500}>Failed to load division performance</Typography>
+        </Box>
+      </Paper>
     );
   }
 
   if (!data) return null;
 
-  // Sort divisions by current month spend (highest first)
   const sortedDivisions = data.divisionBreakdown.sort(
     (a, b) => b.metrics.currentMonthSpend - a.metrics.currentMonthSpend
   );
 
-  // Find best and worst performing divisions by approval velocity
   const velocityData = data.approvalVelocity.filter(v => v.approvedCount > 0);
   const fastestApproval = velocityData.reduce(
     (min, current) => current.avgApprovalTimeHours < min.avgApprovalTimeHours ? current : min,
@@ -168,147 +152,207 @@ export default function DivisionPerformance({ className = '' }: DivisionPerforma
                    data.companyWide.alerts.approvalBottlenecks > 0;
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm ${className}`}>
+    <Paper sx={{ borderRadius: 3 }} className={className}>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-slate-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <Box sx={{ px: 3, py: 2, borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <ChartBarIcon />
-            <div>
-              <h3 className="font-semibold text-slate-900">Division Performance</h3>
-              <p className="text-sm text-slate-500">Current month overview</p>
-            </div>
-          </div>
-          <Link href="/reports" className="text-sm text-orange-600 hover:text-orange-700 font-medium">
-            View reports
+            <Box>
+              <Typography variant="h6" fontWeight={600}>
+                Division Performance
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Current month overview
+              </Typography>
+            </Box>
+          </Box>
+          <Link href="/reports" passHref legacyBehavior>
+            <MuiLink
+              variant="body2"
+              fontWeight={500}
+              sx={{ color: '#ea580c', textDecoration: 'none', '&:hover': { color: '#c2410c' } }}
+            >
+              View reports
+            </MuiLink>
           </Link>
-        </div>
+        </Box>
 
         {/* Company-wide summary */}
-        <div className="mt-4 bg-slate-50 rounded-lg p-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <p className="text-xs text-slate-500 mb-1">Total Spend</p>
-              <p className="text-lg font-bold text-slate-900">
+        <Box sx={{ mt: 2, bgcolor: 'grey.50', borderRadius: 2, p: 2 }}>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 6, lg: 3 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                Total Spend
+              </Typography>
+              <Typography variant="h6" fontWeight={700}>
                 ${(data.companyWide.currentMonth.totalSpend / 1000000).toFixed(1)}M
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 mb-1">Total POs</p>
-              <p className="text-lg font-bold text-slate-900">
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 6, lg: 3 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                Total POs
+              </Typography>
+              <Typography variant="h6" fontWeight={700}>
                 {data.companyWide.currentMonth.totalCount}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 mb-1">Avg PO Value</p>
-              <p className="text-lg font-bold text-slate-900">
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 6, lg: 3 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                Avg PO Value
+              </Typography>
+              <Typography variant="h6" fontWeight={700}>
                 ${(data.companyWide.currentMonth.averagePOValue / 1000).toFixed(0)}k
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {hasAlerts && <AlertIcon />}
-              <div>
-                <p className="text-xs text-slate-500 mb-1">Alerts</p>
-                <p className={`text-lg font-bold ${hasAlerts ? 'text-amber-600' : 'text-green-600'}`}>
-                  {hasAlerts ? data.companyWide.alerts.highValuePendingCount + data.companyWide.alerts.approvalBottlenecks : 0}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 6, lg: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {hasAlerts && <AlertIcon sx={{ fontSize: 16, color: 'warning.main' }} />}
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                    Alerts
+                  </Typography>
+                  <Typography variant="h6" fontWeight={700} color={hasAlerts ? 'warning.main' : 'success.main'}>
+                    {hasAlerts ? data.companyWide.alerts.highValuePendingCount + data.companyWide.alerts.approvalBottlenecks : 0}
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+      </Box>
 
       {/* Division breakdown */}
-      <div className="p-6">
-        <h4 className="text-sm font-medium text-slate-700 mb-4">Division Breakdown</h4>
-        <div className="space-y-3">
+      <Box sx={{ p: 3 }}>
+        <Typography variant="body2" fontWeight={500} color="text.primary" sx={{ mb: 2 }}>
+          Division Breakdown
+        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {sortedDivisions.map((division) => {
             const efficiency = division.metrics.pendingApprovals === 0 ? 100 :
               Math.max(0, 100 - (division.metrics.pendingApprovals / division.metrics.currentMonthCount) * 100);
 
             return (
-              <div key={division.division.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <span className="text-xs font-bold text-orange-700">
+              <Paper
+                key={division.division.id}
+                variant="outlined"
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  p: 1.5,
+                  borderRadius: 2,
+                  transition: 'background-color 0.2s',
+                  '&:hover': { bgcolor: 'grey.50' },
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      bgcolor: '#fed7aa',
+                      borderRadius: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Typography variant="caption" fontWeight={700} sx={{ color: '#c2410c' }}>
                       {division.division.code}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-900">
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography fontWeight={500}>
                       {division.division.name}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-slate-500">
-                      <span>
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Typography variant="caption" color="text.secondary">
                         ${(division.metrics.currentMonthSpend / 1000).toFixed(0)}k spend
-                      </span>
-                      <span>
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
                         {division.metrics.currentMonthCount} POs
-                      </span>
+                      </Typography>
                       {division.metrics.pendingApprovals > 0 && (
-                        <span className="text-amber-600">
+                        <Typography variant="caption" sx={{ color: 'warning.main' }}>
                           {division.metrics.pendingApprovals} pending
-                        </span>
+                        </Typography>
                       )}
-                    </div>
-                  </div>
-                </div>
+                    </Box>
+                  </Box>
+                </Box>
 
-                <div className="text-right">
-                  <div className="flex items-center gap-2 mb-1">
+                <Box sx={{ textAlign: 'right' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                     <TrendIcon value={efficiency} />
-                    <span className={`text-sm font-medium ${
-                      efficiency >= 90 ? 'text-green-600' :
-                      efficiency >= 75 ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
+                    <Typography
+                      variant="body2"
+                      fontWeight={500}
+                      sx={{
+                        color: efficiency >= 90 ? 'success.main' :
+                               efficiency >= 75 ? 'warning.main' : 'error.main'
+                      }}
+                    >
                       {efficiency.toFixed(0)}%
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500">efficiency</p>
-                </div>
-              </div>
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary">
+                    efficiency
+                  </Typography>
+                </Box>
+              </Paper>
             );
           })}
-        </div>
+        </Box>
 
         {/* Approval velocity highlights */}
         {velocityData.length > 0 && (
-          <div className="mt-6 pt-4 border-t border-slate-200">
-            <h4 className="text-sm font-medium text-slate-700 mb-3">Approval Velocity</h4>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Box sx={{ mt: 3, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+            <Typography variant="body2" fontWeight={500} color="text.primary" sx={{ mb: 1.5 }}>
+              Approval Velocity
+            </Typography>
+            <Grid container spacing={2}>
               {fastestApproval && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <TrendIcon value={fastestApproval.avgApprovalTimeHours} isTime={true} />
-                    <span className="text-sm font-medium text-green-800">Fastest</span>
-                  </div>
-                  <p className="text-sm text-green-700">
-                    {fastestApproval.divisionName}
-                  </p>
-                  <p className="text-xs text-green-600">
-                    {fastestApproval.avgApprovalTimeHours.toFixed(1)} hours avg
-                  </p>
-                </div>
+                <Grid size={{ xs: 12, lg: 6 }}>
+                  <Paper variant="outlined" sx={{ bgcolor: '#f0fdf4', borderColor: '#bbf7d0', borderRadius: 2, p: 1.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <TrendIcon value={fastestApproval.avgApprovalTimeHours} isTime={true} />
+                      <Typography variant="body2" fontWeight={500} sx={{ color: '#166534' }}>
+                        Fastest
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ color: '#15803d' }}>
+                      {fastestApproval.divisionName}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#16a34a' }}>
+                      {fastestApproval.avgApprovalTimeHours.toFixed(1)} hours avg
+                    </Typography>
+                  </Paper>
+                </Grid>
               )}
 
               {slowestApproval && slowestApproval !== fastestApproval && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <TrendIcon value={slowestApproval.avgApprovalTimeHours} isTime={true} />
-                    <span className="text-sm font-medium text-red-800">Needs attention</span>
-                  </div>
-                  <p className="text-sm text-red-700">
-                    {slowestApproval.divisionName}
-                  </p>
-                  <p className="text-xs text-red-600">
-                    {slowestApproval.avgApprovalTimeHours.toFixed(1)} hours avg
-                  </p>
-                </div>
+                <Grid size={{ xs: 12, lg: 6 }}>
+                  <Paper variant="outlined" sx={{ bgcolor: '#fef2f2', borderColor: '#fecaca', borderRadius: 2, p: 1.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <TrendIcon value={slowestApproval.avgApprovalTimeHours} isTime={true} />
+                      <Typography variant="body2" fontWeight={500} sx={{ color: '#991b1b' }}>
+                        Needs attention
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ color: '#b91c1c' }}>
+                      {slowestApproval.divisionName}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#dc2626' }}>
+                      {slowestApproval.avgApprovalTimeHours.toFixed(1)} hours avg
+                    </Typography>
+                  </Paper>
+                </Grid>
               )}
-            </div>
-          </div>
+            </Grid>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Paper>
   );
 }

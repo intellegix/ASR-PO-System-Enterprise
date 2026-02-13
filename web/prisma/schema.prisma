@@ -238,6 +238,7 @@ model users {
   work_orders                                       work_orders[]
   vendor_invoices                                   vendor_invoices[]
   customer_invoices                                 customer_invoices[]
+  app_settings                                      app_settings[]
 
   @@index([division_id], map: "idx_users_division")
   @@index([email], map: "idx_users_email")
@@ -369,6 +370,10 @@ enum project_status {
 }
 
 enum user_role {
+  // New simplified roles (Phase 1)
+  USER
+  ADMIN
+  // Legacy roles kept for backward compat (Postgres can't easily drop enum values)
   DIRECTOR_OF_SYSTEMS_INTEGRATIONS
   DIVISION_LEADER
   OPERATIONS_MANAGER
@@ -447,6 +452,20 @@ model properties {
 
   @@index([client_id])
   @@index([is_active])
+}
+
+/// Admin-configurable application settings (key-value store)
+model app_settings {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key           String   @unique @db.VarChar(100)
+  value         Json
+  description   String?  @db.VarChar(500)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_by_user_id String? @db.Uuid
+
+  users users? @relation(fields: [updated_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([key], map: "idx_app_settings_key")
 }
 
 /// QuickBooks OAuth token storage for API integration
