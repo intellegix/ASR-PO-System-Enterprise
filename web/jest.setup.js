@@ -35,6 +35,12 @@ const { TextEncoder, TextDecoder } = require('util');
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
+// Polyfill Web Stream APIs for Next.js
+const { ReadableStream, WritableStream, TransformStream } = require('node:stream/web');
+global.ReadableStream = ReadableStream;
+global.WritableStream = WritableStream;
+global.TransformStream = TransformStream;
+
 // Mock environment variables for testing
 process.env.NEXTAUTH_SECRET = 'test-secret-key-for-jest-testing-environment-at-least-32-chars';
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db';
@@ -66,97 +72,12 @@ global.resetAllMocks = () => {
   jest.restoreAllMocks();
 };
 
-// Database connection mock for Prisma
-jest.mock('@/lib/db', () => ({
-  __esModule: true,
-  default: {
-    $connect: jest.fn(),
-    $disconnect: jest.fn(),
-    $transaction: jest.fn(),
-    users: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      upsert: jest.fn(),
-    },
-    po_headers: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
-    },
-    po_line_items: {
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    },
-    divisions: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-    },
-    vendors: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-    },
-    projects: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-    },
-    work_orders: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      findFirst: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-    },
-    po_approvals: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-    },
-    division_leaders: {
-      findUnique: jest.fn(),
-      findFirst: jest.fn(),
-      findMany: jest.fn(),
-    },
-  },
-}));
+// Database connection mock for Prisma (commented out - let individual tests mock as needed)
+// Integration tests will mock @/lib/db themselves to avoid conflicts
 
-// Mock bcrypt for password testing
-jest.mock('bcrypt', () => ({
-  hash: jest.fn().mockResolvedValue('mocked-hash'),
-  compare: jest.fn().mockResolvedValue(true),
-  genSalt: jest.fn().mockResolvedValue('mocked-salt'),
-}));
-
-// Mock NextAuth
-jest.mock('next-auth', () => ({
-  default: jest.fn(),
-  getServerSession: jest.fn(),
-}));
-
-// Mock NextAuth configuration
-jest.mock('@/lib/auth/config', () => ({
-  authOptions: {
-    providers: [],
-    callbacks: {},
-    session: {
-      strategy: 'jwt',
-      maxAge: 8 * 60 * 60,
-    },
-    secret: 'test-secret',
-  },
-}));
+// Mock bcrypt for password testing (commented out - let individual tests mock as needed)
+// Mock NextAuth (commented out - let individual tests mock as needed)
+// Mock NextAuth configuration (commented out - let individual tests mock as needed)
 
 // Setup and teardown for each test
 beforeEach(() => {
