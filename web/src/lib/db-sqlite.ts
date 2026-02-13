@@ -26,6 +26,7 @@ interface DbUser {
 
 // Simple user authentication function for SQLite
 export async function authenticateUser(identifier: string, password: string) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const bcrypt = require('bcrypt');
 
   try {
@@ -70,7 +71,7 @@ export async function authenticateUser(identifier: string, password: string) {
       divisionCode: null,
     };
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Authentication error:', error);
     return null;
   }

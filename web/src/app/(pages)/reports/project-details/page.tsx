@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
@@ -169,9 +169,9 @@ export default function ProjectDetailsPage() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
-  const userRole = user?.role || 'OPERATIONS_MANAGER';
+  const _userRole = user?.role || 'OPERATIONS_MANAGER';
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -238,23 +238,27 @@ export default function ProjectDetailsPage() {
           riskLevel: Math.abs(variancePercentage) > 20 ? 'high' : Math.abs(variancePercentage) > 10 ? 'medium' : 'low',
           lastUpdated: new Date().toISOString(),
         },
-        divisionSpending: (proj.divisions || []).map((d: any) => ({
-          divisionId: d.divisionId ?? '',
-          divisionName: d.divisionName ?? '',
-          totalSpend: d.totalSpend ?? 0,
-          budgetAllocated: d.budgetAllocated ?? d.totalSpend ?? 0,
-          varianceAmount: 0,
-          variancePercentage: 0,
-          poCount: d.poCount ?? 0,
-          averagePOValue: d.poCount > 0 ? (d.totalSpend ?? 0) / d.poCount : 0,
-          topVendors: (d.topVendors || []).map((v: any) => ({
-            vendorName: v.vendorName ?? '',
-            amount: v.totalAmount ?? 0,
-            poCount: v.poCount ?? 0,
-          })),
-          workOrders: [],
-        })),
-        spendingPatterns: (proj.monthlyTrend || []).map((t: any) => ({
+        divisionSpending: (proj.divisions || []).map((d: Record<string, unknown>) => {
+          const poCount = (d.poCount ?? 0) as number;
+          const totalSpend = (d.totalSpend ?? 0) as number;
+          return {
+            divisionId: (d.divisionId ?? '') as string,
+            divisionName: (d.divisionName ?? '') as string,
+            totalSpend: totalSpend,
+            budgetAllocated: (d.budgetAllocated ?? totalSpend) as number,
+            varianceAmount: 0,
+            variancePercentage: 0,
+            poCount: poCount,
+            averagePOValue: poCount > 0 ? totalSpend / poCount : 0,
+            topVendors: ((d.topVendors || []) as Record<string, unknown>[]).map((v: Record<string, unknown>) => ({
+              vendorName: (v.vendorName ?? '') as string,
+              amount: (v.totalAmount ?? 0) as number,
+              poCount: (v.poCount ?? 0) as number,
+            })),
+            workOrders: [],
+          };
+        }),
+        spendingPatterns: (proj.monthlyTrend || []).map((t: Record<string, unknown>) => ({
           month: `${t.month ?? ''} ${t.year ?? ''}`.trim(),
           budgetedSpend: 0,
           actualSpend: t.totalAmount ?? 0,
@@ -286,7 +290,7 @@ export default function ProjectDetailsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   const exportToPDF = async () => {
     try {
@@ -344,14 +348,14 @@ export default function ProjectDetailsPage() {
 
   useEffect(() => {
     fetchData();
-  }, [filters]);
+  }, [fetchData]);
 
   useEffect(() => {
     if (autoRefresh) {
       const interval = setInterval(fetchData, 5 * 60 * 1000); // 5 minutes
       return () => clearInterval(interval);
     }
-  }, [autoRefresh, filters]);
+  }, [autoRefresh, fetchData]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {

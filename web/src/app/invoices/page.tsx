@@ -56,35 +56,55 @@ export default function InvoicesPage() {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
+  interface VendorInvoice {
+    id: string;
+    invoice_number: string;
+    status: string;
+    vendors?: { vendor_name: string } | null;
+    po_headers?: { po_number: string } | null;
+    total_amount: unknown;
+    date_received: string | Date;
+  }
+
   const filteredVendorInvoices = useMemo(() => {
     if (!vendorInvoices) return [];
     let result = [...vendorInvoices];
     if (debouncedSearch) {
       const lower = debouncedSearch.toLowerCase();
-      result = result.filter((inv: any) =>
+      result = result.filter((inv: VendorInvoice) =>
         inv.invoice_number?.toLowerCase().includes(lower) ||
         inv.vendors?.vendor_name?.toLowerCase().includes(lower)
       );
     }
     if (statusFilter) {
-      result = result.filter((inv: any) => inv.status === statusFilter);
+      result = result.filter((inv: VendorInvoice) => inv.status === statusFilter);
     }
     return result;
   }, [vendorInvoices, debouncedSearch, statusFilter]);
+
+  interface CustomerInvoice {
+    id: string;
+    invoice_number: string;
+    customer_name: string;
+    status: string;
+    projects?: { project_code: string; project_name: string } | null;
+    total_amount: unknown;
+    date_issued: string | Date;
+  }
 
   const filteredCustomerInvoices = useMemo(() => {
     if (!customerInvoices) return [];
     let result = [...customerInvoices];
     if (debouncedSearch) {
       const lower = debouncedSearch.toLowerCase();
-      result = result.filter((inv: any) =>
+      result = result.filter((inv: CustomerInvoice) =>
         inv.invoice_number?.toLowerCase().includes(lower) ||
         inv.customer_name?.toLowerCase().includes(lower) ||
         inv.projects?.project_code?.toLowerCase().includes(lower)
       );
     }
     if (statusFilter) {
-      result = result.filter((inv: any) => inv.status === statusFilter);
+      result = result.filter((inv: CustomerInvoice) => inv.status === statusFilter);
     }
     return result;
   }, [customerInvoices, debouncedSearch, statusFilter]);
@@ -243,7 +263,7 @@ export default function InvoicesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredVendorInvoices.map((inv: any) => (
+                  {filteredVendorInvoices.map((inv: VendorInvoice) => (
                     <tr key={inv.id} className="hover:bg-slate-50 transition">
                       <td className="px-4 sm:px-6 py-4 text-sm font-medium text-slate-900">{inv.invoice_number}</td>
                       <td className="px-4 sm:px-6 py-4 text-sm text-slate-600">{inv.vendors?.vendor_name}</td>
@@ -304,7 +324,7 @@ export default function InvoicesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredCustomerInvoices.map((inv: any) => (
+                  {filteredCustomerInvoices.map((inv: CustomerInvoice) => (
                     <tr key={inv.id} className="hover:bg-slate-50 transition">
                       <td className="px-4 sm:px-6 py-4 text-sm font-medium text-slate-900">{inv.invoice_number}</td>
                       <td className="px-4 sm:px-6 py-4 text-sm text-slate-600">{inv.customer_name}</td>

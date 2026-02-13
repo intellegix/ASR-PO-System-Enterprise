@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 
@@ -90,14 +90,13 @@ interface POSummaryData {
     }>;
   }>;
   reportType: string;
-  parameters: any;
+  parameters: Record<string, unknown>;
   generatedAt: string;
-  generatedBy: any;
+  generatedBy: { userName: string; userRole: string };
 }
 
 function POSummaryReport() {
-  const { user, isAuthenticated } = useAuth();
-  const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const searchParams = useSearchParams();
 
   // Form state
@@ -272,9 +271,9 @@ function POSummaryReport() {
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
                 <option value="">All Divisions</option>
-                {divisions?.map((division: any) => (
-                  <option key={division.id} value={division.id}>
-                    {division.division_name} ({division.division_code})
+                {divisions?.map((division: Record<string, unknown>) => (
+                  <option key={division.id as string} value={division.id as string}>
+                    {division.division_name as string} ({division.division_code as string})
                   </option>
                 ))}
               </select>

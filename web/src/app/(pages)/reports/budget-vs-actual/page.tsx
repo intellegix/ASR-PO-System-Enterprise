@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -142,9 +142,9 @@ export default function BudgetVsActualPage() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
-  const userRole = user?.role || 'OPERATIONS_MANAGER';
+  const _userRole = user?.role || 'OPERATIONS_MANAGER';
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -176,69 +176,84 @@ export default function BudgetVsActualPage() {
           averageCPI: 0,
           averageSPI: 0,
         },
-        projects: (result.projectAnalysis || []).map((p: any) => {
-          const budget = p.budget || {};
-          const timeline = p.timeline || {};
-          const risk = p.riskFactors || {};
-          const projStart = p.project?.startDate ? new Date(p.project.startDate) : new Date();
-          const projEnd = p.project?.endDate ? new Date(p.project.endDate) : new Date();
+        projects: (result.projectAnalysis || []).map((p: Record<string, unknown>) => {
+          const budget = (p.budget || {}) as Record<string, unknown>;
+          const timeline = (p.timeline || {}) as Record<string, unknown>;
+          const risk = (p.riskFactors || {}) as Record<string, unknown>;
+          const project = p.project as Record<string, unknown> | undefined;
+          const projStart = project?.startDate ? new Date(project.startDate as string) : new Date();
+          const projEnd = project?.endDate ? new Date(project.endDate as string) : new Date();
           const now = new Date();
           const totalDays = Math.max(1, (projEnd.getTime() - projStart.getTime()) / (1000 * 60 * 60 * 24));
           const daysPassed = Math.max(0, (now.getTime() - projStart.getTime()) / (1000 * 60 * 60 * 24));
           const percentComplete = Math.min(100, (daysPassed / totalDays) * 100);
-          const cpi = budget.currentActual > 0 && budget.originalBudget > 0
-            ? (budget.originalBudget * (percentComplete / 100)) / budget.currentActual : 1;
+          const currentActual = (budget.currentActual ?? 0) as number;
+          const originalBudget = (budget.originalBudget ?? 0) as number;
+          const cpi = currentActual > 0 && originalBudget > 0
+            ? (originalBudget * (percentComplete / 100)) / currentActual : 1;
           const spi = totalDays > 0 ? (daysPassed / totalDays) : 1;
 
           return {
-            projectId: p.project?.id ?? '',
-            projectName: p.project?.name ?? '',
-            divisionName: p.project?.divisionName ?? '',
-            originalBudget: budget.originalBudget ?? 0,
-            revisedBudget: budget.originalBudget ?? 0,
-            actualSpend: budget.currentActual ?? 0,
-            commitments: budget.poCommitted ?? 0,
-            availableBudget: budget.variance ?? 0,
-            varianceAmount: budget.variance ?? 0,
-            variancePercentage: budget.variancePercentage ?? 0,
-            budgetUtilization: budget.utilizationPercentage ?? 0,
-            forecastToComplete: timeline.projectedCompletionSpend ?? 0,
-            estimateAtCompletion: timeline.projectedCompletionSpend ?? 0,
+            projectId: (project?.id ?? '') as string,
+            projectName: (project?.name ?? '') as string,
+            divisionName: (project?.divisionName ?? '') as string,
+            originalBudget: originalBudget,
+            revisedBudget: originalBudget,
+            actualSpend: currentActual,
+            commitments: (budget.poCommitted ?? 0) as number,
+            availableBudget: (budget.variance ?? 0) as number,
+            varianceAmount: (budget.variance ?? 0) as number,
+            variancePercentage: (budget.variancePercentage ?? 0) as number,
+            budgetUtilization: (budget.utilizationPercentage ?? 0) as number,
+            forecastToComplete: (timeline.projectedCompletionSpend ?? 0) as number,
+            estimateAtCompletion: (timeline.projectedCompletionSpend ?? 0) as number,
             costPerformanceIndex: cpi,
             schedulePerformanceIndex: spi,
-            riskLevel: risk.overallRisk ?? 'low',
-            alerts: (risk.riskReasons || []).map((r: string) => ({
-              type: 'Budget',
-              message: r,
-              severity: risk.overallRisk === 'high' ? 'critical' as const : 'warning' as const,
+            riskLevel: (risk.overallRisk ?? 'low') as 'low' | 'medium' | 'high',
+            alerts: ((risk.riskReasons || []) as unknown[]).map((r: unknown) => ({
+              type: 'Budget' as const,
+              message: r as string,
+              severity: (risk.overallRisk === 'high' ? 'critical' : 'warning') as 'critical' | 'warning',
             })),
             timeline: {
-              startDate: p.project?.startDate ?? new Date().toISOString(),
-              originalEndDate: p.project?.endDate ?? new Date().toISOString(),
-              revisedEndDate: p.project?.endDate ?? new Date().toISOString(),
+              startDate: (project?.startDate ?? new Date().toISOString()) as string,
+              originalEndDate: (project?.endDate ?? new Date().toISOString()) as string,
+              revisedEndDate: (project?.endDate ?? new Date().toISOString()) as string,
               percentComplete,
-              daysRemaining: timeline.daysRemaining ?? 0,
+              daysRemaining: (timeline.daysRemaining ?? 0) as number,
             },
             recommendations: [],
           };
         }),
-        divisionSummary: (result.divisionSummary || []).map((d: any) => ({
-          divisionName: d.division?.name ?? '',
-          totalBudget: d.aggregate?.totalProjectBudgets ?? 0,
-          totalActual: d.aggregate?.totalActualSpend ?? 0,
-          variance: d.aggregate?.overallVariance ?? 0,
-          variancePercentage: d.performance?.averageVariancePercentage ?? 0,
-          projectCount: d.aggregate?.projectCount ?? 0,
-          averageCPI: d.aggregate?.totalProjectBudgets > 0
-            ? (d.aggregate.totalActualSpend + d.aggregate.totalCommittedSpend) / d.aggregate.totalProjectBudgets : 1,
-        })),
-        monthlyTrends: (result.budgetTrends || []).map((t: any) => ({
-          month: `${t.month ?? ''} ${t.year ?? ''}`.trim(),
-          budgetSpend: t.budgetAllocated ?? 0,
-          actualSpend: t.actualSpend ?? 0,
-          variance: (t.actualSpend ?? 0) - (t.budgetAllocated ?? 0),
-          cumulativeVariance: 0,
-        })),
+        divisionSummary: (result.divisionSummary || []).map((d: Record<string, unknown>) => {
+          const division = d.division as Record<string, unknown> | undefined;
+          const aggregate = (d.aggregate || {}) as Record<string, unknown>;
+          const performance = d.performance as Record<string, unknown> | undefined;
+          const totalProjectBudgets = (aggregate.totalProjectBudgets ?? 0) as number;
+          const totalActualSpend = (aggregate.totalActualSpend ?? 0) as number;
+          const totalCommittedSpend = (aggregate.totalCommittedSpend ?? 0) as number;
+          return {
+            divisionName: (division?.name ?? '') as string,
+            totalBudget: totalProjectBudgets,
+            totalActual: totalActualSpend,
+            variance: (aggregate.overallVariance ?? 0) as number,
+            variancePercentage: (performance?.averageVariancePercentage ?? 0) as number,
+            projectCount: (aggregate.projectCount ?? 0) as number,
+            averageCPI: totalProjectBudgets > 0
+              ? (totalActualSpend + totalCommittedSpend) / totalProjectBudgets : 1,
+          };
+        }),
+        monthlyTrends: (result.budgetTrends || []).map((t: Record<string, unknown>) => {
+          const actualSpend = (t.actualSpend ?? 0) as number;
+          const budgetAllocated = (t.budgetAllocated ?? 0) as number;
+          return {
+            month: `${t.month ?? ''} ${t.year ?? ''}`.trim(),
+            budgetSpend: budgetAllocated,
+            actualSpend: actualSpend,
+            variance: actualSpend - budgetAllocated,
+            cumulativeVariance: 0,
+          };
+        }),
         forecastAnalysis: {
           projectedOverrun: result.forecasting?.projectedYearEndSpend
             ? result.forecasting.projectedYearEndSpend - (result.summary?.totalProjectBudgets ?? 0)
@@ -274,7 +289,7 @@ export default function BudgetVsActualPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   const exportToPDF = async () => {
     try {
@@ -332,14 +347,14 @@ export default function BudgetVsActualPage() {
 
   useEffect(() => {
     fetchData();
-  }, [filters]);
+  }, [fetchData]);
 
   useEffect(() => {
     if (autoRefresh) {
       const interval = setInterval(fetchData, 5 * 60 * 1000); // 5 minutes
       return () => clearInterval(interval);
     }
-  }, [autoRefresh, filters]);
+  }, [autoRefresh, fetchData]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {

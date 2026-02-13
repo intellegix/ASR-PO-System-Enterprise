@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 // Force dynamic rendering for API route
 export const dynamic = 'force-dynamic';
 
 
-const getHandler = async (request: NextRequest) => {
+const getHandler = async (_request: NextRequest) => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -26,13 +26,13 @@ const getHandler = async (request: NextRequest) => {
     }
 
     // Check permissions
-    if (!hasPermission(user.role as any, 'report:view') ||
+    if (!hasPermission(user.role as UserRole, 'report:view') ||
         !['MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'].includes(user.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
     // Get available users who have performed actions
-    let usersWhere: any = {
+    const usersWhere: Record<string, unknown> = {
       is_active: true,
     };
 

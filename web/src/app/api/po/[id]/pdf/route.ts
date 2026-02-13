@@ -183,4 +183,4 @@ const getHandler = async (
   }
 };
 
-export const GET = withRateLimit(50, 60 * 1000)(getHandler);
+export const GET = withRateLimit(50, 60 * 1000)(getHandler as (request: NextRequest, context?: { params: Promise<{ id: string }> }) => Promise<NextResponse>);

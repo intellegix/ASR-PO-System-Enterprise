@@ -76,7 +76,7 @@ function triggerDownload(csv: string, filename: string): void {
 }
 
 export default function POListPage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   const [pos, setPOs] = useState<PO[]>([]);
@@ -126,6 +126,7 @@ export default function POListPage() {
       fetchPOs();
       fetchVendors();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, statusFilter, divisionFilter]);
 
   useEffect(() => {
@@ -233,6 +234,7 @@ export default function POListPage() {
     });
 
     return result;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pos, debouncedSearch, vendorFilter, dateFrom, dateTo, amountMin, amountMax, sortField, sortDirection]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPOs.length / rowsPerPage));
@@ -240,7 +242,6 @@ export default function POListPage() {
   const endIndex = Math.min(startIndex + rowsPerPage, filteredPOs.length);
   const paginatedPOs = filteredPOs.slice(startIndex, endIndex);
 
-  const currentPageIds = useMemo(() => new Set(paginatedPOs.map((po) => po.id)), [paginatedPOs]);
   const allCurrentPageSelected = paginatedPOs.length > 0 && paginatedPOs.every((po) => selectedIds.has(po.id));
 
   const handleSort = useCallback((field: SortField) => {

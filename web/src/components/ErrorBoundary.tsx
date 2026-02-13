@@ -2,7 +2,7 @@
 
 import React, { ErrorInfo, ReactNode } from 'react';
 // Replaced shadcn/ui Button with simple button for TypeScript compatibility
-const Button = ({ children, onClick, className = "", variant = "default", size = "default" }: {
+const Button = ({ children, onClick, className = "", variant: _variant = "default", size: _size = "default" }: {
   children: React.ReactNode;
   onClick?: () => void;
   className?: string;

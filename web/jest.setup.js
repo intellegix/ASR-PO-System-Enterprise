@@ -30,6 +30,11 @@ jest.mock('next/image', () => ({
   },
 }));
 
+// Polyfill Text encoding APIs for testing
+const { TextEncoder, TextDecoder } = require('util');
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
 // Mock environment variables for testing
 process.env.NEXTAUTH_SECRET = 'test-secret-key-for-jest-testing-environment-at-least-32-chars';
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db';

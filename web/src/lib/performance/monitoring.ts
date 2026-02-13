@@ -6,7 +6,7 @@ interface PerformanceMetric {
   startTime: number;
   endTime?: number;
   duration?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   status: 'pending' | 'completed' | 'failed';
   memoryUsage?: NodeJS.MemoryUsage;
   cpuUsage?: NodeJS.CpuUsage;
@@ -60,7 +60,7 @@ class PerformanceMonitor {
   /**
    * Start measuring performance for an operation
    */
-  startMeasure(name: string, metadata?: Record<string, any>): string {
+  startMeasure(name: string, metadata?: Record<string, unknown>): string {
     if (!this.config.enableMetrics) return '';
 
     const measureId = `${name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -84,7 +84,7 @@ class PerformanceMonitor {
   /**
    * End measuring performance for an operation
    */
-  endMeasure(measureId: string, status: 'completed' | 'failed' = 'completed', metadata?: Record<string, any>): PerformanceMetric | null {
+  endMeasure(measureId: string, status: 'completed' | 'failed' = 'completed', metadata?: Record<string, unknown>): PerformanceMetric | null {
     if (!this.config.enableMetrics || !measureId) return null;
 
     const metric = this.metrics.get(measureId);
@@ -137,7 +137,7 @@ class PerformanceMonitor {
   async measureAsync<T>(
     name: string,
     operation: () => Promise<T>,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): Promise<T> {
     const measureId = this.startMeasure(name, metadata);
 
@@ -157,7 +157,7 @@ class PerformanceMonitor {
   measureSync<T>(
     name: string,
     operation: () => T,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): T {
     const measureId = this.startMeasure(name, metadata);
 
@@ -343,11 +343,11 @@ export const performanceMonitor = new PerformanceMonitor();
  * Decorator for measuring method performance
  */
 export function measurePerformance(operationName?: string) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (target: unknown, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
-    const name = operationName || `${target.constructor.name}.${propertyName}`;
+    const name = operationName || `${(target as { constructor: { name: string } }).constructor.name}.${propertyName}`;
 
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (...args: unknown[]) {
       return performanceMonitor.measureSync(name, () => method.apply(this, args));
     };
 
@@ -359,11 +359,11 @@ export function measurePerformance(operationName?: string) {
  * Decorator for measuring async method performance
  */
 export function measureAsyncPerformance(operationName?: string) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (target: unknown, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
-    const name = operationName || `${target.constructor.name}.${propertyName}`;
+    const name = operationName || `${(target as { constructor: { name: string } }).constructor.name}.${propertyName}`;
 
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (...args: unknown[]) {
       return performanceMonitor.measureAsync(name, () => method.apply(this, args));
     };
 

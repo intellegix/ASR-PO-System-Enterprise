@@ -34,9 +34,9 @@ export async function POST(request: NextRequest) {
       // Validate QB configuration
       try {
         validateQBConfig();
-      } catch (error: any) {
+      } catch (error: unknown) {
         return NextResponse.json(
-          { error: 'QuickBooks configuration error', details: error.message },
+          { error: 'QuickBooks configuration error', details: error instanceof Error ? error.message : 'Unknown error' },
           { status: 500 }
         );
       }
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Verify user authentication
     const session = await getServerSession(authOptions);

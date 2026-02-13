@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { Prisma } from '@prisma/client';
 import prisma from '@/lib/db';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 import { ReportExportService } from '@/lib/reports/export-service';
@@ -93,7 +93,7 @@ const generateGLAnalysisReport = async (
   glAccountFilter?: string
 ): Promise<GLSummaryData> => {
   // Build WHERE clause for line items
-  const whereClause: any = {
+  const whereClause: Record<string, unknown> = {
     po_headers: {
       deleted_at: null,
       created_at: {
@@ -104,7 +104,7 @@ const generateGLAnalysisReport = async (
   };
 
   if (divisionFilter) {
-    whereClause.po_headers.division_id = divisionFilter;
+    (whereClause.po_headers as Record<string, unknown>).division_id = divisionFilter;
   }
 
   if (glAccountFilter) {
@@ -337,7 +337,7 @@ const generateGLAnalysisReport = async (
       monthlyTrendsByGL.set(glNumber, []);
     }
 
-    const monthKey = `${trend.month.trim()}-${trend.year}`;
+    const _monthKey = `${trend.month.trim()}-${trend.year}`;
     const glTrends = monthlyTrendsByGL.get(glNumber)!;
     let monthData = glTrends.find(t => t.month === trend.month.trim() && t.year === trend.year);
 
@@ -406,7 +406,7 @@ const generateGLAnalysisReport = async (
 
       return acc;
     }, new Map())
-  ).map(([_, data]) => data);
+  ).map(([_key, data]) => data);
 
   // Calculate summary metrics
   const totalAnalyzed = lineItems.length;
@@ -474,7 +474,7 @@ const getHandler = async (request: NextRequest): Promise<NextResponse> => {
     }
 
     // Check permissions
-    if (!hasPermission(user.role as any, 'report:view')) {
+    if (!hasPermission(user.role as UserRole, 'report:view')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -602,7 +602,7 @@ const getHandler = async (request: NextRequest): Promise<NextResponse> => {
           filename,
           title: 'GL Account Analysis',
           subtitle: 'Financial categorization and budget analysis',
-          data: Array.from(exportData as any),
+          data: exportData as unknown as Record<string, unknown>,
           format: 'pdf',
           reportType: 'gl-analysis'
         });
@@ -655,7 +655,7 @@ const getHandler = async (request: NextRequest): Promise<NextResponse> => {
           filename,
           title: 'GL Account Analysis',
           subtitle: 'Financial categorization and budget analysis',
-          data: Array.from(exportData as any),
+          data: exportData as unknown as Record<string, unknown>,
           format: 'excel',
           reportType: 'gl-analysis'
         });

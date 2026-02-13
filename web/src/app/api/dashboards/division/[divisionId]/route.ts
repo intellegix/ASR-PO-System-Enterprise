@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
-import { hasPermission, canViewFullPODetails } from '@/lib/auth/permissions';
+import { hasPermission, canViewFullPODetails, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
-import { cachedDashboardData, CachedDivisionKPIs } from '@/lib/cache/dashboard-cache';
+import { cachedDashboardData } from '@/lib/cache/dashboard-cache';
 // Force dynamic rendering for API route
 export const dynamic = 'force-dynamic';
 
@@ -15,11 +15,12 @@ const getDivisionKPIs = async (divisionId: string, userRole: string, userDivisio
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+  // Calculate last month's date range
   const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
   // Check if user can view full details for this division
-  const canViewDetails = canViewFullPODetails(userRole as any, userDivisionId, divisionId);
+  const canViewDetails = canViewFullPODetails(userRole as UserRole, userDivisionId, divisionId);
 
   // Current month metrics
   const currentMonthPOs = await prisma.po_headers.findMany({
@@ -171,14 +172,14 @@ const getDivisionKPIs = async (divisionId: string, userRole: string, userDivisio
 // GET handler for division dashboard
 const getHandler = async (
   request: NextRequest,
-  { params }: { params: { divisionId: string } }
+  { params }: { params: Promise<{ divisionId: string }> }
 ) => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { divisionId } = params;
+  const { divisionId } = await params;
 
   try {
     // Get user information
@@ -192,7 +193,7 @@ const getHandler = async (
     }
 
     // Check if user has permission to view dashboards
-    if (!hasPermission(user.role as any, 'report:view')) {
+    if (!hasPermission(user.role as UserRole, 'report:view')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -324,4 +325,4 @@ const getHandler = async (
 };
 
 // Apply rate limiting
-export const GET = withRateLimit(100, 60 * 1000)(getHandler);
+export const GET = withRateLimit(100, 60 * 1000)(getHandler as (request: NextRequest, context?: { params: Promise<{ divisionId: string }> }) => Promise<NextResponse>);

@@ -40,7 +40,7 @@ interface PONumberComponents {
 }
 
 /** @deprecated Use PONumberComponents (without supplier) for new POs */
-interface LegacyPONumberComponents extends PONumberComponents {
+interface _LegacyPONumberComponents extends PONumberComponents {
   supplierConfirmLast4: string; // e.g., "bn23"
 }
 

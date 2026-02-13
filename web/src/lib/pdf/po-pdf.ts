@@ -2,7 +2,8 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { POPDFData } from '@/lib/types/pdf';
 import { PDF_CONFIG, logPDFOperation } from './config';
-import { generatePDFSafely, generateFallbackPDF, PDFResult } from './error-handler';
+// PDF error handlers available for advanced use cases
+// import { generatePDFSafely, generateFallbackPDF, PDFResult } from './error-handler';
 
 // Company info (from configuration)
 const COMPANY = PDF_CONFIG.company;

@@ -47,6 +47,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
 
   useEffect(() => {
     if (isAuthenticated && id) fetchClient();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, id]);
 
   const fetchClient = async () => {

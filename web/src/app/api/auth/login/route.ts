@@ -10,14 +10,6 @@ interface LoginRequest {
   password: string;
 }
 
-interface JWTPayload {
-  userId: string;
-  email: string;
-  role: string;
-  iat: number;
-  exp: number;
-}
-
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'fallback-refresh-secret';
 

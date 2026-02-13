@@ -11,8 +11,8 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 const ADMIN_ROLES = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER'];
 
 const deleteHandler = async (
-  request: NextRequest,
-  context?: any
+  _request: NextRequest,
+  context?: { params: Promise<{ id: string }> }
 ) => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -30,7 +30,7 @@ const deleteHandler = async (
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
-    const { id } = await (context as { params: Promise<{ id: string }> }).params;
+    const { id } = await context!.params;
     if (!UUID_REGEX.test(id)) {
       return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
     }
@@ -84,7 +84,7 @@ const deleteHandler = async (
 
 const patchHandler = async (
   request: NextRequest,
-  context?: any
+  context?: { params: Promise<{ id: string }> }
 ) => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -101,7 +101,7 @@ const patchHandler = async (
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
-    const { id } = await (context as { params: Promise<{ id: string }> }).params;
+    const { id } = await context!.params;
     if (!UUID_REGEX.test(id)) {
       return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
     }

@@ -1,5 +1,5 @@
 import { sendEmail } from './service';
-import { getPOEmailData, getApproversForPO } from './service';
+import { getPOEmailData } from './service';
 import prisma from '@/lib/db';
 import { COMPANY_INFO, APP_URL } from './config';
 
@@ -216,7 +216,7 @@ interface PendingPOSummary {
 
 const approvalReminderTemplate = (approverName: string, pendingPOs: PendingPOSummary[]) => {
   const highValueCount = pendingPOs.filter(po => po.is_high_value).length;
-  const oldestPO = pendingPOs.reduce((oldest, po) => po.days_pending > oldest.days_pending ? po : oldest, pendingPOs[0]);
+  const oldestPO = pendingPOs.reduce((oldest: PendingPOSummary, po: PendingPOSummary) => po.days_pending > oldest.days_pending ? po : oldest, pendingPOs[0]);
 
   const content = `
     <div style="margin-bottom: 24px;">
@@ -515,11 +515,11 @@ export async function sendDailyApprovalReminders(): Promise<void> {
         : 0;
       return {
         po_number: po.po_number,
-        vendor_name: 'Unknown', // @ts-ignore - vendors relation not included in query
+        vendor_name: po.vendors?.vendor_name || 'Unknown',
         total_amount: po.total_amount.toString(),
         days_pending: daysPending,
         is_high_value: po.total_amount.toNumber() > 25000,
-        division_name: 'Unknown', // @ts-ignore - divisions relation not included in query
+        division_name: po.divisions?.division_name || 'Unknown',
       };
     });
 
@@ -576,7 +576,7 @@ export async function sendBudgetThresholdAlerts(): Promise<void> {
       alerts.push({
         project_name: project.project_name,
         project_code: project.project_code,
-        division_name: 'Unknown', // @ts-ignore - divisions relation not included in query
+        division_name: project.divisions?.division_name || 'Unknown',
         budget_total: budgetTotal,
         budget_spent: budgetSpent,
         utilization_percentage: utilizationPercentage,

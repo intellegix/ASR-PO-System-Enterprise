@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 
@@ -159,7 +159,7 @@ const generateApprovalBottleneckReport = async (
   userFilter?: string
 ): Promise<ApprovalBottleneckData> => {
   // Get all approval records in the date range
-  const approvalWhereClause: any = {
+  const approvalWhereClause: Record<string, unknown> = {
     timestamp: {
       gte: startDate,
       lte: endDate,
@@ -431,7 +431,7 @@ const generateApprovalBottleneckReport = async (
 
   const divisionAnalysis: DivisionApprovalAnalysis[] = divisions.map(division => {
     const divisionApprovals = approvals.filter(a => a.actor_division_id === division.id);
-    const divisionPOs = divisionApprovals.map(a => a.po_headers).filter(Boolean);
+    const _divisionPOs = divisionApprovals.map(a => a.po_headers).filter(Boolean);
 
     const submittedCount = divisionApprovals.filter(a => a.action === 'Submitted').length;
     const approvedCount = divisionApprovals.filter(a => a.action === 'Approved').length;
@@ -578,13 +578,13 @@ const generateApprovalBottleneckReport = async (
 
   // Workflow metrics
   const approvedPOs = approvals.filter(a => a.action === 'Approved' && a.po_headers);
-  const issuedPOs = approvals.filter(a => a.action === 'Issued' && a.po_headers);
-  const receivedPOs = approvals.filter(a => a.action === 'Received' && a.po_headers);
+  const _issuedPOs = approvals.filter(a => a.action === 'Issued' && a.po_headers);
+  const _receivedPOs = approvals.filter(a => a.action === 'Received' && a.po_headers);
 
   // Calculate stage timing
   let avgSubmissionToApproval = 0;
-  let avgApprovalToIssue = 0;
-  let avgIssueToReceived = 0;
+  const avgApprovalToIssue = 0;
+  const avgIssueToReceived = 0;
 
   // Implementation would calculate these metrics by matching approval sequences
   // For brevity, using placeholder calculations based on available data
@@ -693,7 +693,7 @@ const getHandler = async (request: NextRequest): Promise<NextResponse> => {
     }
 
     // Check permissions - this report requires elevated permissions
-    if (!hasPermission(user.role as any, 'report:view') ||
+    if (!hasPermission(user.role as UserRole, 'report:view') ||
         !['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'].includes(user.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }

@@ -21,7 +21,7 @@ export interface ValidationResult<T> {
  * Formats Zod errors into a user-friendly format
  */
 function formatZodErrors(error: ZodError): ValidationError[] {
-  return error.issues.map((err: any) => ({
+  return error.issues.map((err) => ({
     field: err.path.join('.'),
     message: err.message,
   }));
@@ -49,7 +49,7 @@ export async function validateRequestBody<T>(
         errors: formatZodErrors(result.error),
       };
     }
-  } catch (error) {
+  } catch (_error: unknown) {
     return {
       success: false,
       errors: [{ field: 'body', message: 'Invalid JSON format' }],
@@ -80,7 +80,7 @@ export function validateQueryParams<T>(
         errors: formatZodErrors(result.error),
       };
     }
-  } catch (error) {
+  } catch (_error: unknown) {
     return {
       success: false,
       errors: [{ field: 'query', message: 'Invalid query parameters' }],
@@ -109,7 +109,7 @@ export function validatePathParams<T>(
         errors: formatZodErrors(result.error),
       };
     }
-  } catch (error) {
+  } catch (_error: unknown) {
     return {
       success: false,
       errors: [{ field: 'params', message: 'Invalid path parameters' }],
@@ -134,7 +134,7 @@ export function validationErrorResponse(errors: ValidationError[]): NextResponse
 /**
  * Higher-order function to create validated API handlers
  */
-export function withValidation<TBody = any, TQuery = any, TParams = any>(
+export function withValidation<TBody = unknown, TQuery = unknown, TParams = unknown>(
   handler: (
     request: NextRequest,
     context: {
@@ -287,15 +287,16 @@ export function checkRateLimit(
 
 /**
  * Rate limiting middleware
+ * Supports both old-style context (Record<string, unknown>) and Next.js 15+ params ({ params: Promise<...> })
  */
 export function withRateLimit(
   maxRequests: number = 100,
   windowMs: number = 60 * 1000
 ) {
-  return function rateLimitMiddleware(
-    handler: (request: NextRequest, context?: any) => Promise<NextResponse>
+  return function rateLimitMiddleware<TContext = Record<string, unknown>>(
+    handler: (request: NextRequest, context?: TContext) => Promise<NextResponse>
   ) {
-    return async (request: NextRequest, context?: any) => {
+    return async (request: NextRequest, context?: TContext) => {
       // Use IP address as identifier (in production, consider user ID)
       const identifier = request.headers.get('x-forwarded-for') ||
                         request.headers.get('x-real-ip') ||

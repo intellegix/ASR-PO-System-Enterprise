@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 // Force dynamic rendering for API route
@@ -52,7 +52,7 @@ const getHandler = async (request: NextRequest) => {
     }
 
     // Check permissions - audit trail requires elevated access
-    if (!hasPermission(user.role as any, 'report:view') ||
+    if (!hasPermission(user.role as UserRole, 'report:view') ||
         !['MAJORITY_OWNER', 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'DIVISION_LEADER', 'ACCOUNTING'].includes(user.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
@@ -68,7 +68,7 @@ const getHandler = async (request: NextRequest) => {
     const limit = parseInt(searchParams.get('limit') || '50');
 
     // Build WHERE clause
-    const whereClause: any = {};
+    const whereClause: Record<string, unknown> = {};
 
     // PO-specific audit trail
     if (poId) {
@@ -87,13 +87,14 @@ const getHandler = async (request: NextRequest) => {
 
     // Date range filter
     if (startDate || endDate) {
-      whereClause.timestamp = {};
+      const timestampFilter: Record<string, Date> = {};
       if (startDate) {
-        whereClause.timestamp.gte = new Date(startDate);
+        timestampFilter.gte = new Date(startDate);
       }
       if (endDate) {
-        whereClause.timestamp.lte = new Date(endDate + 'T23:59:59Z');
+        timestampFilter.lte = new Date(endDate + 'T23:59:59Z');
       }
+      whereClause.timestamp = timestampFilter;
     }
 
     // Text search in PO number or user name

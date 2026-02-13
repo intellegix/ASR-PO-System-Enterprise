@@ -7,7 +7,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getRoleDisplayName, type UserRole as AuthUserRole } from '@/lib/auth/permissions';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 
 // Icons
@@ -172,20 +171,19 @@ const REPORT_TYPES: ReportCard[] = [
 type UserRole = 'DIRECTOR_OF_SYSTEMS_INTEGRATIONS' | 'MAJORITY_OWNER' | 'DIVISION_LEADER' | 'OPERATIONS_MANAGER' | 'ACCOUNTING';
 
 export default function ReportsPage() {
-  const { user, isAuthenticated } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
     document.title = 'Reports | ASR PO System';
   }, []);
 
-  const userRole = (user?.role || 'OPERATIONS_MANAGER') as UserRole;
+  const _userRole = (user?.role || 'OPERATIONS_MANAGER') as UserRole;
 
   // Filter reports based on user permissions
   const availableReports = REPORT_TYPES.filter(report => {
     if (!report.requiredRole) return true;
-    return report.requiredRole.includes(userRole);
+    return report.requiredRole.includes(_userRole);
   });
 
   const categories = [
@@ -225,7 +223,7 @@ export default function ReportsPage() {
               <div className="text-right">
                 <p className="text-sm text-slate-500">Welcome back, {user?.name?.split(' ')[0]}</p>
                 <p className="text-xs text-slate-400">
-                  {user?.divisionName || 'All Divisions'} • {getRoleDisplayName(userRole as AuthUserRole)}
+                  {user?.divisionName || 'All Divisions'} • {getRoleDisplayName(_userRole as AuthUserRole)}
                 </p>
               </div>
             </div>

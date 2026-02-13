@@ -8,7 +8,7 @@ import { createOAuthClient } from './config';
 import prisma from '@/lib/db';
 
 // Service response interface
-interface QBServiceResponse<T = any> {
+interface QBServiceResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -65,8 +65,8 @@ export async function syncSinglePO(poId: string): Promise<QBServiceResponse> {
 /**
  * Sync multiple POs by IDs
  */
-export async function syncMultiplePOs(poIds: string[]): Promise<QBServiceResponse<{ results: any[] }>> {
-  const results = [];
+export async function syncMultiplePOs(poIds: string[]): Promise<QBServiceResponse<{ results: Array<Record<string, unknown>> }>> {
+  const results: Array<Record<string, unknown>> = [];
 
   for (const poId of poIds) {
     try {
@@ -164,7 +164,7 @@ export async function autoSyncPaidPOs(): Promise<QBServiceResponse<{ synced: num
 /**
  * Get QB sync statistics
  */
-export async function getQBSyncStats(): Promise<QBServiceResponse<any>> {
+export async function getQBSyncStats(): Promise<QBServiceResponse<Record<string, unknown>>> {
   try {
     const stats = await prisma.$transaction(async (tx) => {
       const totalPOs = await tx.po_headers.count({
@@ -254,7 +254,7 @@ export async function storeQBVendorId(vendorId: string, qbVendorId: string): Pro
 /**
  * Check QB connection health
  */
-export async function checkQBConnection(): Promise<QBServiceResponse<{ connected: boolean; details: any }>> {
+export async function checkQBConnection(): Promise<QBServiceResponse<{ connected: boolean; details: Record<string, unknown> | null }>> {
   try {
     // Check for active tokens
     const activeToken = await prisma.qb_auth_tokens.findFirst({
@@ -274,7 +274,7 @@ export async function checkQBConnection(): Promise<QBServiceResponse<{ connected
 
     // Try to create a simple OAuth client to validate configuration
     try {
-      const oauthClient = createOAuthClient();
+      const _oauthClient = createOAuthClient();
       return {
         success: true,
         message: 'QuickBooks connection is healthy',

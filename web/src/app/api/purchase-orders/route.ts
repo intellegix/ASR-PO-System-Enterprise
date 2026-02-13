@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(url.searchParams.get('limit') || '50');
     const page = parseInt(url.searchParams.get('page') || '1');
 
-    const where: Record<string, any> = {
+    const where: Record<string, unknown> = {
       deleted_at: null,
     };
 
@@ -65,8 +65,23 @@ export async function GET(request: NextRequest) {
       skip: (page - 1) * limit,
     });
 
+    interface POHeader {
+      id: string;
+      po_number: string;
+      vendor_id: string | null;
+      total_amount: unknown;
+      status: string | null;
+      requested_by_user_id: string | null;
+      created_at: Date | null;
+      approved_by_user_id: string | null;
+      approved_at: Date | null;
+      notes_vendor: string | null;
+      notes_internal: string | null;
+      division_id: string | null;
+    }
+
     // Transform data to match frontend expectations
-    const transformedPOs = purchaseOrders.map((po: any) => ({
+    const transformedPOs = purchaseOrders.map((po: POHeader) => ({
       id: po.id,
       poNumber: po.po_number,
       vendorId: po.vendor_id,
@@ -113,7 +128,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { vendorId, amount, description, divisionId, items = [] } = body;
+    const { vendorId, amount, description, divisionId } = body;
 
     if (!vendorId || !amount || !description) {
       return NextResponse.json(
@@ -155,7 +170,7 @@ export async function POST(request: NextRequest) {
         vendor_id: vendorId,
         project_id: '00000000-0000-0000-0000-000000000000', // Default project
         division_id: divisionId || '00000000-0000-0000-0000-000000000000',
-        status: 'Draft' as any,
+        status: 'Draft',
         subtotal_amount: subtotal,
         tax_amount: taxAmount,
         total_amount: totalAmount,

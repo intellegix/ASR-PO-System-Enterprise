@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
     // Validate QB configuration
     try {
       validateQBConfig();
-    } catch (configError: any) {
-      console.error('QB configuration error:', configError.message);
+    } catch (configError: unknown) {
+      console.error('QB configuration error:', configError instanceof Error ? configError.message : 'Unknown error');
 
       const redirectUrl = new URL('/settings?qb_error=config_error', request.nextUrl.origin);
       return NextResponse.redirect(redirectUrl);

@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
-import { cachedDashboardData, CACHE_TTL } from '@/lib/cache/dashboard-cache';
+import { cachedDashboardData } from '@/lib/cache/dashboard-cache';
 // Force dynamic rendering for API route
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +40,7 @@ const getQuickKPIs = async (filter: KPIFilter, userRole: string, userDivisionId:
   const timeRange = timeRanges[timeframe];
 
   // Build WHERE clause based on permissions and filters
-  let whereClause: any = {
+  const whereClause: Record<string, unknown> = {
     deleted_at: null,
     created_at: { gte: timeRange.start },
   };
@@ -179,7 +179,7 @@ const getHandler = async (request: NextRequest) => {
     // Parse query parameters
     const { searchParams } = new URL(request.url);
     const divisionId = searchParams.get('divisionId') || undefined;
-    const timeframe = (searchParams.get('timeframe') as any) || 'current_month';
+    const timeframe = (searchParams.get('timeframe') || 'current_month') as 'current_month' | 'ytd' | 'last_30_days';
     const includeHealth = searchParams.get('includeHealth') === 'true';
 
     // Get user information
@@ -193,7 +193,7 @@ const getHandler = async (request: NextRequest) => {
     }
 
     // Check permissions
-    if (!hasPermission(user.role as any, 'report:view')) {
+    if (!hasPermission(user.role as UserRole, 'report:view')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 

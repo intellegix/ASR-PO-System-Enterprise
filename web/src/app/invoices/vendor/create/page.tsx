@@ -72,10 +72,21 @@ export default function CreateVendorInvoicePage() {
     },
   });
 
+  interface PurchaseOrder {
+    id: string;
+    project_id?: string | null;
+    division_id?: string | null;
+    subtotal_amount?: unknown;
+    tax_amount?: unknown;
+    total_amount?: unknown;
+    status: string;
+    po_number: string;
+  }
+
   // Auto-populate from linked PO
   useEffect(() => {
     if (form.poId && vendorPOs) {
-      const po = vendorPOs.find((p: any) => p.id === form.poId);
+      const po = vendorPOs.find((p: PurchaseOrder) => p.id === form.poId);
       if (po) {
         setForm(prev => ({
           ...prev,
@@ -149,7 +160,7 @@ export default function CreateVendorInvoicePage() {
               required
             >
               <option value="">Select vendor...</option>
-              {(Array.isArray(vendors) ? vendors : []).map((v: any) => (
+              {(Array.isArray(vendors) ? vendors : []).map((v: { id: string; vendor_name: string; vendor_code: string }) => (
                 <option key={v.id} value={v.id}>{v.vendor_name} ({v.vendor_code})</option>
               ))}
             </select>
@@ -166,8 +177,8 @@ export default function CreateVendorInvoicePage() {
               >
                 <option value="">No PO linked</option>
                 {(Array.isArray(vendorPOs) ? vendorPOs : [])
-                  .filter((po: any) => ['Issued', 'Received', 'Approved'].includes(po.status))
-                  .map((po: any) => (
+                  .filter((po: PurchaseOrder) => ['Issued', 'Received', 'Approved'].includes(po.status))
+                  .map((po: PurchaseOrder) => (
                     <option key={po.id} value={po.id}>
                       {po.po_number} - ${Number(po.total_amount).toLocaleString()} ({po.status})
                     </option>
@@ -199,7 +210,7 @@ export default function CreateVendorInvoicePage() {
                 className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
                 <option value="">Select project...</option>
-                {(Array.isArray(projects) ? projects : []).map((p: any) => (
+                {(Array.isArray(projects) ? projects : []).map((p: { id: string; project_code: string; project_name: string }) => (
                   <option key={p.id} value={p.id}>{p.project_code} - {p.project_name}</option>
                 ))}
               </select>
@@ -212,7 +223,7 @@ export default function CreateVendorInvoicePage() {
                 className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
                 <option value="">Select division...</option>
-                {(Array.isArray(divisions) ? divisions : []).map((d: any) => (
+                {(Array.isArray(divisions) ? divisions : []).map((d: { id: string; division_name: string }) => (
                   <option key={d.id} value={d.id}>{d.division_name}</option>
                 ))}
               </select>

@@ -21,7 +21,7 @@ export interface PDFError extends Error {
   code: PDFErrorCode;
   po_id?: string;
   po_number?: string;
-  originalError?: any;
+  originalError?: unknown;
   recoverable: boolean;
 }
 
@@ -45,7 +45,7 @@ export interface PDFResult {
 export function createPDFError(
   code: PDFErrorCode,
   message: string,
-  originalError?: any,
+  originalError?: unknown,
   context?: { po_id?: string; po_number?: string }
 ): PDFError {
   const error = new Error(message) as PDFError;
@@ -290,10 +290,10 @@ async function generateWithTimeout<T>(
 /**
  * Classify errors into recoverable/non-recoverable categories
  */
-function classifyPDFError(error: any, context: { po_number?: string }): PDFError {
+function classifyPDFError(error: unknown, context: { po_number?: string }): PDFError {
   // Analyze error message and type to determine classification
-  const errorMessage = error?.message || String(error);
-  const errorStack = error?.stack || '';
+  const errorMessage = (error as Error | null)?.message || String(error);
+  const errorStack = (error as Error | null)?.stack || '';
 
   // Memory-related errors (recoverable)
   if (errorMessage.includes('memory') || errorMessage.includes('heap') ||

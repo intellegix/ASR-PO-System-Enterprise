@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 // Approval threshold - POs over this amount require owner approval
 const OWNER_APPROVAL_THRESHOLD = 25000;
 
-const getHandler = async (request: NextRequest) => {
+const getHandler = async (_request: NextRequest) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -60,7 +60,7 @@ const getHandler = async (request: NextRequest) => {
 
     // Clean up undefined properties for Prisma query
     const cleanWhere = Object.fromEntries(
-      Object.entries(where).filter(([_, value]) => value !== undefined)
+      Object.entries(where).filter(([_key, value]) => value !== undefined)
     );
 
     const pendingPOs = await prisma.po_headers.findMany({

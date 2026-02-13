@@ -7,16 +7,16 @@ interface ExportOptions {
   filename: string;
   title: string;
   subtitle?: string;
-  data: any;
+  data: Record<string, unknown>;
   format: 'pdf' | 'excel' | 'csv';
   reportType: 'gl-analysis' | 'vendor-analysis' | 'budget-vs-actual' | 'approval-bottleneck' | 'project-details' | 'po-summary';
 }
 
-interface ExcelColumn {
+interface _ExcelColumn {
   header: string;
   key: string;
   width?: number;
-  style?: any;
+  style?: unknown;
 }
 
 export class ReportExportService {
@@ -186,7 +186,7 @@ export class ReportExportService {
     `;
   }
 
-  private static generateReportContent(data: any, reportType: string): string {
+  private static generateReportContent(data: Record<string, unknown>, reportType: string): string {
     switch (reportType) {
       case 'gl-analysis':
         return this.generateGLAnalysisHTML(data);
@@ -205,27 +205,32 @@ export class ReportExportService {
     }
   }
 
-  private static generateGLAnalysisHTML(data: any): string {
+  private static generateGLAnalysisHTML(data: Record<string, unknown>): string {
+    const totalSpend = data.totalSpend as number;
+    const cogsAmount = data.cogsAmount as number;
+    const opexAmount = data.opexAmount as number;
+    const taxableAmount = data.taxableAmount as number;
+
     return `
       <div class="summary-grid">
         <div class="summary-card">
           <div class="summary-label">Total Spend</div>
-          <div class="summary-value">${this.formatCurrency(data.totalSpend)}</div>
+          <div class="summary-value">${this.formatCurrency(totalSpend)}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">COGS Amount</div>
-          <div class="summary-value">${this.formatCurrency(data.cogsAmount)}</div>
-          <div class="summary-meta">${((data.cogsAmount / data.totalSpend) * 100).toFixed(1)}% of total</div>
+          <div class="summary-value">${this.formatCurrency(cogsAmount)}</div>
+          <div class="summary-meta">${((cogsAmount / totalSpend) * 100).toFixed(1)}% of total</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">OpEx Amount</div>
-          <div class="summary-value">${this.formatCurrency(data.opexAmount)}</div>
-          <div class="summary-meta">${((data.opexAmount / data.totalSpend) * 100).toFixed(1)}% of total</div>
+          <div class="summary-value">${this.formatCurrency(opexAmount)}</div>
+          <div class="summary-meta">${((opexAmount / totalSpend) * 100).toFixed(1)}% of total</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Taxable Amount</div>
-          <div class="summary-value">${this.formatCurrency(data.taxableAmount)}</div>
-          <div class="summary-meta">${((data.taxableAmount / data.totalSpend) * 100).toFixed(1)}% of total</div>
+          <div class="summary-value">${this.formatCurrency(taxableAmount)}</div>
+          <div class="summary-meta">${((taxableAmount / totalSpend) * 100).toFixed(1)}% of total</div>
         </div>
       </div>
 
@@ -240,7 +245,7 @@ export class ReportExportService {
           </tr>
         </thead>
         <tbody>
-          ${data.categories.map((cat: any) => `
+          ${(data.categories as Array<{ category: string; amount: number; percentage: number; accountCount: number }>).map((cat) => `
             <tr>
               <td>${cat.category}</td>
               <td class="currency">${this.formatCurrency(cat.amount)}</td>
@@ -263,7 +268,7 @@ export class ReportExportService {
           </tr>
         </thead>
         <tbody>
-          ${data.divisionBreakdown.map((div: any) => `
+          ${(data.divisionBreakdown as Array<{ divisionName: string; totalSpend: number; cogsAmount: number; opexAmount: number; topGLAccounts: Array<{ accountNumber?: string }> }>).map((div) => `
             <tr>
               <td>${div.divisionName}</td>
               <td class="currency">${this.formatCurrency(div.totalSpend)}</td>
@@ -277,24 +282,26 @@ export class ReportExportService {
     `;
   }
 
-  private static generateVendorAnalysisHTML(data: any): string {
+  private static generateVendorAnalysisHTML(data: Record<string, unknown>): string {
+    const summary = data.summary as Record<string, unknown>;
+
     return `
       <div class="summary-grid">
         <div class="summary-card">
           <div class="summary-label">Total Vendors</div>
-          <div class="summary-value">${data.summary.totalVendors}</div>
+          <div class="summary-value">${summary.totalVendors}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Total Spend</div>
-          <div class="summary-value">${this.formatCurrency(data.summary.totalSpend)}</div>
+          <div class="summary-value">${this.formatCurrency(summary.totalSpend as number)}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Avg Quality Score</div>
-          <div class="summary-value">${data.summary.averageQualityScore}</div>
+          <div class="summary-value">${summary.averageQualityScore}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Top Performers</div>
-          <div class="summary-value">${data.summary.topPerformers}</div>
+          <div class="summary-value">${summary.topPerformers}</div>
           <div class="summary-meta">Score 85+</div>
         </div>
       </div>
@@ -312,7 +319,7 @@ export class ReportExportService {
           </tr>
         </thead>
         <tbody>
-          ${data.vendors.slice(0, 15).map((vendor: any) => `
+          ${(data.vendors as Array<{ vendorName: string; industryType: string; totalSpend: number; totalOrders: number; qualityScore: number; onTimeDeliveryRate: number; paymentTerms: string }>).slice(0, 15).map((vendor) => `
             <tr>
               <td>
                 ${vendor.vendorName}<br>
@@ -332,28 +339,34 @@ export class ReportExportService {
     `;
   }
 
-  private static generateBudgetAnalysisHTML(data: any): string {
+  private static generateBudgetAnalysisHTML(data: Record<string, unknown>): string {
+    const summary = data.summary as Record<string, unknown>;
+    const totalBudget = summary.totalBudget as number;
+    const totalActual = summary.totalActual as number;
+    const totalVariance = summary.totalVariance as number;
+    const averageCPI = summary.averageCPI as number;
+
     return `
       <div class="summary-grid">
         <div class="summary-card">
           <div class="summary-label">Total Budget</div>
-          <div class="summary-value">${this.formatCurrency(data.summary.totalBudget)}</div>
+          <div class="summary-value">${this.formatCurrency(totalBudget)}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Actual Spend</div>
-          <div class="summary-value">${this.formatCurrency(data.summary.totalActual)}</div>
+          <div class="summary-value">${this.formatCurrency(totalActual)}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Total Variance</div>
-          <div class="summary-value ${data.summary.totalVariance > 0 ? 'negative' : 'positive'}">
-            ${this.formatCurrency(Math.abs(data.summary.totalVariance))}
+          <div class="summary-value ${totalVariance > 0 ? 'negative' : 'positive'}">
+            ${this.formatCurrency(Math.abs(totalVariance))}
           </div>
-          <div class="summary-meta">${data.summary.totalVariance > 0 ? 'Over budget' : 'Under budget'}</div>
+          <div class="summary-meta">${totalVariance > 0 ? 'Over budget' : 'Under budget'}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Avg CPI</div>
-          <div class="summary-value ${data.summary.averageCPI >= 1.0 ? 'positive' : 'negative'}">
-            ${data.summary.averageCPI.toFixed(2)}
+          <div class="summary-value ${averageCPI >= 1.0 ? 'positive' : 'negative'}">
+            ${averageCPI.toFixed(2)}
           </div>
         </div>
       </div>
@@ -371,7 +384,7 @@ export class ReportExportService {
           </tr>
         </thead>
         <tbody>
-          ${data.projects.slice(0, 15).map((project: any) => `
+          ${(data.projects as Array<{ projectName: string; divisionName: string; revisedBudget: number; actualSpend: number; varianceAmount: number; costPerformanceIndex: number; timeline: { percentComplete: number } }>).slice(0, 15).map((project) => `
             <tr>
               <td>
                 ${project.projectName}<br>
@@ -393,25 +406,27 @@ export class ReportExportService {
     `;
   }
 
-  private static generateApprovalBottleneckHTML(data: any): string {
+  private static generateApprovalBottleneckHTML(data: Record<string, unknown>): string {
+    const summary = data.summary as Record<string, unknown>;
+
     return `
       <div class="summary-grid">
         <div class="summary-card">
           <div class="summary-label">Total Bottlenecks</div>
-          <div class="summary-value negative">${data.summary.totalBottlenecks}</div>
-          <div class="summary-meta">${data.summary.criticalBottlenecks} critical</div>
+          <div class="summary-value negative">${summary.totalBottlenecks}</div>
+          <div class="summary-meta">${summary.criticalBottlenecks} critical</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Avg Approval Time</div>
-          <div class="summary-value">${this.formatDays(data.summary.averageApprovalTime)}</div>
+          <div class="summary-value">${this.formatDays(summary.averageApprovalTime as number)}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">POs Over 48hrs</div>
-          <div class="summary-value warning">${data.summary.posOver48Hours}</div>
+          <div class="summary-value warning">${summary.posOver48Hours}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Value Stuck</div>
-          <div class="summary-value">${this.formatCurrency(data.summary.totalValueStuck)}</div>
+          <div class="summary-value">${this.formatCurrency(summary.totalValueStuck as number)}</div>
         </div>
       </div>
 
@@ -428,7 +443,7 @@ export class ReportExportService {
           </tr>
         </thead>
         <tbody>
-          ${data.bottlenecks.slice(0, 15).map((bottleneck: any) => `
+          ${(data.bottlenecks as Array<{ poNumber: string; vendorName: string; totalAmount: number; totalDaysPending: number; approverName: string; currentStage: string }>).slice(0, 15).map((bottleneck) => `
             <tr>
               <td>${bottleneck.poNumber}</td>
               <td>${bottleneck.vendorName}</td>
@@ -445,25 +460,28 @@ export class ReportExportService {
     `;
   }
 
-  private static generateProjectDetailsHTML(data: any): string {
+  private static generateProjectDetailsHTML(data: Record<string, unknown>): string {
+    const projectInfo = data.projectInfo as Record<string, unknown>;
+    const timeline = projectInfo.timeline as Record<string, unknown>;
+
     return `
       <div class="summary-grid">
         <div class="summary-card">
           <div class="summary-label">Project</div>
-          <div class="summary-value" style="font-size: 16px;">${data.projectInfo.projectName}</div>
-          <div class="summary-meta">PM: ${data.projectInfo.projectManager}</div>
+          <div class="summary-value" style="font-size: 16px;">${projectInfo.projectName}</div>
+          <div class="summary-meta">PM: ${projectInfo.projectManager}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Total Budget</div>
-          <div class="summary-value">${this.formatCurrency(data.projectInfo.totalBudget)}</div>
+          <div class="summary-value">${this.formatCurrency(projectInfo.totalBudget as number)}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Actual Spend</div>
-          <div class="summary-value">${this.formatCurrency(data.projectInfo.actualSpend)}</div>
+          <div class="summary-value">${this.formatCurrency(projectInfo.actualSpend as number)}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Progress</div>
-          <div class="summary-value">${data.projectInfo.timeline.percentComplete.toFixed(1)}%</div>
+          <div class="summary-value">${(timeline.percentComplete as number).toFixed(1)}%</div>
         </div>
       </div>
 
@@ -479,7 +497,7 @@ export class ReportExportService {
           </tr>
         </thead>
         <tbody>
-          ${data.divisionSpending.map((div: any) => `
+          ${(data.divisionSpending as Array<{ divisionName: string; budgetAllocated: number; totalSpend: number; varianceAmount: number; poCount: number }>).map((div) => `
             <tr>
               <td>${div.divisionName}</td>
               <td class="currency">${this.formatCurrency(div.budgetAllocated)}</td>
@@ -495,24 +513,26 @@ export class ReportExportService {
     `;
   }
 
-  private static generatePOSummaryHTML(data: any): string {
+  private static generatePOSummaryHTML(data: Record<string, unknown>): string {
+    const summary = data.summary as Record<string, unknown>;
+
     return `
       <div class="summary-grid">
         <div class="summary-card">
           <div class="summary-label">Total POs</div>
-          <div class="summary-value">${data.summary.totalPOs}</div>
+          <div class="summary-value">${summary.totalPOs}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Total Value</div>
-          <div class="summary-value">${this.formatCurrency(data.summary.totalValue)}</div>
+          <div class="summary-value">${this.formatCurrency(summary.totalValue as number)}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Avg PO Value</div>
-          <div class="summary-value">${this.formatCurrency(data.summary.averageValue)}</div>
+          <div class="summary-value">${this.formatCurrency(summary.averageValue as number)}</div>
         </div>
         <div class="summary-card">
           <div class="summary-label">Completion Rate</div>
-          <div class="summary-value">${data.summary.completionRate.toFixed(1)}%</div>
+          <div class="summary-value">${(summary.completionRate as number).toFixed(1)}%</div>
         </div>
       </div>
 
@@ -528,7 +548,7 @@ export class ReportExportService {
           </tr>
         </thead>
         <tbody>
-          ${data.divisionData?.map((div: any) => `
+          ${(data.divisionData as Array<{ divisionName: string; poCount: number; totalValue: number; averageValue: number; completionRate: number }> | undefined)?.map((div) => `
             <tr>
               <td>${div.divisionName}</td>
               <td>${div.poCount}</td>
@@ -635,7 +655,7 @@ export class ReportExportService {
     }
   }
 
-  private static addExcelData(worksheet: ExcelJS.Worksheet, data: any, reportType: string): void {
+  private static addExcelData(worksheet: ExcelJS.Worksheet, data: Record<string, unknown>, reportType: string): void {
     let currentRow = 4; // Start after header
 
     switch (reportType) {
@@ -655,12 +675,12 @@ export class ReportExportService {
         currentRow = this.addProjectDetailsExcelData(worksheet, data, currentRow);
         break;
       case 'po-summary':
-        currentRow = this.addPOSummaryExcelData(worksheet, data, currentRow);
+        this.addPOSummaryExcelData(worksheet, data, currentRow);
         break;
     }
   }
 
-  private static addGLAnalysisExcelData(worksheet: ExcelJS.Worksheet, data: any, startRow: number): number {
+  private static addGLAnalysisExcelData(worksheet: ExcelJS.Worksheet, data: Record<string, unknown>, startRow: number): number {
     let currentRow = startRow;
 
     // Summary section
@@ -669,10 +689,10 @@ export class ReportExportService {
     currentRow += 2;
 
     const summaryData = [
-      ['Total Spend', this.formatCurrency(data.totalSpend)],
-      ['COGS Amount', this.formatCurrency(data.cogsAmount)],
-      ['OpEx Amount', this.formatCurrency(data.opexAmount)],
-      ['Taxable Amount', this.formatCurrency(data.taxableAmount)],
+      ['Total Spend', this.formatCurrency(data.totalSpend as number)],
+      ['COGS Amount', this.formatCurrency(data.cogsAmount as number)],
+      ['OpEx Amount', this.formatCurrency(data.opexAmount as number)],
+      ['Taxable Amount', this.formatCurrency(data.taxableAmount as number)],
     ];
 
     summaryData.forEach(([label, value]) => {
@@ -697,7 +717,7 @@ export class ReportExportService {
     });
     currentRow++;
 
-    data.categories.forEach((category: any) => {
+    (data.categories as Array<{ category: string; amount: number; percentage: number; accountCount: number }>).forEach((category) => {
       worksheet.getCell(`A${currentRow}`).value = category.category;
       worksheet.getCell(`B${currentRow}`).value = category.amount;
       worksheet.getCell(`B${currentRow}`).numFmt = '"$"#,##0.00';
@@ -710,7 +730,7 @@ export class ReportExportService {
     return currentRow;
   }
 
-  private static addVendorAnalysisExcelData(worksheet: ExcelJS.Worksheet, data: any, startRow: number): number {
+  private static addVendorAnalysisExcelData(worksheet: ExcelJS.Worksheet, data: Record<string, unknown>, startRow: number): number {
     let currentRow = startRow;
 
     // Vendor performance table
@@ -727,7 +747,7 @@ export class ReportExportService {
     });
     currentRow++;
 
-    data.vendors.forEach((vendor: any) => {
+    (data.vendors as Array<{ vendorName: string; industryType: string; totalSpend: number; totalOrders: number; qualityScore: number; onTimeDeliveryRate: number; paymentTerms: string }>).forEach((vendor) => {
       worksheet.getCell(`A${currentRow}`).value = vendor.vendorName;
       worksheet.getCell(`B${currentRow}`).value = vendor.industryType;
       worksheet.getCell(`C${currentRow}`).value = vendor.totalSpend;
@@ -743,7 +763,7 @@ export class ReportExportService {
     return currentRow;
   }
 
-  private static addBudgetAnalysisExcelData(worksheet: ExcelJS.Worksheet, data: any, startRow: number): number {
+  private static addBudgetAnalysisExcelData(worksheet: ExcelJS.Worksheet, data: Record<string, unknown>, startRow: number): number {
     let currentRow = startRow;
 
     // Project budget table
@@ -760,7 +780,7 @@ export class ReportExportService {
     });
     currentRow++;
 
-    data.projects.forEach((project: any) => {
+    (data.projects as Array<{ projectName: string; divisionName: string; revisedBudget: number; actualSpend: number; varianceAmount: number; costPerformanceIndex: number; schedulePerformanceIndex: number; timeline: { percentComplete: number } }>).forEach((project) => {
       worksheet.getCell(`A${currentRow}`).value = project.projectName;
       worksheet.getCell(`B${currentRow}`).value = project.divisionName;
       worksheet.getCell(`C${currentRow}`).value = project.revisedBudget;
@@ -781,7 +801,7 @@ export class ReportExportService {
     return currentRow;
   }
 
-  private static addApprovalBottleneckExcelData(worksheet: ExcelJS.Worksheet, data: any, startRow: number): number {
+  private static addApprovalBottleneckExcelData(worksheet: ExcelJS.Worksheet, data: Record<string, unknown>, startRow: number): number {
     let currentRow = startRow;
 
     // Bottlenecks table
@@ -798,7 +818,7 @@ export class ReportExportService {
     });
     currentRow++;
 
-    data.bottlenecks.forEach((bottleneck: any) => {
+    (data.bottlenecks as Array<{ poNumber: string; vendorName: string; totalAmount: number; totalDaysPending: number; currentStage: string; approverName: string; priority: string }>).forEach((bottleneck) => {
       worksheet.getCell(`A${currentRow}`).value = bottleneck.poNumber;
       worksheet.getCell(`B${currentRow}`).value = bottleneck.vendorName;
       worksheet.getCell(`C${currentRow}`).value = bottleneck.totalAmount;
@@ -813,7 +833,7 @@ export class ReportExportService {
     return currentRow;
   }
 
-  private static addProjectDetailsExcelData(worksheet: ExcelJS.Worksheet, data: any, startRow: number): number {
+  private static addProjectDetailsExcelData(worksheet: ExcelJS.Worksheet, data: Record<string, unknown>, startRow: number): number {
     let currentRow = startRow;
 
     // Project info
@@ -821,18 +841,21 @@ export class ReportExportService {
     worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 14 };
     currentRow += 2;
 
-    const projectInfo = [
-      ['Project Name', data.projectInfo.projectName],
-      ['Project Manager', data.projectInfo.projectManager],
-      ['Status', data.projectInfo.status],
-      ['Total Budget', this.formatCurrency(data.projectInfo.totalBudget)],
-      ['Actual Spend', this.formatCurrency(data.projectInfo.actualSpend)],
-      ['Progress', `${data.projectInfo.timeline.percentComplete.toFixed(1)}%`],
+    const projectInfo = data.projectInfo as Record<string, unknown>;
+    const timeline = projectInfo.timeline as Record<string, unknown>;
+
+    const projectInfoRows = [
+      ['Project Name', projectInfo.projectName],
+      ['Project Manager', projectInfo.projectManager],
+      ['Status', projectInfo.status],
+      ['Total Budget', this.formatCurrency(projectInfo.totalBudget as number)],
+      ['Actual Spend', this.formatCurrency(projectInfo.actualSpend as number)],
+      ['Progress', `${(timeline.percentComplete as number).toFixed(1)}%`],
     ];
 
-    projectInfo.forEach(([label, value]) => {
-      worksheet.getCell(`A${currentRow}`).value = label;
-      worksheet.getCell(`B${currentRow}`).value = value;
+    projectInfoRows.forEach(([label, value]) => {
+      worksheet.getCell(`A${currentRow}`).value = label as string;
+      worksheet.getCell(`B${currentRow}`).value = value as string | number;
       currentRow++;
     });
 
@@ -852,7 +875,7 @@ export class ReportExportService {
     });
     currentRow++;
 
-    data.divisionSpending.forEach((div: any) => {
+    (data.divisionSpending as Array<{ divisionName: string; budgetAllocated: number; totalSpend: number; varianceAmount: number; poCount: number }>).forEach((div) => {
       worksheet.getCell(`A${currentRow}`).value = div.divisionName;
       worksheet.getCell(`B${currentRow}`).value = div.budgetAllocated;
       worksheet.getCell(`B${currentRow}`).numFmt = '"$"#,##0.00';
@@ -867,7 +890,7 @@ export class ReportExportService {
     return currentRow;
   }
 
-  private static addPOSummaryExcelData(worksheet: ExcelJS.Worksheet, data: any, startRow: number): number {
+  private static addPOSummaryExcelData(worksheet: ExcelJS.Worksheet, data: Record<string, unknown>, startRow: number): number {
     let currentRow = startRow;
 
     // PO summary table
@@ -884,7 +907,7 @@ export class ReportExportService {
     });
     currentRow++;
 
-    data.divisionData?.forEach((div: any) => {
+    (data.divisionData as Array<{ divisionName: string; poCount: number; totalValue: number; averageValue: number; completionRate: number }> | undefined)?.forEach((div) => {
       worksheet.getCell(`A${currentRow}`).value = div.divisionName;
       worksheet.getCell(`B${currentRow}`).value = div.poCount;
       worksheet.getCell(`C${currentRow}`).value = div.totalValue;

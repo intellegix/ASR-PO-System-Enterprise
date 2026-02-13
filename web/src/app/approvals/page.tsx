@@ -40,7 +40,7 @@ interface PendingPO {
 const OWNER_APPROVAL_THRESHOLD = 25000;
 
 export default function ApprovalsPage() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   const [pendingPOs, setPendingPOs] = useState<PendingPO[]>([]);
@@ -95,7 +95,7 @@ export default function ApprovalsPage() {
       } else {
         setError(data.error || 'Action failed');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to perform action');
     } finally {
       setActionLoading(null);
@@ -162,8 +162,6 @@ export default function ApprovalsPage() {
       return 'Just now';
     }
   };
-
-  const userRole = user?.role || '';
 
   return (
     <AppLayout pageTitle="Approvals">

@@ -6,14 +6,8 @@ import { useEffect } from 'react';
  * Service Worker Registration Component
  * Handles PWA service worker registration and updates
  */
-export function ServiceWorkerRegistration() {
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      registerServiceWorker();
-    }
-  }, []);
 
-  const registerServiceWorker = async () => {
+const registerServiceWorker = async () => {
     try {
       console.log('[SW] Registering service worker...');
 
@@ -63,6 +57,13 @@ export function ServiceWorkerRegistration() {
     }
   };
 
+export function ServiceWorkerRegistration() {
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      registerServiceWorker();
+    }
+  }, []);
+
   // This component doesn't render anything
   return null;
 }
@@ -74,7 +75,7 @@ export function useIsPWA() {
   useEffect(() => {
     // Check if running in standalone mode (PWA)
     const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
-                  (window.navigator as any).standalone ||
+                  (window.navigator as { standalone?: boolean }).standalone ||
                   document.referrer.includes('android-app://');
 
     if (isPWA) {
@@ -113,7 +114,7 @@ export function useOfflineStatus() {
       if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
         navigator.serviceWorker.ready.then((registration) => {
           // Type assertion for background sync
-          const syncRegistration = registration as any;
+          const syncRegistration = registration as { sync?: { register: (tag: string) => Promise<void> } };
           if (syncRegistration.sync) {
             return syncRegistration.sync.register('po-sync');
           }
@@ -148,12 +149,12 @@ export function useOfflineStatus() {
  */
 export function useInstallPrompt() {
   useEffect(() => {
-    let deferredPrompt: any;
+    let deferredPrompt: { prompt: () => void; userChoice: Promise<{ outcome: string }> } | null = null;
 
     const handleBeforeInstallPrompt = (e: Event) => {
       console.log('[PWA] Install prompt available');
       e.preventDefault();
-      deferredPrompt = e;
+      deferredPrompt = e as unknown as { prompt: () => void; userChoice: Promise<{ outcome: string }> };
 
       // Show install button if needed
       const installButton = document.getElementById('pwa-install-button');
@@ -163,7 +164,7 @@ export function useInstallPrompt() {
         installButton.onclick = () => {
           if (deferredPrompt) {
             deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult: any) => {
+            deferredPrompt.userChoice.then((choiceResult: { outcome: string }) => {
               if (choiceResult.outcome === 'accepted') {
                 console.log('[PWA] User accepted install prompt');
               } else {

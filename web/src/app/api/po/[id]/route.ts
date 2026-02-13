@@ -197,7 +197,7 @@ const putHandler = async (
           required_by_date: parsed.data.requiredByDate ? new Date(parsed.data.requiredByDate) : null,
           notes_internal: parsed.data.notesInternal || currentPO.notes_internal,
           notes_vendor: parsed.data.notesVendor || null,
-          status: finalStatus as any,
+          status: finalStatus,
           updated_at: new Date(),
           ...approvalData,
           po_line_items: {
@@ -322,6 +322,6 @@ const deleteHandler = async (
   }
 };
 
-export const GET = withRateLimit(200, 60 * 1000)(getHandler);
-export const PUT = withRateLimit(20, 60 * 1000)(putHandler);
-export const DELETE = withRateLimit(10, 60 * 1000)(deleteHandler);
+export const GET = withRateLimit(200, 60 * 1000)(getHandler as (request: NextRequest, context?: { params: Promise<{ id: string }> }) => Promise<NextResponse>);
+export const PUT = withRateLimit(20, 60 * 1000)(putHandler as (request: NextRequest, context?: { params: Promise<{ id: string }> }) => Promise<NextResponse>);
+export const DELETE = withRateLimit(10, 60 * 1000)(deleteHandler as (request: NextRequest, context?: { params: Promise<{ id: string }> }) => Promise<NextResponse>);

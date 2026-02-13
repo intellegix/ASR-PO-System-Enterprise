@@ -85,7 +85,7 @@ interface SeedResult {
  * POST /api/vendors/seed - Import 43 QB suppliers into the vendors table.
  * Upserts by vendor_code, updates existing matches by name.
  */
-const postHandler = async (request: NextRequest): Promise<NextResponse> => {
+const postHandler = async (_request: NextRequest): Promise<NextResponse> => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -108,7 +108,7 @@ const postHandler = async (request: NextRequest): Promise<NextResponse> => {
     // First, update existing vendors that map to CSV entries
     const existingVendors = await prisma.vendors.findMany();
     const existingByName = new Map(existingVendors.map(v => [v.vendor_name, v]));
-    const existingByCode = new Map(existingVendors.map(v => [v.vendor_code, v]));
+    const _existingByCode = new Map(existingVendors.map(v => [v.vendor_code, v]));
 
     // Track which codes are now taken (after potential renames)
     const usedCodes = new Set(existingVendors.map(v => v.vendor_code));
@@ -217,7 +217,7 @@ const postHandler = async (request: NextRequest): Promise<NextResponse> => {
 /**
  * GET /api/vendors/seed - Preview what the seed would do (dry run)
  */
-const getHandler = async (request: NextRequest): Promise<NextResponse> => {
+const getHandler = async (_request: NextRequest): Promise<NextResponse> => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

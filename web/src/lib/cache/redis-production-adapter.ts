@@ -11,20 +11,20 @@ import { dashboardCache, CACHE_TTL, invalidateRelatedCache } from './dashboard-c
 
 // Mock Redis class for TypeScript compatibility when ioredis not installed
 class MockRedis {
-  constructor(config?: any) {
+  constructor(_config?: RedisConfig) {
     // Accept any config but don't use it - for compatibility
   }
   connect() { return Promise.resolve(); }
   disconnect() { return Promise.resolve(); }
   quit() { return Promise.resolve(); }
-  get(key: string) { return Promise.resolve(null); }
-  set(key: string, value: string, mode?: string, duration?: number) { return Promise.resolve('OK'); }
-  setex(key: string, seconds: number, value: string) { return Promise.resolve('OK'); }
+  get(_key: string) { return Promise.resolve(null); }
+  set(_key: string, _value: string, _mode?: string, _duration?: number) { return Promise.resolve('OK'); }
+  setex(_key: string, _seconds: number, _value: string) { return Promise.resolve('OK'); }
   del(...keys: string[]) { return Promise.resolve(keys.length); }
   flushdb() { return Promise.resolve('OK'); }
   ping() { return Promise.resolve('PONG'); }
-  keys(pattern: string) { return Promise.resolve([]); }
-  on(event: string, handler: (error?: any) => void) { return this; }
+  keys(_pattern: string) { return Promise.resolve([]); }
+  on(_event: string, _handler: (error: Error) => void) { return this; }
 }
 const Redis = MockRedis;
 
@@ -120,7 +120,7 @@ export class ProductionRedisCache {
   /**
    * Get cached data with automatic fallback
    */
-  async get<T>(type: string, params: Record<string, any>): Promise<T | null> {
+  async get<T>(type: string, params: Record<string, unknown>): Promise<T | null> {
     const key = this.generateKey(type, params);
 
     try {
@@ -154,7 +154,7 @@ export class ProductionRedisCache {
    */
   async set<T>(
     type: string,
-    params: Record<string, any>,
+    params: Record<string, unknown>,
     data: T,
     ttlMs: number = CACHE_TTL.KPI_STANDARD
   ): Promise<void> {
@@ -184,7 +184,7 @@ export class ProductionRedisCache {
    */
   async getOrSet<T>(
     type: string,
-    params: Record<string, any>,
+    params: Record<string, unknown>,
     fetcher: () => Promise<T>,
     ttlMs: number = CACHE_TTL.KPI_STANDARD
   ): Promise<T> {
@@ -206,7 +206,7 @@ export class ProductionRedisCache {
   /**
    * Invalidate cache entries with pattern matching
    */
-  async invalidate(type?: string, specificParams?: Record<string, any>): Promise<number> {
+  async invalidate(type?: string, specificParams?: Record<string, unknown>): Promise<number> {
     let deletedCount = 0;
 
     try {
@@ -321,7 +321,7 @@ export class ProductionRedisCache {
         latency = Date.now() - start;
         redisHealthy = true;
       }
-    } catch (error) {
+    } catch (_error) {
       redisHealthy = false;
     }
 
@@ -345,7 +345,7 @@ export class ProductionRedisCache {
   /**
    * Generate consistent cache keys
    */
-  private generateKey(type: string, params: Record<string, any>): string {
+  private generateKey(type: string, params: Record<string, unknown>): string {
     const sortedParams = Object.keys(params)
       .sort()
       .map(key => `${key}=${params[key]}`)
@@ -380,7 +380,7 @@ export const ProductionCacheService = {
     divisionId: string,
     userRole: string,
     userDivisionId: string | null,
-    fetcher: () => Promise<any>
+    fetcher: () => Promise<unknown>
   ) => {
     return productionCache.getOrSet(
       'division-kpis',
@@ -393,7 +393,7 @@ export const ProductionCacheService = {
   /**
    * Get cross-division KPIs with Redis caching
    */
-  getCrossDivisionKPIs: async (userRole: string, fetcher: () => Promise<any>) => {
+  getCrossDivisionKPIs: async (userRole: string, fetcher: () => Promise<unknown>) => {
     return productionCache.getOrSet(
       'cross-division-kpis',
       { userRole },
@@ -405,7 +405,7 @@ export const ProductionCacheService = {
   /**
    * Get quick KPIs with Redis caching
    */
-  getQuickKPIs: async (params: Record<string, any>, fetcher: () => Promise<any>) => {
+  getQuickKPIs: async (params: Record<string, unknown>, fetcher: () => Promise<unknown>) => {
     return productionCache.getOrSet(
       'kpis',
       params,
@@ -420,7 +420,7 @@ export const ProductionCacheService = {
   getPendingApprovals: async (
     userRole: string,
     userDivisionId: string | null,
-    fetcher: () => Promise<any>
+    fetcher: () => Promise<unknown>
   ) => {
     return productionCache.getOrSet(
       'pending-approvals',

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import prisma from '@/lib/db';
 import log, { auditLog } from '@/lib/logging/logger';
@@ -20,7 +20,7 @@ const getHandler = async (request: NextRequest) => {
       where: { id: session.user.id },
       select: { role: true },
     });
-    if (!user || !hasPermission(user.role as any, 'po:read')) {
+    if (!user || !hasPermission(user.role as UserRole, 'po:read')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -71,7 +71,7 @@ const postHandler = async (request: NextRequest) => {
       where: { id: session.user.id },
       select: { role: true },
     });
-    if (!user || !hasPermission(user.role as any, 'po:create')) {
+    if (!user || !hasPermission(user.role as UserRole, 'po:create')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 

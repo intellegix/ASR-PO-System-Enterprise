@@ -16,7 +16,7 @@ export function ConnectionStatus({ className = '' }: ConnectionStatusProps) {
       const healthy = await checkBackendHealth();
       setIsConnected(healthy);
       setLastCheck(new Date());
-    } catch (error) {
+    } catch (_error) {
       setIsConnected(false);
       setLastCheck(new Date());
     }
@@ -24,6 +24,7 @@ export function ConnectionStatus({ className = '' }: ConnectionStatusProps) {
 
   useEffect(() => {
     // Initial check
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     checkConnection();
 
     // Check every 30 seconds

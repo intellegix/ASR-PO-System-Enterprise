@@ -9,7 +9,7 @@ import { PurchaseOrder } from '@/lib/types';
 export const purchaseOrderKeys = {
   all: ['purchase-orders'] as const,
   lists: () => [...purchaseOrderKeys.all, 'list'] as const,
-  list: (filters: any) => [...purchaseOrderKeys.lists(), { filters }] as const,
+  list: (filters: Record<string, unknown>) => [...purchaseOrderKeys.lists(), { filters }] as const,
   details: () => [...purchaseOrderKeys.all, 'detail'] as const,
   detail: (id: string) => [...purchaseOrderKeys.details(), id] as const,
 } as const;
@@ -44,14 +44,14 @@ export interface UpdatePORequest {
 /**
  * Hook to fetch all purchase orders
  */
-export function usePurchaseOrders(filters?: any) {
+export function usePurchaseOrders(filters?: Record<string, unknown>) {
   const hasJWT = !!getJWTSession();
 
   return useQuery({
-    queryKey: purchaseOrderKeys.list(filters),
+    queryKey: purchaseOrderKeys.list(filters || {}),
     queryFn: async () => {
       const headers = hasJWT ? getAuthHeader() : {};
-      const queryParams = filters ? new URLSearchParams(filters).toString() : '';
+      const queryParams = filters ? new URLSearchParams(filters as Record<string, string>).toString() : '';
       const url = `/api/purchase-orders${queryParams ? `?${queryParams}` : ''}`;
 
       const response = await api.get<{ data: PurchaseOrder[] }>(url, { headers });

@@ -174,21 +174,43 @@ function ViewPurchaseOrder() {
         is_taxable: Number(data.tax_amount) > 0,
         shipping_amount: 0,
         total_with_tax: data.total_amount,
-        line_items: (data.po_line_items || []).map((li: any) => ({
+        line_items: (data.po_line_items || []).map((li: {
+          id: string;
+          line_number: number;
+          item_description: string;
+          quantity: string | number;
+          unit_of_measure: string;
+          unit_price: string | number;
+          line_subtotal: string | number;
+          is_taxable: boolean;
+          status: string;
+          gl_accounts?: { gl_code_short: string; gl_account_name: string } | null;
+          gl_account_code?: string | null;
+          gl_account_name?: string | null;
+        }) => ({
           ...li,
           gl_accounts: li.gl_accounts || (li.gl_account_code ? {
             gl_code_short: li.gl_account_code,
             gl_account_name: li.gl_account_name || '',
           } : null),
         })),
-        audit_log: (data.po_approvals || []).map((a: any) => ({
+        audit_log: (data.po_approvals || []).map((a: {
+          id: string;
+          action: string;
+          timestamp: string;
+          notes: string | null;
+          status_before: string | null;
+          status_after: string;
+          users?: { first_name: string; last_name: string } | null;
+          actor_user?: { first_name: string; last_name: string } | null;
+        }) => ({
           id: a.id,
           action: a.action,
           timestamp: a.timestamp,
           notes: a.notes,
           status_before: a.status_before,
           status_after: a.status_after,
-          created_by: (a.users || a.actor_user)?.first_name ? `${(a.users || a.actor_user).first_name} ${(a.users || a.actor_user).last_name}` : null,
+          created_by: (a.users || a.actor_user)?.first_name ? `${(a.users || a.actor_user)!.first_name} ${(a.users || a.actor_user)!.last_name}` : null,
           authorized_by: null,
         })),
         client: data.clients ? {
@@ -314,24 +336,43 @@ function ViewPurchaseOrder() {
   };
 
   // Handle receipt scan completion
-  const handleScanComplete = (result: any) => {
+  interface ScanResult {
+    vendor: {
+      name: string;
+      matchedVendorId: string | null;
+    };
+    lineItems: Array<{
+      description: string;
+      quantity: number;
+      unitPrice: number;
+      total: number;
+    }>;
+    subtotal?: number;
+    taxAmount?: number;
+    total: number;
+    receiptDate?: string;
+    receiptNumber?: string;
+    receiptImageUrl?: string;
+  }
+
+  const handleScanComplete = (result: ScanResult) => {
     setReceiptScanned(true);
     // Auto-fill vendor
-    if (result.vendor?.name) {
+    if (result.vendor.name) {
       setCompletionVendorSearch(result.vendor.name);
       if (result.vendor.matchedVendorId) {
         setCompletionVendorId(result.vendor.matchedVendorId);
       }
     }
     // Auto-fill line items
-    if (result.lineItems?.length > 0) {
+    if (result.lineItems.length > 0) {
       const defaultGLId = glAccounts.length > 0 ? glAccounts[0].id : '';
-      const items = result.lineItems.map((item: any, i: number) => ({
+      const items = result.lineItems.map((item, i: number) => ({
         id: `scan-${Date.now()}-${i}`,
         itemDescription: item.description,
-        quantity: item.quantity || 1,
+        quantity: item.quantity,
         unitOfMeasure: 'EA',
-        unitPrice: item.unitPrice || item.total || 0,
+        unitPrice: item.unitPrice,
         glAccountId: defaultGLId,
         glAccountName: glAccounts.length > 0 ? glAccounts[0].gl_account_name : undefined,
         isTaxable: true,

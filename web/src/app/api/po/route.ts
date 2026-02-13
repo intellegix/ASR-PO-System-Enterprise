@@ -187,21 +187,22 @@ const postHandler = withValidation(
     let subtotal = 0;
 
     // Look up GL accounts by ID so we can store code/number/name on line items
-    const glAccountIds = [...new Set(lineItems.map((item: { glAccountId: string }) => item.glAccountId))];
-    const glAccounts = await prisma.gl_account_mappings.findMany({
-      where: { id: { in: glAccountIds } },
-      select: { id: true, gl_code_short: true, gl_account_number: true, gl_account_name: true },
-    });
-    const glAccountMap = new Map(glAccounts.map(gl => [gl.id, gl]));
-
-    const processedLineItems = lineItems.map((item: {
+    interface LineItemInput {
       itemDescription: string;
       quantity: number;
       unitOfMeasure: string;
       unitPrice: number;
       glAccountId: string;
       isTaxable?: boolean;
-    }, index: number) => {
+    }
+    const glAccountIds = [...new Set(lineItems.map((item: LineItemInput) => item.glAccountId))];
+    const glAccounts = await prisma.gl_account_mappings.findMany({
+      where: { id: { in: glAccountIds } },
+      select: { id: true, gl_code_short: true, gl_account_number: true, gl_account_name: true },
+    });
+    const glAccountMap = new Map(glAccounts.map(gl => [gl.id, gl]));
+
+    const processedLineItems = lineItems.map((item: LineItemInput, index: number) => {
       const lineSubtotal = item.quantity * item.unitPrice;
       subtotal += lineSubtotal;
       const glAccount = glAccountMap.get(item.glAccountId);
@@ -216,13 +217,26 @@ const postHandler = withValidation(
         gl_account_number: glAccount?.gl_account_number || null,
         gl_account_name: glAccount?.gl_account_name || null,
         is_taxable: item.isTaxable ?? true,
-        status: 'Pending' as any,
+        status: 'Pending',
       };
     });
 
+    interface ProcessedLineItem {
+      is_taxable: boolean;
+      line_subtotal: number;
+      line_number: number;
+      item_description: string;
+      quantity: number;
+      unit_of_measure: string;
+      unit_price: number;
+      gl_account_code: string | null;
+      gl_account_number: string | null;
+      gl_account_name: string | null;
+      status: string;
+    }
     const taxableAmount = processedLineItems
-      .filter((item: { is_taxable: boolean }) => item.is_taxable)
-      .reduce((sum: number, item: { line_subtotal: number }) => sum + item.line_subtotal, 0);
+      .filter((item: ProcessedLineItem) => item.is_taxable)
+      .reduce((sum: number, item: ProcessedLineItem) => sum + item.line_subtotal, 0);
     const taxAmount = taxableAmount * TAX_RATE;
     const totalAmount = subtotal + taxAmount;
 
@@ -240,7 +254,7 @@ const postHandler = withValidation(
         work_order_id: workOrder.id,
         vendor_id: vendorId,
         cost_center_code: `${division.cost_center_prefix}${String(workOrderSequence).padStart(4, '0')}${String(purchaseSequence).padStart(2, '0')}`,
-        status: status as any,
+        status: status,
         required_by_date: requiredByDate ? new Date(requiredByDate) : null,
         terms_code: termsCode || vendor.payment_terms_default || 'Net30',
         tax_rate: TAX_RATE,
@@ -251,7 +265,7 @@ const postHandler = withValidation(
         notes_internal: notesInternal || null,
         notes_vendor: notesVendor || null,
         po_line_items: {
-          create: processedLineItems,
+          create: processedLineItems as import('@prisma/client').Prisma.po_line_itemsCreateWithoutPo_headersInput[],
         },
       },
       include: {
@@ -271,7 +285,7 @@ const postHandler = withValidation(
         action: 'Created',
         actor_user_id: session.user.id,
         status_before: null,
-        status_after: status as any,
+        status_after: status,
         notes: `PO ${poNumber} created`,
       },
     });

@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
 import { Prisma } from '@prisma/client';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 
@@ -128,7 +128,7 @@ const generateBudgetActualReport = async (
   projectFilter?: string
 ): Promise<BudgetSummaryData> => {
   // Get projects based on filters
-  const projectWhereClause: any = {
+  const projectWhereClause: Record<string, unknown> = {
     OR: [
       { status: 'Active' },
       { status: 'Completed' },
@@ -446,7 +446,7 @@ const generateBudgetActualReport = async (
 
       return acc;
     }, new Map())
-  ).map(([_, data]) => data);
+  ).map(([_key, data]) => data);
 
   // Add budget allocated data and calculate utilization
   budgetTrends.forEach(trend => {
@@ -568,7 +568,7 @@ const getHandler = async (request: NextRequest): Promise<NextResponse> => {
     }
 
     // Check permissions
-    if (!hasPermission(user.role as any, 'report:view')) {
+    if (!hasPermission(user.role as UserRole, 'report:view')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 

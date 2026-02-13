@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
@@ -89,9 +89,9 @@ export default function GLAnalysisPage() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
-  const userRole = user?.role || 'OPERATIONS_MANAGER';
+  const _userRole = user?.role || 'OPERATIONS_MANAGER';
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -117,12 +117,14 @@ export default function GLAnalysisPage() {
       const totalSpend = totalCOGS + totalOpEx + totalOther + totalCC;
 
       // Build categories from accountAnalysis grouped by GL category
-      const categoryMap = new Map<string, { amount: number; accounts: any[] }>();
-      (result.accountAnalysis || []).forEach((acct: any) => {
-        const cat = acct.glAccount?.category ?? 'Other';
+      const categoryMap = new Map<string, { amount: number; accounts: Record<string, unknown>[] }>();
+      (result.accountAnalysis || []).forEach((acct: Record<string, unknown>) => {
+        const glAccount = acct.glAccount as Record<string, unknown> | undefined;
+        const metrics = acct.metrics as Record<string, unknown> | undefined;
+        const cat = (glAccount?.category ?? 'Other') as string;
         if (!categoryMap.has(cat)) categoryMap.set(cat, { amount: 0, accounts: [] });
         const entry = categoryMap.get(cat)!;
-        entry.amount += acct.metrics?.totalAmount ?? 0;
+        entry.amount += (metrics?.totalAmount ?? 0) as number;
         entry.accounts.push(acct);
       });
 
@@ -132,26 +134,37 @@ export default function GLAnalysisPage() {
         percentage: totalSpend > 0 ? (data.amount / totalSpend) * 100 : 0,
         accountCount: data.accounts.length,
         topAccounts: data.accounts
-          .sort((a: any, b: any) => (b.metrics?.totalAmount ?? 0) - (a.metrics?.totalAmount ?? 0))
+          .sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+            const aMetrics = a.metrics as Record<string, unknown> | undefined;
+            const bMetrics = b.metrics as Record<string, unknown> | undefined;
+            return ((bMetrics?.totalAmount ?? 0) as number) - ((aMetrics?.totalAmount ?? 0) as number);
+          })
           .slice(0, 3)
-          .map((a: any) => ({
-            accountNumber: a.glAccount?.number ?? '',
-            accountName: a.glAccount?.name ?? '',
-            amount: a.metrics?.totalAmount ?? 0,
-          })),
+          .map((a: Record<string, unknown>) => {
+            const glAccount = a.glAccount as Record<string, unknown> | undefined;
+            const metrics = a.metrics as Record<string, unknown> | undefined;
+            return {
+              accountNumber: (glAccount?.number ?? '') as string,
+              accountName: (glAccount?.name ?? '') as string,
+              amount: (metrics?.totalAmount ?? 0) as number,
+            };
+          }),
       })).sort((a, b) => b.amount - a.amount);
 
       // Build division breakdown from accountAnalysis
-      const divMap = new Map<string, { divisionName: string; totalSpend: number; cogs: number; opex: number; accounts: any[] }>();
-      (result.accountAnalysis || []).forEach((acct: any) => {
-        (acct.divisionBreakdown || []).forEach((div: any) => {
-          const name = div.divisionName ?? 'Unknown';
+      const divMap = new Map<string, { divisionName: string; totalSpend: number; cogs: number; opex: number; accounts: Array<Record<string, unknown> & { divAmount: number }> }>();
+      (result.accountAnalysis || []).forEach((acct: Record<string, unknown>) => {
+        const divisionBreakdownArray = acct.divisionBreakdown as Record<string, unknown>[] | undefined;
+        const glAccount = acct.glAccount as Record<string, unknown> | undefined;
+        (divisionBreakdownArray || []).forEach((div: Record<string, unknown>) => {
+          const name = (div.divisionName ?? 'Unknown') as string;
+          const totalAmount = (div.totalAmount ?? 0) as number;
           if (!divMap.has(name)) divMap.set(name, { divisionName: name, totalSpend: 0, cogs: 0, opex: 0, accounts: [] });
           const entry = divMap.get(name)!;
-          entry.totalSpend += div.totalAmount ?? 0;
-          if (acct.glAccount?.category === 'COGS') entry.cogs += div.totalAmount ?? 0;
-          if (acct.glAccount?.category === 'OpEx') entry.opex += div.totalAmount ?? 0;
-          entry.accounts.push({ ...acct, divAmount: div.totalAmount ?? 0 });
+          entry.totalSpend += totalAmount;
+          if (glAccount?.category === 'COGS') entry.cogs += totalAmount;
+          if (glAccount?.category === 'OpEx') entry.opex += totalAmount;
+          entry.accounts.push({ ...acct, divAmount: totalAmount });
         });
       });
 
@@ -161,21 +174,30 @@ export default function GLAnalysisPage() {
         cogsAmount: d.cogs,
         opexAmount: d.opex,
         topGLAccounts: d.accounts
-          .sort((a: any, b: any) => (b.divAmount ?? 0) - (a.divAmount ?? 0))
+          .sort((a, b) => ((b.divAmount ?? 0) as number) - ((a.divAmount ?? 0) as number))
           .slice(0, 3)
-          .map((a: any) => ({
-            accountNumber: a.glAccount?.number ?? '',
-            accountName: a.glAccount?.name ?? '',
-            amount: a.divAmount ?? 0,
-          })),
+          .map((a) => {
+            const glAccount = a.glAccount as Record<string, unknown> | undefined;
+            return {
+              accountNumber: (glAccount?.number ?? '') as string,
+              accountName: (glAccount?.name ?? '') as string,
+              amount: (a.divAmount ?? 0) as number,
+            };
+          }),
       })).sort((a, b) => b.totalSpend - a.totalSpend);
 
       // Compute taxable from account analysis
       const taxableAmount = (result.accountAnalysis || []).reduce(
-        (sum: number, a: any) => sum + (a.metrics?.taxableAmount ?? 0), 0
+        (sum: number, a: Record<string, unknown>) => {
+          const metrics = a.metrics as Record<string, unknown> | undefined;
+          return sum + ((metrics?.taxableAmount ?? 0) as number);
+        }, 0
       );
       const nonTaxableAmount = (result.accountAnalysis || []).reduce(
-        (sum: number, a: any) => sum + (a.metrics?.nonTaxableAmount ?? 0), 0
+        (sum: number, a: Record<string, unknown>) => {
+          const metrics = a.metrics as Record<string, unknown> | undefined;
+          return sum + ((metrics?.nonTaxableAmount ?? 0) as number);
+        }, 0
       );
 
       const normalized: GLSummaryData = {
@@ -185,12 +207,17 @@ export default function GLAnalysisPage() {
         taxableAmount,
         nonTaxableAmount,
         categories,
-        monthlyTrends: (result.categoryTrends || []).map((t: any) => ({
-          month: t.month ?? '',
-          cogs: t.cogs ?? 0,
-          opex: t.opex ?? 0,
-          total: (t.cogs ?? 0) + (t.opex ?? 0) + (t.other ?? 0),
-        })),
+        monthlyTrends: (result.categoryTrends || []).map((t: Record<string, unknown>) => {
+          const cogs = (t.cogs ?? 0) as number;
+          const opex = (t.opex ?? 0) as number;
+          const other = (t.other ?? 0) as number;
+          return {
+            month: (t.month ?? '') as string,
+            cogs: cogs,
+            opex: opex,
+            total: cogs + opex + other,
+          };
+        }),
         divisionBreakdown,
         riskFactors: [],
       };
@@ -203,7 +230,7 @@ export default function GLAnalysisPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   const exportToPDF = async () => {
     try {
@@ -257,14 +284,14 @@ export default function GLAnalysisPage() {
 
   useEffect(() => {
     fetchData();
-  }, [filters]);
+  }, [fetchData]);
 
   useEffect(() => {
     if (autoRefresh) {
       const interval = setInterval(fetchData, 5 * 60 * 1000); // 5 minutes
       return () => clearInterval(interval);
     }
-  }, [autoRefresh, filters]);
+  }, [autoRefresh, fetchData]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {

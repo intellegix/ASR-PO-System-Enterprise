@@ -62,8 +62,9 @@ Key middleware in `src/lib/validation/middleware.ts`:
 
 ### RBAC (`src/lib/auth/permissions.ts`)
 
-Four roles with granular permissions:
-- **DIRECTOR_OF_SYSTEMS_INTEGRATIONS** / **MAJORITY_OWNER** — full access
+Five roles with granular permissions:
+- **DIRECTOR_OF_SYSTEMS_INTEGRATIONS** — full admin access
+- **MAJORITY_OWNER** — full admin access (same permissions as DIRECTOR_OF_SYSTEMS_INTEGRATIONS)
 - **DIVISION_LEADER** — create POs for any division, approve/edit only own division
 - **OPERATIONS_MANAGER** — create/edit own division only, cannot approve
 - **ACCOUNTING** — read-only + export
@@ -84,18 +85,48 @@ Approval thresholds: OM limit $2,500, owner co-approval required above $25,000.
 
 ### Database (`web/prisma/schema.prisma`)
 
-Core models: `users`, `divisions`, `po_headers`, `po_line_items`, `po_approvals`, `vendors`, `work_orders`, `projects`, `clients`, `gl_account_mappings`, `vendor_invoices`, `customer_invoices`
+Core models: `users`, `divisions`, `po_headers`, `po_line_items`, `po_approvals`, `vendors`, `work_orders`, `projects`, `clients`, `properties`, `gl_account_mappings`, `vendor_invoices`, `customer_invoices`
 
 PO status flow: `Draft → Submitted → Approved → Issued → Received → Invoiced → Paid` (can be `Rejected` or `Cancelled` at various stages)
 
 All PO actions are logged to `po_approvals` for audit trail.
+
+### Properties & Client Flow
+
+Clients own properties, properties belong to projects. The PO creation flow includes optional client/property selection.
+
+**API endpoints**:
+- `GET/POST /api/properties` — list (with `?clientId=` filter) or create properties
+- `GET /api/properties/[id]` — single property with related projects
+- `GET /api/clients/[id]` — client detail with properties and counts
+
+**Pages**:
+- `/clients` — searchable client list (desktop table + mobile cards)
+- `/clients/[id]` — client detail with property grid + "Add Property" form
+- `/clients/[id]/properties/[propId]` — property detail with projects table
+
+### Receipt OCR
+
+PO completion supports receipt scanning via Claude Vision API.
+
+- **Component**: `src/components/po/ReceiptScanner.tsx` — file upload with camera capture
+- **API**: `POST /api/po/[id]/scan-receipt` — uploads image to Vercel Blob, calls Claude Vision (`claude-sonnet-4-5-20250929`), returns extracted vendor + line items
+- **Integration**: Auto-fills vendor search and line items on PO completion form
+- **Env vars**: Requires `ANTHROPIC_API_KEY` and `BLOB_READ_WRITE_TOKEN` in Vercel
+
+### Certified Payroll Sync (Raken/Clark Reps)
+
+- `POST /api/raken/sync` — syncs projects from Raken API, filters to current-year (`CY##`) projects only
+- `GET /api/sync/clark-reps` — returns DB-backed Clark Rep assignments (not hardcoded)
+- `POST /api/sync/projects` — syncs project data with division/Clark Rep assignments
+- Clark Rep lookup: `src/lib/raken/clark-reps.ts` — database-backed via `project_clark_reps` table
 
 ### Two-Phase PO Creation Workflow
 
 PO creation is split into two phases to match the real-world workflow (generating PO numbers on the phone):
 
 **Phase 1 — Quick PO Generation** (`/po/create` → `POST /api/po/quick`):
-- 3 steps: Pick Division → Pick Project → Pick/Create Work Order
+- 5 steps: Pick Division → Pick Client (optional) → Pick Property (optional) → Pick Project → Pick/Create Work Order
 - Creates a Draft PO with `vendor_id: null`, `total_amount: 0`
 - Returns PO number immediately (new format: `01CP0012-1`, no vendor suffix)
 - PO number format: `{leaderId}{divisionCode}{woNum}-{purchaseSequence}`
@@ -108,8 +139,8 @@ PO creation is split into two phases to match the real-world workflow (generatin
 
 **Key files**:
 - `src/app/api/po/quick/route.ts` — Quick PO endpoint (Phase 1)
-- `src/app/po/create/page.tsx` — 3-step Quick PO UI
-- `src/components/po/DivisionPicker.tsx`, `ProjectPicker.tsx`, `WorkOrderPicker.tsx`, `POGeneratedConfirmation.tsx`
+- `src/app/po/create/page.tsx` — 5-step Quick PO UI (Division → Client → Property → Project → Work Order)
+- `src/components/po/DivisionPicker.tsx`, `ClientPicker.tsx`, `PropertyPicker.tsx`, `ProjectPicker.tsx`, `WorkOrderPicker.tsx`, `POGeneratedConfirmation.tsx`
 - `src/app/po/view/page.tsx` — Phase 2 completion form (when `vendor_id` is null)
 - `src/lib/po-number.ts` — v2 format (no vendor suffix), backward-compatible parser for v1 format
 
@@ -119,14 +150,14 @@ Runs on push to `master` and PRs against `master`. Node 20 (pinned via `.nvmrc`)
 
 | Step | Command | Blocking? |
 |------|---------|-----------|
-| Type check | `tsc --noEmit` | No (`continue-on-error`) — ~136 pre-existing TS errors |
-| Lint | `eslint` | No (`continue-on-error`) — pre-existing lint errors |
-| Test | `jest --coverage --passWithNoTests` | No (`continue-on-error`) — 4 failures in `po-number.test.ts` |
-| Build | `prisma generate && next build` | **Yes — hard gate** |
+| Type check | `tsc --noEmit` | **Yes** — 0 TS errors |
+| Lint | `eslint` | **Yes** — 0 lint errors |
+| Test | `jest --passWithNoTests` | **Yes** — all tests passing |
+| Build | `prisma generate && next build` | **Yes** |
+
+All 4 CI steps are hard gates — any failure blocks the pipeline.
 
 **CI env vars**: The build step requires `DATABASE_URL` (valid postgres URL) and `NEXTAUTH_SECRET` (32+ chars, hex-style — the validator rejects strings containing "secret", "password", "test", etc.). Both are set as job-level `env:` with dummy values.
-
-**Making steps blocking**: Remove the `continue-on-error: true` line for each step as its pre-existing errors are cleaned up.
 
 ## Deployment
 

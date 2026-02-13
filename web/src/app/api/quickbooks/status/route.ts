@@ -12,7 +12,7 @@ import prisma from '@/lib/db';
 export const dynamic = 'force-dynamic';
 
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Verify user authentication
     const session = await getServerSession(authOptions);
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Configuration status
-    let configStatus = {
+    const configStatus = {
       isValid: false,
       environment: QB_CONFIG.environment,
       hasClientId: !!process.env.QB_CLIENT_ID,
@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
     try {
       validateQBConfig();
       configStatus.isValid = true;
-    } catch (error: any) {
-      configStatus.errors.push(error.message);
+    } catch (error: unknown) {
+      configStatus.errors.push(error instanceof Error ? error.message : 'Unknown error');
     }
 
     // Token status

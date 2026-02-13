@@ -78,7 +78,7 @@ export default function ReceiptScanner({ poId, onScanComplete }: ReceiptScannerP
         const errData = await res.json();
         setError(errData.error || 'Failed to scan receipt');
       }
-    } catch {
+    } catch (_error: unknown) {
       setError('Network error. Please try again.');
     } finally {
       setScanning(false);
@@ -133,6 +133,7 @@ export default function ReceiptScanner({ poId, onScanComplete }: ReceiptScannerP
         <div className="space-y-3">
           {/* Preview */}
           <div className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={preview}
               alt="Receipt preview"

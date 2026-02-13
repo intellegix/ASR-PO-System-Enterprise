@@ -4,7 +4,7 @@
  */
 
 import QuickBooks from 'quickbooks';
-import { createOAuthClient, getQBApiBaseUrl, QBApiResponse, QB_RATE_LIMITS } from './config';
+import { QB_RATE_LIMITS } from './config';
 import prisma from '@/lib/db';
 
 // PO data interface for sync operations
@@ -59,7 +59,7 @@ interface SyncResult {
   success: boolean;
   qb_bill_id?: string;
   error?: string;
-  details?: any;
+  details?: unknown;
 }
 
 /**
@@ -104,8 +104,8 @@ async function getQBClient(): Promise<QuickBooks | null> {
 async function ensureQBVendor(qb: QuickBooks, vendorData: POSyncData['vendor']): Promise<string | null> {
   return new Promise((resolve) => {
     // First, try to find existing vendor
-    qb.findVendors([{ field: 'Name', value: vendorData.vendor_name, operator: '=' }], async (err, vendors) => {
-      if (!err && vendors && vendors.length > 0) {
+    qb.findVendors([{ field: 'Name', value: vendorData.vendor_name, operator: '=' }], (_err: unknown, vendors?: Array<{ Id?: string }>) => {
+      if (!_err && vendors && vendors.length > 0) {
         console.log(`Found existing QB vendor: ${vendors[0].Id}`);
         resolve(vendors[0].Id!);
         return;
@@ -118,7 +118,7 @@ async function ensureQBVendor(qb: QuickBooks, vendorData: POSyncData['vendor']):
         Active: true,
       };
 
-      qb.createVendor(newVendor, (createErr, vendor) => {
+      qb.createVendor(newVendor, (createErr: unknown, vendor?: { Id?: string }) => {
         if (createErr) {
           console.error('Failed to create QB vendor:', createErr);
           resolve(null);

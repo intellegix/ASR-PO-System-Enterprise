@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
 import { Prisma } from '@prisma/client';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 
@@ -117,7 +117,7 @@ const generateVendorAnalysisReport = async (
   vendorIdFilter?: string
 ): Promise<VendorSummaryData> => {
   // Build WHERE clause for POs
-  const whereClause: any = {
+  const whereClause: Record<string, unknown> = {
     deleted_at: null,
     created_at: {
       gte: startDate,
@@ -134,7 +134,7 @@ const generateVendorAnalysisReport = async (
   }
 
   // Get all vendors based on filter
-  const vendorTypeWhere: any = { is_active: true };
+  const vendorTypeWhere: Record<string, unknown> = { is_active: true };
   if (vendorTypeFilter) {
     vendorTypeWhere.vendor_type = vendorTypeFilter;
   }
@@ -191,7 +191,7 @@ const generateVendorAnalysisReport = async (
 
   // Process each vendor
   const vendorAnalysisRaw = await Promise.all(
-    vendors.map(async (vendor, index) => {
+    vendors.map(async (vendor, _index) => {
       // Get POs for this vendor
       const vendorPOs = pos.filter(po => po.vendor_id === vendor.id);
       const totalSpend = vendorPOs.reduce((sum, po) => sum + (po.total_amount?.toNumber() || 0), 0);
@@ -240,7 +240,7 @@ const generateVendorAnalysisReport = async (
 
       // Payment terms analysis
       const paymentTermsUsed = new Map<string, number>();
-      vendorPOs.forEach(po => {
+      vendorPOs.forEach(_po => {
         const terms = vendor.payment_terms_default || 'Net30';
         paymentTermsUsed.set(terms, (paymentTermsUsed.get(terms) || 0) + 1);
       });
@@ -443,7 +443,7 @@ const generateVendorAnalysisReport = async (
     totalSpend: data.totalSpend,
     averageSpend: data.totalSpend / data.vendors.length,
     performanceScore: Math.round(
-      data.vendors.reduce((sum: number, v: any) => sum + v.performance.qualityScore, 0) / data.vendors.length
+      data.vendors.reduce((sum: number, v: { performance: { qualityScore: number } }) => sum + v.performance.qualityScore, 0) / data.vendors.length
     ),
   }));
 
@@ -533,7 +533,7 @@ const getHandler = async (request: NextRequest) => {
     }
 
     // Check permissions
-    if (!hasPermission(user.role as any, 'report:view')) {
+    if (!hasPermission(user.role as UserRole, 'report:view')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 

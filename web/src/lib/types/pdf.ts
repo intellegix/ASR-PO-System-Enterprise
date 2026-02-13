@@ -88,10 +88,10 @@ export interface POPrismaResult {
   issued_at?: Date | null;
   terms_code?: string | null;
   cost_center_code?: string | null;
-  subtotal_amount: any; // Prisma Decimal type
-  tax_amount: any; // Prisma Decimal type
-  tax_rate: any; // Prisma Decimal type
-  total_amount: any; // Prisma Decimal type
+  subtotal_amount: unknown; // Prisma Decimal type
+  tax_amount: unknown; // Prisma Decimal type
+  tax_rate: unknown; // Prisma Decimal type
+  total_amount: unknown; // Prisma Decimal type
   notes_vendor?: string | null;
   vendors?: PDFVendor | null;
   projects?: PDFProject | null;
@@ -109,10 +109,10 @@ export interface POPrismaResult {
   po_line_items: Array<{
     line_number: number;
     item_description: string;
-    quantity: any; // Prisma Decimal type
+    quantity: unknown; // Prisma Decimal type
     unit_of_measure: string;
-    unit_price: any; // Prisma Decimal type
-    line_subtotal: any; // Prisma Decimal type
+    unit_price: unknown; // Prisma Decimal type
+    line_subtotal: unknown; // Prisma Decimal type
     is_taxable: boolean;
   }>;
 }
@@ -121,11 +121,11 @@ export interface POPrismaResult {
  * Transforms Prisma result to PDF-ready format
  * Handles user name computation and decimal conversion
  */
-export function transformPOForPDF(po: any): POPDFData {
+export function transformPOForPDF(po: Record<string, unknown>): POPDFData {
   // Helper to convert Prisma Decimal to number
-  const toNumber = (decimal: any): number => {
+  const toNumber = (decimal: unknown): number => {
     if (decimal === null || decimal === undefined) return 0;
-    return typeof decimal === 'number' ? decimal : parseFloat(decimal.toString());
+    return typeof decimal === 'number' ? decimal : parseFloat(String(decimal));
   };
 
   // Helper to format user name
@@ -135,38 +135,38 @@ export function transformPOForPDF(po: any): POPDFData {
   };
 
   return {
-    po_number: po.po_number,
-    status: po.status || 'Draft',
-    created_at: po.created_at ? po.created_at.toISOString() : new Date().toISOString(),
-    required_by_date: po.required_by_date?.toISOString() || null,
-    approved_at: po.approved_at?.toISOString() || null,
-    issued_at: po.issued_at?.toISOString() || null,
-    terms_code: po.terms_code || null,
-    cost_center_code: po.cost_center_code || null,
+    po_number: po.po_number as string,
+    status: (po.status as string | null) || 'Draft',
+    created_at: po.created_at ? (po.created_at as Date).toISOString() : new Date().toISOString(),
+    required_by_date: (po.required_by_date as Date | undefined)?.toISOString() || null,
+    approved_at: (po.approved_at as Date | undefined)?.toISOString() || null,
+    issued_at: (po.issued_at as Date | undefined)?.toISOString() || null,
+    terms_code: (po.terms_code as string | null) || null,
+    cost_center_code: (po.cost_center_code as string | null) || null,
     subtotal_amount: toNumber(po.subtotal_amount),
     tax_amount: toNumber(po.tax_amount),
     tax_rate: toNumber(po.tax_rate),
     total_amount: toNumber(po.total_amount),
-    notes_vendor: po.notes_vendor || null,
-    vendors: po.vendors || null,
-    projects: po.projects || null,
-    divisions: po.divisions || null,
-    work_orders: po.work_orders || null,
+    notes_vendor: (po.notes_vendor as string | null) || null,
+    vendors: (po.vendors as PDFVendor | null) || null,
+    projects: (po.projects as PDFProject | null) || null,
+    divisions: (po.divisions as PDFDivision | null) || null,
+    work_orders: (po.work_orders as PDFWorkOrder | null) || null,
     users_po_headers_requested_by_user_idTousers: po.users_po_headers_requested_by_user_idTousers ? {
-      name: formatUserName(po.users_po_headers_requested_by_user_idTousers),
-      email: po.users_po_headers_requested_by_user_idTousers.email,
+      name: formatUserName(po.users_po_headers_requested_by_user_idTousers as { first_name: string; last_name: string }),
+      email: (po.users_po_headers_requested_by_user_idTousers as { email: string }).email,
     } : null,
     users_po_headers_approved_by_user_idTousers: po.users_po_headers_approved_by_user_idTousers ? {
-      name: formatUserName(po.users_po_headers_approved_by_user_idTousers),
+      name: formatUserName(po.users_po_headers_approved_by_user_idTousers as { first_name: string; last_name: string }),
     } : null,
-    po_line_items: (po.po_line_items || []).map((item: any) => ({
-      line_number: item.line_number,
-      item_description: item.item_description,
+    po_line_items: ((po.po_line_items as Array<Record<string, unknown>>) || []).map((item) => ({
+      line_number: item.line_number as number,
+      item_description: item.item_description as string,
       quantity: toNumber(item.quantity),
-      unit_of_measure: item.unit_of_measure,
+      unit_of_measure: item.unit_of_measure as string,
       unit_price: toNumber(item.unit_price),
       line_subtotal: toNumber(item.line_subtotal),
-      is_taxable: item.is_taxable,
+      is_taxable: item.is_taxable as boolean,
     })),
   };
 }

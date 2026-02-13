@@ -166,7 +166,7 @@ export default function CreateCustomerInvoicePage() {
                     required
                   >
                     <option value="">Select project...</option>
-                    {(Array.isArray(projects) ? projects : []).map((p: any) => (
+                    {(Array.isArray(projects) ? projects : []).map((p: { id: string; project_code: string; project_name: string }) => (
                       <option key={p.id} value={p.id}>{p.project_code} - {p.project_name}</option>
                     ))}
                   </select>
@@ -179,7 +179,7 @@ export default function CreateCustomerInvoicePage() {
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Select division...</option>
-                    {(Array.isArray(divisions) ? divisions : []).map((d: any) => (
+                    {(Array.isArray(divisions) ? divisions : []).map((d: { id: string; division_name: string }) => (
                       <option key={d.id} value={d.id}>{d.division_name}</option>
                     ))}
                   </select>
@@ -194,7 +194,14 @@ export default function CreateCustomerInvoicePage() {
                     const clientId = e.target.value;
                     setForm(prev => ({ ...prev, clientId }));
                     if (clientId) {
-                      const client = (Array.isArray(clientsList) ? clientsList : []).find((c: any) => c.id === clientId);
+                      interface ClientData {
+                        id: string;
+                        client_name: string;
+                        contact_email?: string | null;
+                        address?: string | null;
+                        category?: string | null;
+                      }
+                      const client = (Array.isArray(clientsList) ? clientsList : []).find((c: ClientData) => c.id === clientId);
                       if (client) {
                         setForm(prev => ({
                           ...prev,
@@ -209,7 +216,7 @@ export default function CreateCustomerInvoicePage() {
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Select client (optional)...</option>
-                  {(Array.isArray(clientsList) ? clientsList : []).map((c: any) => (
+                  {(Array.isArray(clientsList) ? clientsList : []).map((c: { id: string; client_name: string; category?: string | null }) => (
                     <option key={c.id} value={c.id}>{c.client_name} {c.category ? `(${c.category})` : ''}</option>
                   ))}
                 </select>
@@ -418,7 +425,7 @@ export default function CreateCustomerInvoicePage() {
             <button
               type="button"
               disabled={isSubmitting}
-              onClick={(e) => handleSubmit(e as any, 'Sent')}
+              onClick={(e) => handleSubmit(e as React.FormEvent, 'Sent')}
               className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
             >
               {isSubmitting ? 'Saving...' : 'Save & Mark as Sent'}

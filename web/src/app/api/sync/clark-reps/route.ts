@@ -123,7 +123,7 @@ const postHandler = async (request: NextRequest): Promise<NextResponse> => {
       errorCount: result.errors.length,
     });
 
-    log.info('Clark Reps sync: Complete', result);
+    log.info('Clark Reps sync: Complete', result as unknown as Record<string, unknown>);
 
     return NextResponse.json(result);
   } catch (error) {

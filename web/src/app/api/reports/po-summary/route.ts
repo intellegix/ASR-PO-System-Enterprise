@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 
@@ -45,7 +45,7 @@ const generatePOSummaryReport = async (
   divisionFilter?: string
 ) => {
   // Base WHERE clause
-  const whereClause: any = {
+  const whereClause: Record<string, unknown> = {
     deleted_at: null,
     created_at: {
       gte: startDate,
@@ -265,7 +265,7 @@ const getHandler = async (request: NextRequest): Promise<NextResponse> => {
     }
 
     // Check permissions
-    if (!hasPermission(user.role as any, 'report:view')) {
+    if (!hasPermission(user.role as UserRole, 'report:view')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 

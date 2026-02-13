@@ -2,20 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
-import { cachedDashboardData, CachedCrossDivisionKPIs } from '@/lib/cache/dashboard-cache';
+import { cachedDashboardData } from '@/lib/cache/dashboard-cache';
 
 // Force dynamic rendering for API route
 export const dynamic = 'force-dynamic';
 
 // Cross-division dashboard for MAJORITY_OWNER and ACCOUNTING
-const getCrossDivisionKPIs = async (userRole: string) => {
+const getCrossDivisionKPIs = async (_userRole: string) => {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfYear = new Date(now.getFullYear(), 0, 1);
-  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
   // Get all active divisions
   const divisions = await prisma.divisions.findMany({
@@ -244,7 +243,7 @@ const getBudgetAnalysis = async () => {
 };
 
 // GET handler for cross-division dashboard
-const getHandler = async (request: NextRequest) => {
+const getHandler = async (_request: NextRequest) => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -267,7 +266,7 @@ const getHandler = async (request: NextRequest) => {
     }
 
     // Check if user has permission to view reports
-    if (!hasPermission(user.role as any, 'report:view')) {
+    if (!hasPermission(user.role as UserRole, 'report:view')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 

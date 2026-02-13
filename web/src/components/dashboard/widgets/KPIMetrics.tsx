@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 
@@ -67,7 +67,7 @@ const AlertIcon = ({ className = "w-4 h-4" }: IconProps) => (
 );
 
 export default function KPIMetrics({ divisionId, timeframe = 'current_month', className = '' }: KPIMetricsProps) {
-  const [refreshInterval, setRefreshInterval] = useState<number | false>(5 * 60 * 1000); // 5 minutes
+  const [refreshInterval, _setRefreshInterval] = useState<number | false>(5 * 60 * 1000); // 5 minutes
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['kpis', divisionId, timeframe],

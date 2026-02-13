@@ -112,8 +112,8 @@ const postHandler = async (
       return NextResponse.json({ error: 'Receipt analysis failed' }, { status: 502 });
     }
 
-    const claudeResult = await claudeResponse.json();
-    const textContent = claudeResult.content?.find((c: any) => c.type === 'text')?.text;
+    const claudeResult = await claudeResponse.json() as { content?: Array<{ type: string; text?: string }> };
+    const textContent = claudeResult.content?.find((c) => c.type === 'text')?.text;
 
     if (!textContent) {
       return NextResponse.json({ error: 'No response from AI' }, { status: 502 });
@@ -204,7 +204,7 @@ const postHandler = async (
     await prisma.po_headers.update({
       where: { id },
       data: {
-        receipt_ocr_data: ocrData as any,
+        receipt_ocr_data: ocrData as import('@prisma/client/runtime/library').InputJsonValue,
         receipt_image_url: receiptImageUrl,
         receipt_uploaded_at: new Date(),
         updated_at: new Date(),
@@ -243,4 +243,4 @@ const postHandler = async (
   }
 };
 
-export const POST = withRateLimit(10, 60 * 1000)(postHandler);
+export const POST = withRateLimit(10, 60 * 1000)(postHandler as (request: NextRequest, context?: { params: Promise<{ id: string }> }) => Promise<NextResponse>);

@@ -17,7 +17,7 @@ interface DatabaseOptimization {
     expectedImprovement: string;
   }>;
   connectionPooling: {
-    current: any;
+    current: unknown;
     recommendations: string[];
   };
 }
@@ -224,7 +224,7 @@ export class DatabaseOptimizer {
    * Analyze connection pooling configuration
    */
   private static async analyzeConnectionPooling(): Promise<{
-    current: any;
+    current: unknown;
     recommendations: string[];
   }> {
     // Get current Prisma connection info
@@ -409,22 +409,22 @@ export class DatabaseOptimizer {
 # Database Performance Report
 
 ## Table Statistics
-${Array.isArray(tableStats) ? tableStats.map((row: any) =>
+${Array.isArray(tableStats) ? (tableStats as Array<Record<string, unknown>>).map((row) =>
   `- **${row.tablename}**: ${row.live_tuples} live tuples, ${row.dead_tuples} dead tuples`
 ).join('\n') : 'No table statistics available'}
 
 ## Most Used Indexes
-${Array.isArray(indexStats) ? indexStats.map((row: any) =>
+${Array.isArray(indexStats) ? (indexStats as Array<Record<string, unknown>>).map((row) =>
   `- **${row.indexname}**: ${row.idx_scan} scans, ${row.idx_tup_read} tuples read`
 ).join('\n') : 'No index statistics available'}
 
 ## Slowest Queries
-${Array.isArray(slowQueries) ? slowQueries.map((row: any, i: number) =>
-  `${i + 1}. **Mean Time**: ${Math.round(row.mean_time)}ms, **Calls**: ${row.calls}`
+${Array.isArray(slowQueries) ? (slowQueries as Array<Record<string, unknown>>).map((row, i: number) =>
+  `${i + 1}. **Mean Time**: ${Math.round(row.mean_time as number)}ms, **Calls**: ${row.calls}`
 ).join('\n') : 'No slow query data available'}
 
 ## Connection Status
-${Array.isArray(connections) ? connections.map((row: any) =>
+${Array.isArray(connections) ? (connections as Array<Record<string, unknown>>).map((row) =>
   `- **${row.state}**: ${row.count} connections`
 ).join('\n') : 'No connection data available'}
 

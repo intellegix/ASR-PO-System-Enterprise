@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 import prisma from '@/lib/db';
@@ -28,7 +28,7 @@ const getHandler = async (request: NextRequest) => {
     }
 
     // Check permissions - projects are reference data needed for PO creation
-    if (!hasPermission(user.role as any, 'po:create')) {
+    if (!hasPermission(user.role as UserRole, 'po:create')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -94,7 +94,7 @@ const postHandler = async (request: NextRequest) => {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (!hasPermission(user.role as any, 'po:create')) {
+    if (!hasPermission(user.role as UserRole, 'po:create')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 

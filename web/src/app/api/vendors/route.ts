@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 import prisma from '@/lib/db';
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 
 // GET handler for vendors
-const getHandler = async (request: NextRequest) => {
+const getHandler = async (_request: NextRequest) => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -28,7 +28,7 @@ const getHandler = async (request: NextRequest) => {
     }
 
     // Check permissions - vendors are reference data needed for PO creation
-    if (!hasPermission(user.role as any, 'po:create')) {
+    if (!hasPermission(user.role as UserRole, 'po:create')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 

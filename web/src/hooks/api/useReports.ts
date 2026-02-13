@@ -8,9 +8,9 @@ import { getAuthHeader, getJWTSession } from '@/lib/jwt-auth';
 export const reportKeys = {
   all: ['reports'] as const,
   dashboard: () => [...reportKeys.all, 'dashboard'] as const,
-  spending: (filters: any) => [...reportKeys.all, 'spending', { filters }] as const,
-  approval: (filters: any) => [...reportKeys.all, 'approval', { filters }] as const,
-  vendor: (filters: any) => [...reportKeys.all, 'vendor', { filters }] as const,
+  spending: (filters: Record<string, unknown>) => [...reportKeys.all, 'spending', { filters }] as const,
+  approval: (filters: Record<string, unknown>) => [...reportKeys.all, 'approval', { filters }] as const,
+  vendor: (filters: Record<string, unknown>) => [...reportKeys.all, 'vendor', { filters }] as const,
 } as const;
 
 export interface DashboardStats {
@@ -151,11 +151,11 @@ export function useSpendingReport(filters?: {
   const hasJWT = !!getJWTSession();
 
   return useQuery({
-    queryKey: reportKeys.spending(filters),
+    queryKey: reportKeys.spending(filters || {}),
     queryFn: async () => {
       const headers = hasJWT ? getAuthHeader() : {};
       const queryParams = filters
-        ? new URLSearchParams(filters as any).toString()
+        ? new URLSearchParams(filters as Record<string, string>).toString()
         : '';
       const url = `/api/reports/spending${queryParams ? `?${queryParams}` : ''}`;
 
@@ -180,11 +180,11 @@ export function useApprovalReport(filters?: {
   const hasJWT = !!getJWTSession();
 
   return useQuery({
-    queryKey: reportKeys.approval(filters),
+    queryKey: reportKeys.approval(filters || {}),
     queryFn: async () => {
       const headers = hasJWT ? getAuthHeader() : {};
       const queryParams = filters
-        ? new URLSearchParams(filters as any).toString()
+        ? new URLSearchParams(filters as Record<string, string>).toString()
         : '';
       const url = `/api/reports/approvals${queryParams ? `?${queryParams}` : ''}`;
 
@@ -209,11 +209,11 @@ export function useVendorReport(filters?: {
   const hasJWT = !!getJWTSession();
 
   return useQuery({
-    queryKey: reportKeys.vendor(filters),
+    queryKey: reportKeys.vendor(filters || {}),
     queryFn: async () => {
       const headers = hasJWT ? getAuthHeader() : {};
       const queryParams = filters
-        ? new URLSearchParams(filters as any).toString()
+        ? new URLSearchParams(filters as Record<string, string>).toString()
         : '';
       const url = `/api/reports/vendors${queryParams ? `?${queryParams}` : ''}`;
 

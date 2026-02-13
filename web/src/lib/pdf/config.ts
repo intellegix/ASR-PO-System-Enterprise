@@ -63,14 +63,14 @@ export interface PDFValidationError {
   field: string;
   message: string;
   severity: 'error' | 'warning';
-  value?: any;
+  value?: unknown;
 }
 
 export interface PDFValidationResult {
   isValid: boolean;
   errors: PDFValidationError[];
   warnings: PDFValidationError[];
-  processedData?: any;
+  processedData?: unknown;
 }
 
 // Environment variable validation
@@ -128,8 +128,8 @@ export interface PDFLogEntry {
   message: string;
   po_id?: string;
   po_number?: string;
-  error?: any;
-  metadata?: Record<string, any>;
+  error?: unknown;
+  metadata?: Record<string, unknown>;
 }
 
 export function logPDFOperation(entry: Omit<PDFLogEntry, 'timestamp'>): void {

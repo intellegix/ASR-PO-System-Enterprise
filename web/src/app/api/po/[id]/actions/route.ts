@@ -260,7 +260,7 @@ const postHandler = async (
     await prisma.po_approvals.create({
       data: {
         po_id: id,
-        action: auditAction as any,
+        action: auditAction as import('@prisma/client').approval_action,
         actor_user_id: session.user.id,
         status_before: currentPO.status,
         status_after: newStatus,
@@ -331,7 +331,7 @@ const postHandler = async (
   }
 };
 
-export const POST = withRateLimit(20, 60 * 1000)(postHandler);
+export const POST = withRateLimit(20, 60 * 1000)(postHandler as (request: NextRequest, context?: { params: Promise<{ id: string }> }) => Promise<NextResponse>);
 
 function getSuccessMessage(action: POAction, poNumber: string): string {
   switch (action) {

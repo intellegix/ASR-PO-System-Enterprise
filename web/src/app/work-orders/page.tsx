@@ -54,7 +54,7 @@ function getStatusLabel(status: string): string {
 }
 
 export default function WorkOrdersPage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);

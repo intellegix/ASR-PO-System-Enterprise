@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
-import { hasPermission } from '@/lib/auth/permissions';
+import { hasPermission, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import prisma from '@/lib/db';
 
@@ -22,7 +22,7 @@ const getHandler = async (request: NextRequest) => {
       where: { id: session.user.id },
       select: { role: true },
     });
-    if (!user || !hasPermission(user.role as any, 'report:view')) {
+    if (!user || !hasPermission(user.role as UserRole, 'report:view')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -31,7 +31,7 @@ const getHandler = async (request: NextRequest) => {
     const endDate = url.searchParams.get('end');
 
     // Default to last 30 days if no date range provided
-    const dateFilter: any = {};
+    const dateFilter: Record<string, unknown> = {};
     if (startDate && endDate) {
       dateFilter.created_at = {
         gte: new Date(startDate),

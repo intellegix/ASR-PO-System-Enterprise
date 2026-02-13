@@ -76,8 +76,8 @@ export class ExportOptimizer {
   static async exportLargeExcelDataset(
     title: string,
     columns: Array<{ header: string; key: string; width?: number }>,
-    data: any[],
-    filename: string
+    data: Array<Record<string, unknown>>,
+    _filename: string
   ): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet(title);
@@ -134,8 +134,8 @@ export class ExportOptimizer {
 
       // Memory management: force garbage collection hint
       if (chunks.length > 10 && chunks.indexOf(chunk) % 10 === 0) {
-        if (global.gc) {
-          global.gc();
+        if ((global as { gc?: () => void }).gc) {
+          (global as { gc: () => void }).gc();
         }
       }
     }
@@ -155,7 +155,7 @@ export class ExportOptimizer {
    */
   static createStreamingCSVExport(
     columns: Array<{ header: string; key: string }>,
-    data: any[],
+    data: Array<Record<string, unknown>>,
     filename: string
   ): { stream: PassThrough; headers: Record<string, string> } {
     const stream = new PassThrough();
@@ -244,7 +244,7 @@ export class ExportOptimizer {
   /**
    * Optimize export based on data characteristics
    */
-  static getOptimalExportStrategy(data: any[], format: 'csv' | 'excel' | 'pdf'): ExportStrategy {
+  static getOptimalExportStrategy(data: Array<Record<string, unknown>>, format: 'csv' | 'excel' | 'pdf'): ExportStrategy {
     const dataSize = data.length;
     const estimatedMemoryMB = dataSize * 0.001;
 
@@ -349,12 +349,12 @@ export const ExportPerformanceUtils = {
    */
   streamingCSVResponse(
     columns: Array<{ header: string; key: string }>,
-    data: any[],
+    data: Array<Record<string, unknown>>,
     filename: string
   ): Response {
     const { stream, headers } = ExportOptimizer.createStreamingCSVExport(columns, data, filename);
 
-    return new Response(stream as any, {
+    return new Response(stream as unknown as BodyInit, {
       headers: headers
     });
   },
@@ -365,7 +365,7 @@ export const ExportPerformanceUtils = {
   async optimizedExcelResponse(
     title: string,
     columns: Array<{ header: string; key: string; width?: number }>,
-    data: any[],
+    data: Array<Record<string, unknown>>,
     filename: string
   ): Promise<NextResponse> {
     const { result: buffer, metrics } = await ExportOptimizer.monitorExportPerformance(

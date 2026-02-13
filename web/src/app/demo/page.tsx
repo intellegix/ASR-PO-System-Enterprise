@@ -7,7 +7,7 @@ import { getDemoSession, clearDemoSession, DemoUser } from '@/lib/demo-auth';
 export default function DemoPage() {
   const router = useRouter();
   const [user, setUser] = useState<DemoUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
 
   useEffect(() => {
     const session = getDemoSession();
@@ -15,6 +15,7 @@ export default function DemoPage() {
       router.push('/demo-login');
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUser(session);
     setLoading(false);
   }, [router]);
@@ -24,7 +25,7 @@ export default function DemoPage() {
     router.push('/demo-login');
   };
 
-  if (loading) {
+  if (_loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow p-6">

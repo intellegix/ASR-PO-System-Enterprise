@@ -19,7 +19,7 @@ interface CacheStats {
 }
 
 class DashboardCache {
-  private cache = new Map<string, CacheEntry<any>>();
+  private cache = new Map<string, CacheEntry<unknown>>();
   private stats: CacheStats = {
     hits: 0,
     misses: 0,
@@ -39,7 +39,7 @@ class DashboardCache {
   /**
    * Generate cache key for dashboard data
    */
-  private generateKey(type: string, params: Record<string, any>): string {
+  private generateKey(type: string, params: Record<string, unknown>): string {
     const sortedParams = Object.keys(params)
       .sort()
       .map(key => `${key}=${params[key]}`)
@@ -50,7 +50,7 @@ class DashboardCache {
   /**
    * Get cached data
    */
-  get<T>(type: string, params: Record<string, any>): T | null {
+  get<T>(type: string, params: Record<string, unknown>): T | null {
     const key = this.generateKey(type, params);
     const entry = this.cache.get(key);
 
@@ -74,7 +74,7 @@ class DashboardCache {
   /**
    * Set cached data with TTL in milliseconds
    */
-  set<T>(type: string, params: Record<string, any>, data: T, ttlMs: number = 5 * 60 * 1000): void {
+  set<T>(type: string, params: Record<string, unknown>, data: T, ttlMs: number = 5 * 60 * 1000): void {
     const key = this.generateKey(type, params);
 
     this.cache.set(key, {
@@ -92,7 +92,7 @@ class DashboardCache {
    */
   async getOrSet<T>(
     type: string,
-    params: Record<string, any>,
+    params: Record<string, unknown>,
     fetcher: () => Promise<T>,
     ttlMs: number = 5 * 60 * 1000
   ): Promise<T> {
@@ -114,7 +114,7 @@ class DashboardCache {
   /**
    * Invalidate cache entries by pattern
    */
-  invalidate(type?: string, specificParams?: Record<string, any>): number {
+  invalidate(type?: string, specificParams?: Record<string, unknown>): number {
     let deletedCount = 0;
 
     if (specificParams && type) {
@@ -377,7 +377,7 @@ export const cachedDashboardData = {
    * Cached quick KPIs
    */
   getQuickKPIs: async <T>(
-    params: Record<string, any>,
+    params: Record<string, unknown>,
     fetcher: () => Promise<T>
   ): Promise<T> => {
     return dashboardCache.getOrSet(

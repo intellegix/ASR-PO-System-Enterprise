@@ -4,7 +4,7 @@
  */
 
 import winston from 'winston';
-import { getConfig, isDevelopment, isProduction } from '@/lib/config';
+import { isDevelopment } from '@/lib/config';
 
 // Define log levels for enterprise use
 const LOG_LEVELS = {
@@ -146,7 +146,7 @@ export interface AuditLogData extends LogContext {
   action: string;
   resourceType: string;
   resourceId?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   statusBefore?: string;
   statusAfter?: string;
 }
@@ -187,35 +187,35 @@ class EnterpriseLogger {
   /**
    * Log error messages
    */
-  error(message: string, meta: Record<string, any> = {}): void {
+  error(message: string, meta: Record<string, unknown> = {}): void {
     logger.error(message, { ...this.context, ...meta });
   }
 
   /**
    * Log warning messages
    */
-  warn(message: string, meta: Record<string, any> = {}): void {
+  warn(message: string, meta: Record<string, unknown> = {}): void {
     logger.warn(message, { ...this.context, ...meta });
   }
 
   /**
    * Log info messages
    */
-  info(message: string, meta: Record<string, any> = {}): void {
+  info(message: string, meta: Record<string, unknown> = {}): void {
     logger.info(message, { ...this.context, ...meta });
   }
 
   /**
    * Log HTTP requests
    */
-  http(message: string, meta: Record<string, any> = {}): void {
+  http(message: string, meta: Record<string, unknown> = {}): void {
     logger.http(message, { ...this.context, ...meta });
   }
 
   /**
    * Log debug messages
    */
-  debug(message: string, meta: Record<string, any> = {}): void {
+  debug(message: string, meta: Record<string, unknown> = {}): void {
     logger.debug(message, { ...this.context, ...meta });
   }
 
@@ -233,7 +233,7 @@ class EnterpriseLogger {
   /**
    * Log authentication events
    */
-  auth(message: string, meta: Record<string, any> = {}): void {
+  auth(message: string, meta: Record<string, unknown> = {}): void {
     logger.info(message, {
       ...this.context,
       ...meta,
@@ -244,7 +244,7 @@ class EnterpriseLogger {
   /**
    * Log database operations
    */
-  db(message: string, meta: Record<string, any> = {}): void {
+  db(message: string, meta: Record<string, unknown> = {}): void {
     logger.debug(message, {
       ...this.context,
       ...meta,
@@ -255,7 +255,7 @@ class EnterpriseLogger {
   /**
    * Log business logic operations
    */
-  business(message: string, meta: Record<string, any> = {}): void {
+  business(message: string, meta: Record<string, unknown> = {}): void {
     logger.info(message, {
       ...this.context,
       ...meta,
@@ -266,7 +266,7 @@ class EnterpriseLogger {
   /**
    * Log security events
    */
-  security(message: string, meta: Record<string, any> = {}): void {
+  security(message: string, meta: Record<string, unknown> = {}): void {
     logger.warn(message, {
       ...this.context,
       ...meta,
@@ -277,7 +277,7 @@ class EnterpriseLogger {
   /**
    * Log performance metrics
    */
-  performance(message: string, meta: Record<string, any> = {}): void {
+  performance(message: string, meta: Record<string, unknown> = {}): void {
     logger.info(message, {
       ...this.context,
       ...meta,
@@ -305,7 +305,7 @@ export const createChildLogger = (context: LogContext): EnterpriseLogger => {
   return log.child(context);
 };
 
-export const auditLog = (action: string, resourceType: string, resourceId: string, details: Record<string, any> = {}, context: LogContext = {}): void => {
+export const auditLog = (action: string, resourceType: string, resourceId: string, details: Record<string, unknown> = {}, context: LogContext = {}): void => {
   log.audit(`${action} performed on ${resourceType} ${resourceId}`, {
     auditEvent: true,
     action,
@@ -316,7 +316,7 @@ export const auditLog = (action: string, resourceType: string, resourceId: strin
   });
 };
 
-export const securityLog = (event: string, details: Record<string, any> = {}, context: LogContext = {}): void => {
+export const securityLog = (event: string, details: Record<string, unknown> = {}, context: LogContext = {}): void => {
   log.security(`Security event: ${event}`, {
     ...details,
     ...context,
@@ -338,7 +338,9 @@ export { logger as winstonLogger };
 
 // Create logs directory if it doesn't exist (for Node.js environments)
 if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const fs = require('fs');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const path = require('path');
   const logsDir = path.join(process.cwd(), 'logs');
 

@@ -11,14 +11,14 @@ export interface ErrorContext {
   url?: string;
   userAgent?: string;
   timestamp?: Date;
-  additionalInfo?: Record<string, any>;
+  additionalInfo?: Record<string, unknown>;
 }
 
 export interface APIError {
   status: number;
   message: string;
   code?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 export class ApplicationError extends Error {
@@ -41,7 +41,7 @@ export class ApplicationError extends Error {
 }
 
 export class ValidationError extends ApplicationError {
-  constructor(message: string, details?: Record<string, any>) {
+  constructor(message: string, details?: Record<string, unknown>) {
     super(message, 400, 'VALIDATION_ERROR', { additionalInfo: details });
     this.name = 'ValidationError';
   }
@@ -69,7 +69,7 @@ export class NotFoundError extends ApplicationError {
 }
 
 export class BusinessLogicError extends ApplicationError {
-  constructor(message: string, details?: Record<string, any>) {
+  constructor(message: string, details?: Record<string, unknown>) {
     super(message, 422, 'BUSINESS_LOGIC_ERROR', { additionalInfo: details });
     this.name = 'BusinessLogicError';
   }
@@ -140,8 +140,9 @@ export class GlobalErrorHandler {
     event.preventDefault();
   }
 
-  private handleUnhandledRejection(event: PromiseRejectionEvent | any): void {
-    const reason = event.reason || event;
+  private handleUnhandledRejection(event: PromiseRejectionEvent | { reason?: unknown }): void {
+    const eventObj = event as { reason?: unknown; preventDefault?: () => void };
+    const reason = eventObj.reason || event;
     const error = reason instanceof Error ? reason : new Error(String(reason));
 
     log.error('Unhandled promise rejection', {
@@ -154,8 +155,8 @@ export class GlobalErrorHandler {
     });
 
     // Prevent default browser handling in production
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
-      event.preventDefault();
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production' && eventObj.preventDefault) {
+      eventObj.preventDefault();
     }
   }
 
@@ -200,8 +201,9 @@ export class GlobalErrorHandler {
     // Placeholder for external error reporting service
     // In production, you would integrate with Sentry, LogRocket, Rollbar, etc.
     try {
-      if (typeof window !== 'undefined' && (window as any).Sentry) {
-        (window as any).Sentry.captureException(error, {
+      const win = window as unknown as { Sentry?: { captureException: (error: Error, options: unknown) => void } };
+      if (typeof window !== 'undefined' && win.Sentry) {
+        win.Sentry.captureException(error, {
           contexts: {
             errorId,
             ...context,
@@ -265,7 +267,7 @@ export const handleAPIError = (
 /**
  * Higher-order function to wrap async functions with error handling
  */
-export const withErrorHandling = <T extends any[], R>(
+export const withErrorHandling = <T extends unknown[], R>(
   fn: (...args: T) => Promise<R>,
   context?: ErrorContext
 ) => {
@@ -282,7 +284,7 @@ export const withErrorHandling = <T extends any[], R>(
 /**
  * Retry logic with exponential backoff
  */
-export const withRetry = <T extends any[], R>(
+export const withRetry = <T extends unknown[], R>(
   fn: (...args: T) => Promise<R>,
   maxRetries: number = 3,
   baseDelay: number = 1000

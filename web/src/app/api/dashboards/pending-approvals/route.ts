@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import prisma from '@/lib/db';
-import { hasPermission, canApprovePO } from '@/lib/auth/permissions';
+import { hasPermission, canApprovePO, type UserRole } from '@/lib/auth/permissions';
 import { withRateLimit } from '@/lib/validation/middleware';
 import log from '@/lib/logging/logger';
 import { cachedDashboardData } from '@/lib/cache/dashboard-cache';
@@ -15,7 +15,7 @@ const getPendingApprovals = async (userRole: string, userDivisionId: string | nu
   const now = new Date();
 
   // Build WHERE clause based on user permissions
-  let whereClause: any = {
+  const whereClause: Record<string, unknown> = {
     status: 'Submitted',
     deleted_at: null,
   };
@@ -111,7 +111,7 @@ const getPendingApprovals = async (userRole: string, userDivisionId: string | nu
 
       // Check if current user can approve this PO
       const approvalCheck = canApprovePO(
-        userRole as any,
+        userRole as UserRole,
         userDivisionId,
         po.division_id,
         amount
@@ -124,7 +124,7 @@ const getPendingApprovals = async (userRole: string, userDivisionId: string | nu
           action: true,
           timestamp: true,
           notes: true,
-        } as any,
+        },
         orderBy: { timestamp: 'desc' },
         take: 3,
       });
@@ -239,7 +239,7 @@ const getHandler = async (request: NextRequest) => {
     }
 
     // Check permissions
-    if (!hasPermission(user.role as any, 'report:view')) {
+    if (!hasPermission(user.role as UserRole, 'report:view')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 

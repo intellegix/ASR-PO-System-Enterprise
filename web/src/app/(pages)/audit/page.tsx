@@ -42,10 +42,10 @@ const UserCheckIcon = ({ className = "w-5 h-5" }: IconProps) => (
 export default function AuditPage() {
   const { user, isAuthenticated } = useAuth();
 
-  const userRole = user?.role || 'OPERATIONS_MANAGER';
+  const _userRole = user?.role || 'OPERATIONS_MANAGER';
 
   // Check if user has access to audit trail
-  const canViewAudit = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'].includes(userRole);
+  const canViewAudit = ['DIRECTOR_OF_SYSTEMS_INTEGRATIONS', 'MAJORITY_OWNER', 'DIVISION_LEADER', 'ACCOUNTING'].includes(_userRole);
 
   if (!isAuthenticated) {
     return (
@@ -66,7 +66,7 @@ export default function AuditPage() {
             <ShieldCheckIcon className="mx-auto h-12 w-12 text-red-400 mb-4" />
             <h2 className="text-xl font-semibold text-slate-900 mb-2">Access Restricted</h2>
             <p className="text-slate-600 mb-4">
-              You don't have permission to view the audit trail. This feature is available to:
+              You don&apos;t have permission to view the audit trail. This feature is available to:
             </p>
             <ul className="text-sm text-slate-500 space-y-1 mb-6">
               <li>• Majority Owners</li>
@@ -114,7 +114,7 @@ export default function AuditPage() {
               <div className="text-right">
                 <p className="text-sm text-slate-500">Welcome back, {user?.name?.split(' ')[0]}</p>
                 <p className="text-xs text-slate-400">
-                  {user?.divisionName || 'All Divisions'} • {userRole.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                  {user?.divisionName || 'All Divisions'} • {_userRole.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}
                 </p>
               </div>
             </div>

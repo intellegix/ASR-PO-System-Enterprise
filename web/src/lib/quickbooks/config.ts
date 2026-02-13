@@ -69,7 +69,7 @@ export interface QBError {
   detail?: string;
 }
 
-export interface QBApiResponse<T = any> {
+export interface QBApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: QBError;

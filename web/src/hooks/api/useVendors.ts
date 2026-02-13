@@ -9,7 +9,7 @@ import { Vendor } from '@/lib/types';
 export const vendorKeys = {
   all: ['vendors'] as const,
   lists: () => [...vendorKeys.all, 'list'] as const,
-  list: (filters: any) => [...vendorKeys.lists(), { filters }] as const,
+  list: (filters: Record<string, unknown>) => [...vendorKeys.lists(), { filters }] as const,
   details: () => [...vendorKeys.all, 'detail'] as const,
   detail: (id: string) => [...vendorKeys.details(), id] as const,
 } as const;
@@ -47,10 +47,10 @@ export function useVendors(filters?: { isActive?: boolean; search?: string }) {
   const hasJWT = !!getJWTSession();
 
   return useQuery({
-    queryKey: vendorKeys.list(filters),
+    queryKey: vendorKeys.list(filters || {}),
     queryFn: async () => {
       const headers = hasJWT ? getAuthHeader() : {};
-      const queryParams = filters ? new URLSearchParams(filters as any).toString() : '';
+      const queryParams = filters ? new URLSearchParams(filters as Record<string, string>).toString() : '';
       const url = `/api/vendors${queryParams ? `?${queryParams}` : ''}`;
 
       const response = await api.get<{ data: Vendor[] }>(url, { headers });

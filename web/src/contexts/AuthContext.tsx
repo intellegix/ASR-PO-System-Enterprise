@@ -26,7 +26,7 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-function sessionToUser(session: any): User {
+function sessionToUser(session: { user: { id: string; email: string; name: string; role: string; divisionId?: string | null; divisionName?: string | null; divisionCode?: string | null } }): User {
   return {
     id: session.user.id,
     email: session.user.email,
@@ -53,6 +53,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Sync NextAuth session to user state
   useEffect(() => {
     if (nextAuthStatus === 'loading') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(true);
       return;
     }
@@ -126,7 +127,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       setIsLoading(false);
       return { success: false, error: 'Invalid credentials' };
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Login error:', error);
       setIsLoading(false);
       return { success: false, error: 'Login failed due to an error' };

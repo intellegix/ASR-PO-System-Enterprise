@@ -284,7 +284,7 @@ export default function AuditTrail({ poId, limit = 50, className = '' }: AuditTr
                 className="w-full px-3 py-1.5 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               >
                 <option value="">All Users</option>
-                {filters?.users?.map((user: any) => (
+                {(filters?.users as Array<{ id: string; name: string; email: string }> | undefined)?.map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.name} ({user.email})
                   </option>
@@ -354,7 +354,7 @@ export default function AuditTrail({ poId, limit = 50, className = '' }: AuditTr
 
               {/* Timeline entries */}
               <div className="space-y-4">
-                {auditData.entries.map((entry, index) => (
+                {auditData.entries.map((entry, _index) => (
                   <div key={entry.id} className="relative">
                     {/* Timeline dot */}
                     <div className="absolute left-6 w-4 h-4 bg-white border-2 border-orange-400 rounded-full flex items-center justify-center">

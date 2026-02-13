@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -21,11 +21,6 @@ const ClockIcon = ({ className = "w-6 h-6" }: IconProps) => (
   </svg>
 );
 
-const UserGroupIcon = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-  </svg>
-);
 
 const AlertTriangleIcon = ({ className = "w-5 h-5" }: IconProps) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,9 +142,7 @@ export default function ApprovalBottleneckPage() {
   const [autoRefresh, setAutoRefresh] = useState(true); // Auto-refresh for real-time data
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
-  const userRole = user?.role || 'OPERATIONS_MANAGER';
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -185,7 +178,7 @@ export default function ApprovalBottleneckPage() {
           averageImpactScore: result.summary?.averageImpactScore ?? 50,
           criticalBottlenecks: result.summary?.criticalBottlenecks ?? 0,
         },
-        bottlenecks: (result.pendingPOs || result.bottlenecks || []).map((po: any) => ({
+        bottlenecks: (result.pendingPOs || result.bottlenecks || []).map((po: Record<string, unknown>) => ({
           poId: po.poId ?? po.id ?? '',
           poNumber: po.poNumber ?? '',
           vendorName: po.vendorName ?? '',
@@ -204,39 +197,45 @@ export default function ApprovalBottleneckPage() {
           estimatedResolutionDate: po.estimatedResolutionDate ?? new Date().toISOString(),
           impactScore: po.impactScore ?? 50,
         })),
-        approverPerformance: (result.approverAnalysis || result.approverPerformance || []).map((a: any) => ({
-          approverId: a.approver?.id ?? a.approverId ?? '',
-          approverName: a.approver?.name ?? a.approverName ?? '',
-          approverEmail: a.approver?.email ?? a.approverEmail ?? '',
-          role: a.approver?.role ?? a.role ?? '',
-          divisionName: a.approver?.divisionName ?? a.divisionName ?? '',
-          totalPendingPOs: a.metrics?.currentPendingCount ?? a.totalPendingPOs ?? 0,
-          averageApprovalTime: a.metrics?.averageApprovalTimeHours
-            ? a.metrics.averageApprovalTimeHours / 24
-            : a.averageApprovalTime ?? 0,
-          longestPendingDays: a.metrics?.longestPendingDays ?? a.longestPendingDays ?? 0,
-          performanceScore: a.performance?.overallScore ?? a.performanceScore ?? 0,
-          bottleneckFrequency: a.bottlenecks?.bottleneckPercentage ?? a.bottleneckFrequency ?? 0,
-          workload: a.performance?.workloadAssessment ?? a.workload ?? 'moderate',
-          recommendations: Array.isArray(a.performance?.recommendations) ? a.performance.recommendations
-            : Array.isArray(a.recommendations) ? a.recommendations : [],
-        })),
-        stageAnalysis: (result.workflowMetrics?.stageAnalysis || result.stageAnalysis || []).map((s: any) => ({
-          stage: s.stage ?? s.stageName ?? '',
-          averageTime: s.averageTimeHours ? s.averageTimeHours / 24 : s.averageTime ?? 0,
-          medianTime: s.medianTimeHours ? s.medianTimeHours / 24 : s.medianTime ?? 0,
-          maxTime: s.maxTimeHours ? s.maxTimeHours / 24 : s.maxTime ?? 0,
-          posInStage: s.currentCount ?? s.posInStage ?? 0,
-          completionRate: s.completionRate ?? 0,
-          bottleneckFrequency: s.bottleneckFrequency ?? 0,
-          efficiency: s.efficiency ?? 'good',
-          recommendations: Array.isArray(s.recommendations) ? s.recommendations : [],
+        approverPerformance: (result.approverAnalysis || result.approverPerformance || []).map((a: Record<string, unknown>) => {
+          const approver = a.approver as Record<string, unknown> | undefined;
+          const metrics = a.metrics as Record<string, unknown> | undefined;
+          const performance = a.performance as Record<string, unknown> | undefined;
+          const bottlenecks = a.bottlenecks as Record<string, unknown> | undefined;
+          return {
+            approverId: (approver?.id ?? a.approverId ?? '') as string,
+            approverName: (approver?.name ?? a.approverName ?? '') as string,
+            approverEmail: (approver?.email ?? a.approverEmail ?? '') as string,
+            role: (approver?.role ?? a.role ?? '') as string,
+            divisionName: (approver?.divisionName ?? a.divisionName ?? '') as string,
+            totalPendingPOs: (metrics?.currentPendingCount ?? a.totalPendingPOs ?? 0) as number,
+            averageApprovalTime: metrics?.averageApprovalTimeHours
+              ? (metrics.averageApprovalTimeHours as number) / 24
+              : (a.averageApprovalTime ?? 0) as number,
+            longestPendingDays: (metrics?.longestPendingDays ?? a.longestPendingDays ?? 0) as number,
+            performanceScore: (performance?.overallScore ?? a.performanceScore ?? 0) as number,
+            bottleneckFrequency: (bottlenecks?.bottleneckPercentage ?? a.bottleneckFrequency ?? 0) as number,
+            workload: (performance?.workloadAssessment ?? a.workload ?? 'moderate') as 'light' | 'moderate' | 'heavy' | 'overloaded',
+            recommendations: Array.isArray(performance?.recommendations) ? performance.recommendations as string[]
+              : Array.isArray(a.recommendations) ? a.recommendations as string[] : [],
+          };
+        }),
+        stageAnalysis: (result.workflowMetrics?.stageAnalysis || result.stageAnalysis || []).map((s: Record<string, unknown>) => ({
+          stage: (s.stage ?? s.stageName ?? '') as string,
+          averageTime: s.averageTimeHours ? (s.averageTimeHours as number) / 24 : (s.averageTime ?? 0) as number,
+          medianTime: s.medianTimeHours ? (s.medianTimeHours as number) / 24 : (s.medianTime ?? 0) as number,
+          maxTime: s.maxTimeHours ? (s.maxTimeHours as number) / 24 : (s.maxTime ?? 0) as number,
+          posInStage: (s.currentCount ?? s.posInStage ?? 0) as number,
+          completionRate: (s.completionRate ?? 0) as number,
+          bottleneckFrequency: (s.bottleneckFrequency ?? 0) as number,
+          efficiency: (s.efficiency ?? 'good') as 'excellent' | 'good' | 'poor' | 'critical',
+          recommendations: Array.isArray(s.recommendations) ? s.recommendations as string[] : [],
         })),
         trends: result.trends ?? {
           dailyBottlenecks: [],
           weeklyCompletion: [],
         },
-        recommendations: Array.isArray(result.recommendations) ? result.recommendations.map((r: any) => ({
+        recommendations: Array.isArray(result.recommendations) ? result.recommendations.map((r: Record<string, unknown>) => ({
           category: r.category ?? '',
           priority: r.priority ?? 'medium',
           action: r.action ?? r.recommendation ?? '',
@@ -253,7 +252,7 @@ export default function ApprovalBottleneckPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   const exportToPDF = async () => {
     try {
@@ -315,14 +314,16 @@ export default function ApprovalBottleneckPage() {
 
   useEffect(() => {
     fetchData();
-  }, [filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (autoRefresh) {
       const interval = setInterval(fetchData, 2 * 60 * 1000); // 2 minutes for real-time updates
       return () => clearInterval(interval);
     }
-  }, [autoRefresh, filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefresh]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {

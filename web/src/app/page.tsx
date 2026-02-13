@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Dashboard from '@/components/dashboard/Dashboard';
 
 export default function HomePage() {
-  const { user, isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
 
   useEffect(() => {

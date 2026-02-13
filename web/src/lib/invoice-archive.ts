@@ -107,9 +107,10 @@ export interface InvoiceSearchParams {
  * Get a read-only connection to the invoice archive database.
  * Returns null if the database is unavailable (e.g., on Vercel serverless).
  */
-function getArchiveDb() {
+function getArchiveDb(): unknown {
   if (!isArchiveAvailable()) return null;
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Database = require('better-sqlite3');
     return new Database(INVOICE_ARCHIVE_PATH, { readonly: true });
   } catch {
@@ -121,7 +122,7 @@ function getArchiveDb() {
  * Search invoices in the archive
  */
 export function searchInvoices(params: InvoiceSearchParams): ArchiveInvoice[] {
-  const db = getArchiveDb();
+  const db = getArchiveDb() as { prepare: (query: string) => { all: (...args: unknown[]) => unknown }, close: () => void } | null;
   if (!db) return [];
 
   try {
@@ -191,7 +192,7 @@ export function searchInvoices(params: InvoiceSearchParams): ArchiveInvoice[] {
  * Get a single invoice by ID
  */
 export function getInvoiceById(id: string): ArchiveInvoice | null {
-  const db = getArchiveDb();
+  const db = getArchiveDb() as { prepare: (query: string) => { get: (...args: unknown[]) => unknown, all: (...args: unknown[]) => unknown }, close: () => void } | null;
   if (!db) return null;
 
   try {
@@ -215,7 +216,7 @@ export function getInvoiceById(id: string): ArchiveInvoice | null {
  * Get files associated with an invoice
  */
 export function getInvoiceFiles(invoiceId: string): ArchiveInvoiceFile[] {
-  const db = getArchiveDb();
+  const db = getArchiveDb() as { prepare: (query: string) => { get: (...args: unknown[]) => unknown, all: (...args: unknown[]) => unknown }, close: () => void } | null;
   if (!db) return [];
 
   try {
@@ -234,7 +235,7 @@ export function getInvoiceFiles(invoiceId: string): ArchiveInvoiceFile[] {
  * Get all vendors from the archive
  */
 export function getArchiveVendors(): ArchiveVendor[] {
-  const db = getArchiveDb();
+  const db = getArchiveDb() as { prepare: (query: string) => { get: (...args: unknown[]) => unknown, all: (...args: unknown[]) => unknown }, close: () => void } | null;
   if (!db) return [];
 
   try {
@@ -253,7 +254,7 @@ export function getArchiveVendors(): ArchiveVendor[] {
  * Get all projects from the archive
  */
 export function getArchiveProjects(): ArchiveProject[] {
-  const db = getArchiveDb();
+  const db = getArchiveDb() as { prepare: (query: string) => { get: (...args: unknown[]) => unknown, all: (...args: unknown[]) => unknown }, close: () => void } | null;
   if (!db) return [];
 
   try {
@@ -277,7 +278,7 @@ export function getInvoiceStats(): {
   pending_count: number;
   vendor_count: number;
 } {
-  const db = getArchiveDb();
+  const db = getArchiveDb() as { prepare: (query: string) => { get: (...args: unknown[]) => unknown, all: (...args: unknown[]) => unknown }, close: () => void } | null;
   if (!db) return { total_invoices: 0, total_amount: 0, paid_count: 0, pending_count: 0, vendor_count: 0 };
 
   try {
@@ -309,7 +310,7 @@ export function findMatchingInvoices(
   amount: number,
   tolerance: number = 0.05
 ): ArchiveInvoice[] {
-  const db = getArchiveDb();
+  const db = getArchiveDb() as { prepare: (query: string) => { get: (...args: unknown[]) => unknown, all: (...args: unknown[]) => unknown }, close: () => void } | null;
   if (!db) return [];
 
   try {

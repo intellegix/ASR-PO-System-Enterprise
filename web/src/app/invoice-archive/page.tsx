@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import AppLayout from '@/components/layout/AppLayout';
 
 interface ArchiveInvoice {
@@ -49,7 +48,7 @@ interface InvoiceStats {
 }
 
 export default function InvoiceArchivePage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   const [invoices, setInvoices] = useState<ArchiveInvoice[]>([]);
@@ -142,7 +141,10 @@ export default function InvoiceArchivePage() {
   }, [isAuthenticated, search, vendorId, projectId, paymentStatus, dateFrom, dateTo, offset]);
 
   useEffect(() => {
-    fetchInvoices(true);
+    if (isAuthenticated) {
+      fetchInvoices(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, vendorId, projectId, paymentStatus, dateFrom, dateTo, isAuthenticated]);
 
   // Fetch invoice detail

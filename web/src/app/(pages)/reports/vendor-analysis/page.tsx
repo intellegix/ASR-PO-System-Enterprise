@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 
@@ -120,9 +120,9 @@ export default function VendorAnalysisPage() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
-  const userRole = user?.role || 'OPERATIONS_MANAGER';
+  const _userRole = user?.role || 'OPERATIONS_MANAGER';
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -148,56 +148,83 @@ export default function VendorAnalysisPage() {
           totalVendors: result.summary?.totalVendors ?? 0,
           totalSpend: result.summary?.totalSpend ?? 0,
           averageQualityScore: result.summary?.overallPerformanceScore ?? 0,
-          topPerformers: (result.vendorAnalysis || []).filter((v: any) => (v.performance?.qualityScore ?? 0) >= 85).length,
-          riskVendors: (result.vendorAnalysis || []).filter((v: any) => v.riskFactors?.overallRisk === 'high').length,
+          topPerformers: (result.vendorAnalysis || []).filter((v: Record<string, unknown>) => {
+            const performance = v.performance as Record<string, unknown> | undefined;
+            return ((performance?.qualityScore ?? 0) as number) >= 85;
+          }).length,
+          riskVendors: (result.vendorAnalysis || []).filter((v: Record<string, unknown>) => {
+            const riskFactors = v.riskFactors as Record<string, unknown> | undefined;
+            return riskFactors?.overallRisk === 'high';
+          }).length,
         },
-        vendors: (result.vendorAnalysis || []).map((v: any) => ({
-          vendorId: v.vendor?.id ?? '',
-          vendorName: v.vendor?.name ?? 'Unknown',
-          totalSpend: v.financialMetrics?.totalSpend ?? 0,
-          totalOrders: v.financialMetrics?.totalPOCount ?? 0,
-          averageOrderValue: v.financialMetrics?.averagePOSize ?? 0,
-          qualityScore: v.performance?.qualityScore ?? 0,
-          onTimeDeliveryRate: v.performance?.onTimeDeliveryRate ?? 0,
-          completionRate: v.performance?.completionRate ?? 0,
-          paymentTerms: v.paymentTerms?.defaultTerms ?? 'Net30',
-          w9OnFile: v.vendor?.compliance?.w9OnFile ?? false,
-          industryType: v.vendor?.type ?? 'Other',
-          riskFactors: [],
-          monthlyTrend: (v.spendingTrends || []).map((t: any) => ({
-            month: t.month,
-            spend: t.totalAmount,
-            orders: t.poCount,
-            qualityScore: v.performance?.qualityScore ?? 0,
-          })),
-          contactInfo: {
-            email: v.vendor?.contactInfo?.contactEmail ?? '',
-            phone: v.vendor?.contactInfo?.contactPhone ?? '',
-            address: '',
-          },
+        vendors: (result.vendorAnalysis || []).map((v: Record<string, unknown>) => {
+          const vendor = v.vendor as Record<string, unknown> | undefined;
+          const financialMetrics = v.financialMetrics as Record<string, unknown> | undefined;
+          const performance = v.performance as Record<string, unknown> | undefined;
+          const paymentTerms = v.paymentTerms as Record<string, unknown> | undefined;
+          const compliance = vendor?.compliance as Record<string, unknown> | undefined;
+          const contactInfo = vendor?.contactInfo as Record<string, unknown> | undefined;
+          const qualityScore = (performance?.qualityScore ?? 0) as number;
+          return {
+            vendorId: (vendor?.id ?? '') as string,
+            vendorName: (vendor?.name ?? 'Unknown') as string,
+            totalSpend: (financialMetrics?.totalSpend ?? 0) as number,
+            totalOrders: (financialMetrics?.totalPOCount ?? 0) as number,
+            averageOrderValue: (financialMetrics?.averagePOSize ?? 0) as number,
+            qualityScore: qualityScore,
+            onTimeDeliveryRate: (performance?.onTimeDeliveryRate ?? 0) as number,
+            completionRate: (performance?.completionRate ?? 0) as number,
+            paymentTerms: (paymentTerms?.defaultTerms ?? 'Net30') as string,
+            w9OnFile: (compliance?.w9OnFile ?? false) as boolean,
+            industryType: (vendor?.type ?? 'Other') as string,
+            riskFactors: [],
+            monthlyTrend: ((v.spendingTrends || []) as Record<string, unknown>[]).map((t: Record<string, unknown>) => ({
+              month: t.month as string,
+              spend: t.totalAmount as number,
+              orders: t.poCount as number,
+              qualityScore: qualityScore,
+            })),
+            contactInfo: {
+              email: (contactInfo?.contactEmail ?? '') as string,
+              phone: (contactInfo?.contactPhone ?? '') as string,
+              address: '',
+            },
+          };
+        }),
+        industryBreakdown: (result.industryBreakdown || []).map((i: Record<string, unknown>) => ({
+          industry: (i.vendorType ?? 'Other') as string,
+          vendorCount: (i.vendorCount ?? 0) as number,
+          totalSpend: (i.totalSpend ?? 0) as number,
+          averageQualityScore: (i.performanceScore ?? 0) as number,
         })),
-        industryBreakdown: (result.industryBreakdown || []).map((i: any) => ({
-          industry: i.vendorType ?? 'Other',
-          vendorCount: i.vendorCount ?? 0,
-          totalSpend: i.totalSpend ?? 0,
-          averageQualityScore: i.performanceScore ?? 0,
-        })),
-        paymentTermsAnalysis: (result.paymentTermsAnalysis || []).map((t: any) => ({
-          terms: t.terms ?? '',
-          vendorCount: t.vendorCount ?? 0,
-          totalSpend: t.totalSpend ?? 0,
-          averageOrderValue: t.vendorCount > 0 ? t.totalSpend / t.vendorCount : 0,
-        })),
+        paymentTermsAnalysis: (result.paymentTermsAnalysis || []).map((t: Record<string, unknown>) => {
+          const vendorCount = (t.vendorCount ?? 0) as number;
+          const totalSpend = (t.totalSpend ?? 0) as number;
+          return {
+            terms: (t.terms ?? '') as string,
+            vendorCount: vendorCount,
+            totalSpend: totalSpend,
+            averageOrderValue: vendorCount > 0 ? totalSpend / vendorCount : 0,
+          };
+        }),
         riskAnalysis: {
           concentrationRisk: {
-            topVendorPercentage: (result.vendorAnalysis || [])[0]?.financialMetrics?.spendShare ?? 0,
+            topVendorPercentage: (() => {
+              const firstVendor = (result.vendorAnalysis || [])[0] as Record<string, unknown> | undefined;
+              const firstMetrics = firstVendor?.financialMetrics as Record<string, unknown> | undefined;
+              return (firstMetrics?.spendShare ?? 0) as number;
+            })(),
             top5VendorPercentage: result.summary?.vendorConcentrationRisk ?? 0,
             recommendation: result.summary?.vendorConcentrationRisk > 50
               ? 'Consider diversifying vendor base to reduce concentration risk'
               : 'Vendor concentration is within acceptable limits',
           },
           complianceRisk: {
-            missingW9: (result.vendorAnalysis || []).filter((v: any) => !v.vendor?.compliance?.w9OnFile).length,
+            missingW9: (result.vendorAnalysis || []).filter((v: Record<string, unknown>) => {
+              const vendor = v.vendor as Record<string, unknown> | undefined;
+              const compliance = vendor?.compliance as Record<string, unknown> | undefined;
+              return !(compliance?.w9OnFile);
+            }).length,
             outdatedInfo: 0,
             recommendation: 'Ensure all active vendors have current W9 forms on file',
           },
@@ -212,7 +239,7 @@ export default function VendorAnalysisPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   const exportToPDF = async () => {
     try {
@@ -270,14 +297,14 @@ export default function VendorAnalysisPage() {
 
   useEffect(() => {
     fetchData();
-  }, [filters]);
+  }, [fetchData]);
 
   useEffect(() => {
     if (autoRefresh) {
       const interval = setInterval(fetchData, 5 * 60 * 1000); // 5 minutes
       return () => clearInterval(interval);
     }
-  }, [autoRefresh, filters]);
+  }, [autoRefresh, fetchData]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {

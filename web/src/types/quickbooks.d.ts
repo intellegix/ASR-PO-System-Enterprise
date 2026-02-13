@@ -128,7 +128,7 @@ declare module 'quickbooks' {
     // Vendor operations
     createVendor(vendor: QBVendor, callback: (err: QBError | null, vendor?: QBVendor) => void): void;
     getVendor(id: string, callback: (err: QBError | null, vendor?: QBVendor) => void): void;
-    findVendors(criteria: any, callback: (err: QBError | null, vendors?: QBVendor[]) => void): void;
+    findVendors(criteria: unknown, callback: (err: QBError | null, vendors?: QBVendor[]) => void): void;
 
     // Account operations
     getAccounts(callback: (err: QBError | null, accounts?: QBAccount[]) => void): void;
@@ -139,9 +139,9 @@ declare module 'quickbooks' {
     getClass(id: string, callback: (err: QBError | null, qbClass?: QBClass) => void): void;
 
     // Utility methods
-    batch(operations: any[], callback: (err: QBError | null, result?: any) => void): void;
-    reportBalanceSheet(options: any, callback: (err: QBError | null, report?: any) => void): void;
-    reportProfitAndLoss(options: any, callback: (err: QBError | null, report?: any) => void): void;
+    batch(operations: unknown[], callback: (err: QBError | null, result?: unknown) => void): void;
+    reportBalanceSheet(options: unknown, callback: (err: QBError | null, report?: unknown) => void): void;
+    reportProfitAndLoss(options: unknown, callback: (err: QBError | null, report?: unknown) => void): void;
   }
 
   export = QuickBooks;

@@ -20,7 +20,7 @@ interface SyncResult {
 /**
  * POST /api/raken/sync - Trigger a Raken project sync
  */
-const postHandler = async (request: NextRequest): Promise<NextResponse> => {
+const postHandler = async (_request: NextRequest): Promise<NextResponse> => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -43,7 +43,7 @@ const postHandler = async (request: NextRequest): Promise<NextResponse> => {
         const clarkMatch = await findClarkRepForJobFromDB(rp.number);
 
         // Try to find existing project by raken_uuid first, then by project_code
-        let existing = await prisma.projects.findFirst({
+        const existing = await prisma.projects.findFirst({
           where: {
             OR: [
               { raken_uuid: rp.uuid },
@@ -123,7 +123,7 @@ const postHandler = async (request: NextRequest): Promise<NextResponse> => {
 /**
  * GET /api/raken/sync - Get last sync status
  */
-const getHandler = async (request: NextRequest): Promise<NextResponse> => {
+const getHandler = async (_request: NextRequest): Promise<NextResponse> => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

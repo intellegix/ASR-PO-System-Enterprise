@@ -322,20 +322,30 @@ function sanitizeAmount(amount: number | string | null | undefined): number {
 /**
  * Sanitize line items array
  */
-function sanitizeLineItems(items: any[]): any[] {
+interface PDFLineItem {
+  line_number: number;
+  item_description: string;
+  quantity: number;
+  unit_of_measure: string;
+  unit_price: number;
+  line_subtotal: number;
+  is_taxable: boolean;
+}
+
+function sanitizeLineItems(items: unknown[]): PDFLineItem[] {
   if (!Array.isArray(items)) return [];
 
   return items
     .slice(0, PDF_CONFIG.validation.maxLineItems) // Limit count
-    .filter(item => item && typeof item === 'object') // Remove invalid items
+    .filter((item): item is Record<string, unknown> => item !== null && typeof item === 'object') // Remove invalid items
     .map((item, index) => ({
-      line_number: item.line_number || index + 1,
-      item_description: (item.item_description || `Line item ${index + 1}`)
+      line_number: (item.line_number as number | undefined) || index + 1,
+      item_description: ((item.item_description as string | undefined) || `Line item ${index + 1}`)
         .substring(0, PDF_CONFIG.validation.maxDescriptionLength),
-      quantity: sanitizeAmount(item.quantity) || 1,
-      unit_of_measure: item.unit_of_measure || 'EA',
-      unit_price: sanitizeAmount(item.unit_price),
-      line_subtotal: sanitizeAmount(item.line_subtotal),
+      quantity: sanitizeAmount(item.quantity as string | number | null | undefined) || 1,
+      unit_of_measure: (item.unit_of_measure as string | undefined) || 'EA',
+      unit_price: sanitizeAmount(item.unit_price as string | number | null | undefined),
+      line_subtotal: sanitizeAmount(item.line_subtotal as string | number | null | undefined),
       is_taxable: Boolean(item.is_taxable),
     }));
 }

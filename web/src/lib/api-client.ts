@@ -36,7 +36,7 @@ export const API_CONFIG = {
 /**
  * Enhanced fetch wrapper with automatic URL resolution
  */
-export async function apiRequest<T = any>(
+export async function apiRequest<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
@@ -82,27 +82,27 @@ export async function apiRequest<T = any>(
  * Convenience methods for different HTTP verbs
  */
 export const api = {
-  get: <T = any>(endpoint: string, options?: RequestInit): Promise<T> =>
+  get: <T = unknown>(endpoint: string, options?: RequestInit): Promise<T> =>
     apiRequest<T>(endpoint, { ...options, method: 'GET' }),
 
-  post: <T = any>(endpoint: string, data?: any, options?: RequestInit): Promise<T> =>
+  post: <T = unknown>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> =>
     apiRequest<T>(endpoint, {
       ...options,
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
     }),
 
-  put: <T = any>(endpoint: string, data?: any, options?: RequestInit): Promise<T> =>
+  put: <T = unknown>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> =>
     apiRequest<T>(endpoint, {
       ...options,
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
     }),
 
-  delete: <T = any>(endpoint: string, options?: RequestInit): Promise<T> =>
+  delete: <T = unknown>(endpoint: string, options?: RequestInit): Promise<T> =>
     apiRequest<T>(endpoint, { ...options, method: 'DELETE' }),
 
-  patch: <T = any>(endpoint: string, data?: any, options?: RequestInit): Promise<T> =>
+  patch: <T = unknown>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> =>
     apiRequest<T>(endpoint, {
       ...options,
       method: 'PATCH',
@@ -115,8 +115,8 @@ export const api = {
  */
 export async function checkBackendHealth(): Promise<boolean> {
   try {
-    const response = await api.get('/api/health');
-    return response.status === 'healthy';
+    const response = await api.get<{ status?: string }>('/api/health');
+    return (response as Record<string, unknown>).status === 'healthy';
   } catch (error) {
     console.error('Backend health check failed:', error);
     return false;

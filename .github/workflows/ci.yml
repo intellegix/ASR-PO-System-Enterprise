@@ -34,7 +34,6 @@ jobs:
 
       - name: Lint
         run: npm run lint
-        continue-on-error: true # TODO: remove once pre-existing lint errors are fixed
 
       - name: Test
         run: npm run test:ci

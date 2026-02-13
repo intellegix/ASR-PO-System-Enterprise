@@ -14,7 +14,7 @@ export async function GET() {
     const session = await getServerSession(authOptions);
     const isAdmin = session?.user?.id
       ? await prisma.users.findUnique({ where: { id: session.user.id }, select: { role: true } })
-          .then(u => u && hasPermission(u.role as any, 'report:view'))
+          .then(u => u && hasPermission(u.role, 'report:view'))
       : false;
 
     if (isAdmin) {

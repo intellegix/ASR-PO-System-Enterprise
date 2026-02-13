@@ -226,7 +226,7 @@ export async function ensureValidToken(): Promise<boolean> {
 /**
  * Enhanced API request wrapper with automatic token refresh
  */
-export async function authenticatedApiRequest<T = any>(
+export async function authenticatedApiRequest<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {

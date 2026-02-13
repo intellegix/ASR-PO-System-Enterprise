@@ -63,7 +63,7 @@ const STEP_LABELS = ['Division', 'Client', 'Property', 'Project', 'Work Order'];
 const TOTAL_STEPS = 5;
 
 export default function CreatePOPage() {
-  const { user, isAuthenticated } = useAuth();
+  const { user: _user } = useAuth();
   const router = useRouter();
 
   const [step, setStep] = useState(1);
@@ -116,15 +116,16 @@ export default function CreatePOPage() {
 
   // Auto-select user's division
   useEffect(() => {
-    if (user?.divisionId && divisions.length > 0 && !selectedDivision) {
-      const userDiv = divisions.find((d) => d.id === user.divisionId);
+    if (_user?.divisionId && divisions.length > 0 && !selectedDivision) {
+      const userDiv = divisions.find((d) => d.id === _user.divisionId);
       if (userDiv) {
         setSelectedDivision(userDiv);
         setStep(2);
         fetchClients();
       }
     }
-  }, [user, divisions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_user, divisions]);
 
   const fetchClients = async () => {
     setClientsLoading(true);
@@ -342,14 +343,6 @@ export default function CreatePOPage() {
     );
   }
 
-  // Calculate which progress steps to show (map to visual step)
-  const getVisualStep = () => {
-    if (clientSkipped) {
-      // When skipped, step 4 (project) maps to visual position 2
-      if (step >= 4) return step - 1;
-    }
-    return step;
-  };
 
   return (
     <AppLayout pageTitle="Quick PO">
@@ -404,7 +397,7 @@ export default function CreatePOPage() {
           <DivisionPicker
             divisions={divisions}
             selectedId={selectedDivision?.id || null}
-            userDivisionId={user?.divisionId}
+            userDivisionId={_user?.divisionId}
             onSelect={handleDivisionSelect}
           />
         )}
