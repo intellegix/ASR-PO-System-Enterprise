@@ -4,6 +4,7 @@
  */
 
 import { mockUserSession } from '../../helpers/mock-session';
+import type { UserRole } from '@/lib/auth/permissions';
 
 jest.mock('@/lib/db', () => ({
   __esModule: true,
@@ -210,7 +211,7 @@ describe('PO Business Logic Integration Tests', () => {
     test('all roles can approve POs', async () => {
       // Arrange
       const { canApprovePO } = await import('@/lib/auth/permissions');
-      const roles = ['USER', 'ADMIN', 'DIVISION_LEADER', 'OPERATIONS_MANAGER'];
+      const roles: UserRole[] = ['USER', 'ADMIN', 'DIVISION_LEADER', 'OPERATIONS_MANAGER'];
 
       // Act & Assert
       roles.forEach((role) => {
@@ -254,7 +255,7 @@ describe('PO Business Logic Integration Tests', () => {
 
       // Assert
       expect(result).toHaveLength(2);
-      expect(result.every((po) => po.status === 'Submitted')).toBe(true);
+      expect(result.every((po: Record<string, unknown>) => po.status === 'Submitted')).toBe(true);
     });
   });
 });

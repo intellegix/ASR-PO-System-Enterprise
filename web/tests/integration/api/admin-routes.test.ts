@@ -67,7 +67,7 @@ describe('Admin Routes Integration Tests', () => {
       const { isAdmin } = await import('@/lib/auth/permissions');
 
       // Act
-      const isAuthorized = session?.user?.id ? true : false;
+      const isAuthorized = (session as Record<string, unknown> | null)?.user ? true : false;
 
       // Assert
       expect(isAuthorized).toBe(false);
