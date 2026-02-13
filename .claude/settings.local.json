@@ -127,7 +127,14 @@
       "mcp__browser-bridge__browser_console_messages",
       "Bash(if exist \"C:\\\\temp\\\\vercel-deploy\" rmdir /s /q \"C:\\\\temp\\\\vercel-deploy\")",
       "Bash(xcopy:*)",
-      "WebFetch(domain:web-intellegix.vercel.app)"
+      "WebFetch(domain:web-intellegix.vercel.app)",
+      "Bash(tee:*)",
+      "Bash(awk:*)",
+      "Bash(test:*)",
+      "mcp__browser-bridge__browser_cdp_type",
+      "mcp__browser-bridge__browser_press_key",
+      "mcp__browser-bridge__browser_insert_text",
+      "mcp__browser-bridge__browser_wait_for_stable"
     ]
   }
 }
