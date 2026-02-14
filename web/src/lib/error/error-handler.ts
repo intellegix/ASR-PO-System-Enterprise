@@ -3,6 +3,7 @@
  * Centralized error handling for the application
  */
 
+import * as Sentry from '@sentry/nextjs';
 import log from '@/lib/logging/logger';
 
 export interface ErrorContext {
@@ -198,18 +199,13 @@ export class GlobalErrorHandler {
     context?: ErrorContext,
     errorId?: string
   ): void {
-    // Placeholder for external error reporting service
-    // In production, you would integrate with Sentry, LogRocket, Rollbar, etc.
     try {
-      const win = window as unknown as { Sentry?: { captureException: (error: Error, options: unknown) => void } };
-      if (typeof window !== 'undefined' && win.Sentry) {
-        win.Sentry.captureException(error, {
-          contexts: {
-            errorId,
-            ...context,
-          },
-        });
-      }
+      Sentry.captureException(error, {
+        extra: {
+          errorId,
+          ...context,
+        },
+      });
     } catch (reportingError) {
       log.error('Failed to report error to external service', {
         originalError: error.message,

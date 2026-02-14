@@ -1,13 +1,18 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from '@sentry/nextjs';
+
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://web-intellegix.vercel.app';
+const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '';
+
+const connectSources = [
+  "'self'",
+  appUrl,
+  vercelUrl,
+  'https://*.vercel.app',
+  'https://*.neon.tech',
+].filter(Boolean).join(' ');
 
 const nextConfig: NextConfig = {
-  // Configuration for hybrid architecture (v2.1):
-  // - Full-stack mode for local development and backend
-  // - Frontend deployed as static site, connects to localhost backend
-  // Updated: Feb 5, 2026 - Render deployment configuration
-
-  // Full-stack deployment for Render
-
   // Image optimization
   images: {
     unoptimized: true,
@@ -15,8 +20,6 @@ const nextConfig: NextConfig = {
 
   // Security + CORS headers
   async headers() {
-    const productionOrigin = process.env.NEXT_PUBLIC_APP_URL || 'https://web-intellegix.vercel.app';
-
     return [
       {
         source: '/:path*',
@@ -43,7 +46,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.vercel-storage.com https://*.public.blob.vercel-storage.com; font-src 'self' data:; connect-src 'self' https://*.vercel.app https://*.neon.tech; frame-ancestors 'none';",
+            value: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.vercel-storage.com https://*.public.blob.vercel-storage.com; font-src 'self' data:; connect-src ${connectSources}; frame-ancestors 'none';`,
           },
         ],
       },
@@ -52,7 +55,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
-            value: productionOrigin,
+            value: appUrl,
           },
           {
             key: 'Access-Control-Allow-Methods',
@@ -60,7 +63,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type, Authorization, X-Requested-With',
+            value: 'Content-Type, Authorization, X-Requested-With, X-Request-Id',
           },
           {
             key: 'Access-Control-Allow-Credentials',
@@ -86,7 +89,7 @@ const nextConfig: NextConfig = {
 
   // TypeScript configuration
   typescript: {
-    ignoreBuildErrors: process.env.NODE_ENV === 'production', // Skip type checking in production builds
+    ignoreBuildErrors: process.env.NODE_ENV === 'production',
   },
 
   // Basic optimization
@@ -96,4 +99,10 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@prisma/client'],
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG || 'intellegix',
+  project: process.env.SENTRY_PROJECT || 'asr-po-system',
+  silent: true,
+  widenClientFileUpload: true,
+  tunnelRoute: '/monitoring',
+});
