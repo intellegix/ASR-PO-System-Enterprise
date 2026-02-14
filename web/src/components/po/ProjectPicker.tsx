@@ -32,7 +32,7 @@ export default function ProjectPicker({ projects, loading, onSelect }: ProjectPi
   });
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box data-testid="project-picker" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box>
         <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
           Pick Project

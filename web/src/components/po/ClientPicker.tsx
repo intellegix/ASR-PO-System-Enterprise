@@ -34,7 +34,7 @@ export default function ClientPicker({ clients, loading, onSelect, onSkip }: Cli
   });
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box data-testid="client-picker" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box>
         <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
           Pick Client
@@ -103,6 +103,7 @@ export default function ClientPicker({ clients, loading, onSelect, onSkip }: Cli
       )}
 
       <Button
+        data-testid="client-skip-btn"
         onClick={onSkip}
         sx={{ width: '100%', py: 1.5, color: 'text.secondary', textTransform: 'none', '&:hover': { color: 'text.primary' } }}
       >

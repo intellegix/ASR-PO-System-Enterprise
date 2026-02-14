@@ -132,8 +132,8 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
       </Box>
 
       {/* Navigation */}
-      <Box component="nav" aria-label="Main navigation" sx={{ flex: 1, px: 2, py: 3, overflowY: 'auto' }}>
-        <List disablePadding>
+      <Box component="nav" aria-label="Main navigation" data-testid="sidebar-nav" sx={{ flex: 1, px: 2, py: 3, overflowY: 'auto' }}>
+        <List disablePadding data-testid="nav-main-list">
           {navItems.map((item) => {
             const active = isActive(item.href);
             return (
@@ -184,13 +184,13 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
         </List>
 
         {userIsAdmin && (
-          <>
+          <Box data-testid="admin-nav-section">
             <Box sx={{ mt: 3, mb: 1, px: 2 }}>
               <Typography variant="caption" sx={{ fontWeight: 600, color: 'rgba(100,116,139,1)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Admin
               </Typography>
             </Box>
-            <List disablePadding>
+            <List disablePadding data-testid="nav-admin-list">
               {[
                 { href: '/projects', label: 'Projects', icon: <BusinessOutlinedIcon /> },
                 { href: '/admin/users', label: 'Users', icon: <AdminPanelSettingsIcon /> },
@@ -229,7 +229,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
                 );
               })}
             </List>
-          </>
+          </Box>
         )}
       </Box>
 

@@ -27,7 +27,7 @@ export default function WorkOrderPicker({ workOrders, loading, onSelect }: WorkO
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box data-testid="wo-picker" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box>
         <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
           Pick or Create Work Order

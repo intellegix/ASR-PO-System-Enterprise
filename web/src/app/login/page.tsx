@@ -136,6 +136,7 @@ function LoginForm() {
             <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               <TextField
                 id="identifier"
+                data-testid="login-identifier"
                 label="Username or Email"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
@@ -147,6 +148,7 @@ function LoginForm() {
 
               <TextField
                 id="password"
+                data-testid="login-password"
                 label="Password"
                 type="password"
                 value={password}
@@ -162,6 +164,7 @@ function LoginForm() {
                 variant="contained"
                 fullWidth
                 disabled={loading || authLoading}
+                data-testid="login-submit"
                 sx={{ py: 1.5, fontSize: '1rem' }}
               >
                 {loading || authLoading ? (
