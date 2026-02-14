@@ -30,6 +30,7 @@ interface SyncResult {
   synced: number;
   updated: number;
   not_found: number;
+  not_found_projects: string[];
   errors: string[];
 }
 
@@ -99,6 +100,7 @@ const postHandler = async (request: NextRequest): Promise<NextResponse> => {
       synced: jobLookup.size,
       updated: 0,
       not_found: 0,
+      not_found_projects: [],
       errors: [],
     };
 
@@ -133,6 +135,7 @@ const postHandler = async (request: NextRequest): Promise<NextResponse> => {
         updates.push({ id: project.id, clarkRep: match.clarkRep, property: match.property });
       } else {
         result.not_found++;
+        result.not_found_projects.push(project.project_code);
       }
     }
 
