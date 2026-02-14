@@ -36,6 +36,10 @@ const eslintConfig = defineConfig([
     // Utility scripts (not part of the Next.js app)
     "scripts/**",
     "*.js",
+    // Playwright E2E tests (not React components, React lint rules don't apply)
+    "e2e/**",
+    // Generated coverage reports
+    "coverage/**",
   ]),
 ]);
 
