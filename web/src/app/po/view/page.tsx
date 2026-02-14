@@ -547,7 +547,7 @@ function ViewPurchaseOrder() {
 
   return (
     <AppLayout pageTitle={`PO ${po.po_number}`}>
-      <Box sx={{ maxWidth: 960, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Box data-testid="po-view-page" sx={{ maxWidth: 960, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
         {/* Header Card */}
         <Card>
           <CardContent sx={{ p: 3 }}>

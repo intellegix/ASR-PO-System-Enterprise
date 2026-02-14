@@ -60,7 +60,7 @@ export default function PropertyPicker({
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box data-testid="property-picker" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box>
         <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
           Pick Property
@@ -194,6 +194,7 @@ export default function PropertyPicker({
       )}
 
       <Button
+        data-testid="property-skip-btn"
         onClick={onSkip}
         sx={{ width: '100%', py: 1.5, color: 'text.secondary', textTransform: 'none', '&:hover': { color: 'text.primary' } }}
       >

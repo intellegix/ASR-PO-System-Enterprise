@@ -134,7 +134,11 @@
       "mcp__browser-bridge__browser_cdp_type",
       "mcp__browser-bridge__browser_press_key",
       "mcp__browser-bridge__browser_insert_text",
-      "mcp__browser-bridge__browser_wait_for_stable"
+      "mcp__browser-bridge__browser_wait_for_stable",
+      "Bash(git mv:*)",
+      "mcp__browser-bridge__browser_activate_council",
+      "mcp__browser-bridge__browser_export_council_md",
+      "Bash(if not exist \"C:\\\\Users\\\\AustinKidwell\\\\.claude\\\\council-logs\" mkdir \"C:\\\\Users\\\\AustinKidwell\\\\.claude\\\\council-logs\")"
     ]
   }
 }

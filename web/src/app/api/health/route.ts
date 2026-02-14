@@ -8,7 +8,12 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const dbStart = Date.now();
     await prisma.$queryRaw`SELECT 1 as test`;
+    const dbLatencyMs = Date.now() - dbStart;
+
+    const environment = process.env.VERCEL_ENV || process.env.NODE_ENV || 'unknown';
+    const buildSha = process.env.VERCEL_GIT_COMMIT_SHA || 'local';
 
     // Check if caller is an authenticated admin
     const session = await getServerSession(authOptions);
@@ -26,7 +31,11 @@ export async function GET() {
 
       return NextResponse.json({
         status: 'healthy',
-        database: 'connected',
+        database: { status: 'connected', latencyMs: dbLatencyMs },
+        environment,
+        buildSha,
+        region: process.env.VERCEL_REGION || 'unknown',
+        uptime: Math.floor(process.uptime()),
         metrics: {
           users: userCount,
           vendors: vendorCount,
@@ -37,9 +46,11 @@ export async function GET() {
       });
     }
 
-    // Public: minimal response only
+    // Public: minimal response with environment context
     return NextResponse.json({
       status: 'healthy',
+      environment,
+      buildSha: buildSha.substring(0, 7),
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

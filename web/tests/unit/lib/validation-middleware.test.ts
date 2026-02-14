@@ -1,251 +1,450 @@
 /**
- * Test Suite Note: Validation Middleware
+ * Test Suite: Validation Middleware
  *
- * The validation middleware module (src/lib/validation/middleware.ts) cannot be unit tested
- * in a standard Jest environment because it has top-level imports of Next.js server runtime
- * dependencies (NextRequest, NextResponse) which are not available in Node.js/jsdom test environment.
- *
- * ALL functions in validation-middleware.ts should be tested in integration tests with a full
- * Next.js server runtime environment.
- *
- * Functions to test in integration tests:
- * - validateRequestBody (validates JSON body against Zod schema)
- * - validateQueryParams (validates URL search params against Zod schema)
- * - validatePathParams (validates route params against Zod schema)
- * - validationErrorResponse (returns standardized 400 error response)
- * - withValidation (HOF that wraps handlers with validation logic)
- * - sanitizeHtml (escapes HTML special characters)
- * - validateFileUpload (validates file size, type, and extension)
- * - checkRateLimit (in-memory rate limiting tracker)
- * - withRateLimit (HOF that wraps handlers with rate limiting)
+ * Tests pure functions directly (sanitizeHtml, checkRateLimit, validateFileUpload, validatePathParams).
+ * Functions requiring NextRequest are tested via mocked imports.
  */
 
-describe('Validation Middleware - Integration Test Requirements', () => {
-  describe('validateRequestBody', () => {
-    test.skip('validates valid request body successfully', () => {
-      // Integration test required: NextRequest dependency
-      // Test case: Valid JSON body matching Zod schema should return { success: true, data }
-    });
+import { z } from 'zod';
 
-    test.skip('returns errors for invalid request body', () => {
-      // Integration test required: NextRequest dependency
-      // Test case: Invalid body should return { success: false, errors: ValidationError[] }
-    });
+// Mock next/server before importing the module
+jest.mock('next/server', () => {
+  class MockHeaders {
+    private headers: Map<string, string>;
+    constructor(init?: Record<string, string>) {
+      this.headers = new Map(init ? Object.entries(init) : []);
+    }
+    get(name: string) { return this.headers.get(name.toLowerCase()) || null; }
+    set(name: string, value: string) { this.headers.set(name.toLowerCase(), value); }
+    entries() { return this.headers.entries(); }
+  }
 
-    test.skip('returns error for malformed JSON', () => {
-      // Integration test required: NextRequest dependency
-      // Test case: Invalid JSON syntax should return "Invalid JSON format" error
-    });
+  class MockNextRequest {
+    url: string;
+    method: string;
+    headers: MockHeaders;
+    private _body: unknown;
 
-    test.skip('validates missing required fields', () => {
-      // Integration test required: NextRequest dependency
-      // Test case: Missing required fields should return appropriate field errors
-    });
+    constructor(url: string, init?: { method?: string; headers?: Record<string, string>; body?: string }) {
+      this.url = url;
+      this.method = init?.method || 'GET';
+      this.headers = new MockHeaders(init?.headers);
+      this._body = init?.body ? JSON.parse(init.body) : null;
+    }
 
-    test.skip('validates type mismatches', () => {
-      // Integration test required: NextRequest dependency
-      // Test case: Wrong types (string where number expected) should return type errors
-    });
+    async json() {
+      if (this._body === null) throw new Error('No body');
+      return this._body;
+    }
+  }
+
+  class MockNextResponse {
+    static responses: { body: unknown; status: number; headers: MockHeaders }[] = [];
+
+    static json(body: unknown, init?: { status?: number; headers?: Record<string, string> }) {
+      const resp = {
+        body,
+        status: init?.status || 200,
+        headers: new MockHeaders(init?.headers),
+        async json() { return body; },
+      };
+      return resp;
+    }
+  }
+
+  return {
+    NextRequest: MockNextRequest,
+    NextResponse: MockNextResponse,
+  };
+});
+
+import {
+  sanitizeHtml,
+  checkRateLimit,
+  validateFileUpload,
+  validatePathParams,
+  validateRequestBody,
+  validateQueryParams,
+  withValidation,
+  withRateLimit,
+} from '@/lib/validation/middleware';
+import { NextRequest, NextResponse } from 'next/server';
+
+// ============================================
+// sanitizeHtml — Pure function, no dependencies
+// ============================================
+
+describe('sanitizeHtml', () => {
+  test('escapes HTML special characters', () => {
+    expect(sanitizeHtml('<script>alert("xss")</script>')).toBe(
+      '&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;'
+    );
   });
 
-  describe('validateQueryParams', () => {
-    test.skip('validates valid query parameters', () => {
-      // Integration test required: NextRequest dependency
-      // Test case: URL with valid query params should return parsed data
-    });
-
-    test.skip('transforms string values to correct types', () => {
-      // Integration test required: NextRequest dependency
-      // Test case: Schema with .transform(Number) should convert "1" to 1
-    });
-
-    test.skip('returns errors for invalid enum values', () => {
-      // Integration test required: NextRequest dependency
-      // Test case: Enum field with invalid value should return enum error
-    });
-
-    test.skip('handles empty query string', () => {
-      // Integration test required: NextRequest dependency
-      // Test case: No query params should work with optional schema fields
-    });
+  test('escapes quotes and apostrophes', () => {
+    expect(sanitizeHtml('"hello"')).toContain('&quot;');
+    expect(sanitizeHtml("it's")).toContain('&#x27;');
   });
 
-  describe('validatePathParams', () => {
-    test.skip('validates valid path parameters', () => {
-      // Integration test required: Next.js route context
-      // Test case: Valid route params should return { success: true, data }
-    });
-
-    test.skip('returns errors for invalid UUID format', () => {
-      // Integration test required: Next.js route context
-      // Test case: Invalid UUID should return UUID format error
-    });
-
-    test.skip('returns errors for missing required params', () => {
-      // Integration test required: Next.js route context
-      // Test case: Missing required route param should return required error
-    });
+  test('escapes forward slashes', () => {
+    expect(sanitizeHtml('</script>')).toContain('&#x2F;');
   });
 
-  describe('validationErrorResponse', () => {
-    test.skip('returns NextResponse with 400 status', () => {
-      // Integration test required: NextResponse dependency
-      // Test case: Response status should be 400
-    });
-
-    test.skip('includes error details in response body', () => {
-      // Integration test required: NextResponse dependency
-      // Test case: Response JSON should include { error, details, message }
-    });
+  test('handles empty string', () => {
+    expect(sanitizeHtml('')).toBe('');
   });
 
-  describe('withValidation', () => {
-    test.skip('passes validated body to handler', () => {
-      // Integration test required: NextRequest/NextResponse dependency
-      // Test case: Handler should receive { body: validatedData }
-    });
-
-    test.skip('returns 400 for invalid body', () => {
-      // Integration test required: NextRequest/NextResponse dependency
-      // Test case: Invalid body should return 400 before calling handler
-    });
-
-    test.skip('passes validated query to handler', () => {
-      // Integration test required: NextRequest/NextResponse dependency
-      // Test case: Handler should receive { query: validatedData }
-    });
-
-    test.skip('passes validated params to handler', () => {
-      // Integration test required: NextRequest/NextResponse dependency
-      // Test case: Handler should receive { params: validatedData }
-    });
-
-    test.skip('only validates body for POST/PUT/PATCH methods', () => {
-      // Integration test required: NextRequest/NextResponse dependency
-      // Test case: GET requests should skip body validation
-    });
+  test('handles plain text without special characters', () => {
+    expect(sanitizeHtml('Hello World')).toBe('Hello World');
   });
 
-  describe('sanitizeHtml', () => {
-    test.skip('escapes HTML special characters', () => {
-      // Integration test required: Module imports Next.js server dependencies
-      // Test case: '<script>' should become '&lt;script&gt;'
-    });
+  test('prevents XSS injection attempts', () => {
+    const payload = '<img src=x onerror=alert(1)>';
+    const result = sanitizeHtml(payload);
+    expect(result).not.toContain('<');
+    expect(result).not.toContain('>');
+  });
+});
 
-    test.skip('escapes quotes and apostrophes', () => {
-      // Integration test required: Module imports Next.js server dependencies
-      // Test case: '"hello"' should contain '&quot;', "it's" should contain '&#x27;'
-    });
+// ============================================
+// checkRateLimit — In-memory state, no Next.js deps
+// ============================================
 
-    test.skip('escapes forward slashes', () => {
-      // Integration test required: Module imports Next.js server dependencies
-      // Test case: '</script>' should contain '&#x2F;'
-    });
-
-    test.skip('handles empty string', () => {
-      // Integration test required: Module imports Next.js server dependencies
-      // Test case: Empty string should return empty string
-    });
-
-    test.skip('handles plain text', () => {
-      // Integration test required: Module imports Next.js server dependencies
-      // Test case: Plain text with no special chars should remain unchanged
-    });
-
-    test.skip('prevents XSS injection attempts', () => {
-      // Integration test required: Module imports Next.js server dependencies
-      // Test case: Malicious payloads should have all < > escaped
-    });
+describe('checkRateLimit', () => {
+  test('allows first request', () => {
+    const id = `test-first-${Date.now()}`;
+    const result = checkRateLimit(id, 5, 60000);
+    expect(result.allowed).toBe(true);
+    expect(result.remaining).toBe(4);
   });
 
-  describe('validateFileUpload', () => {
-    test.skip('validates file within size limit', () => {
-      // Integration test required: File API
-      // Test case: File under 10MB should return { success: true }
-    });
-
-    test.skip('rejects file exceeding size limit', () => {
-      // Integration test required: File API
-      // Test case: File over 10MB should return size error
-    });
-
-    test.skip('rejects disallowed file type', () => {
-      // Integration test required: File API
-      // Test case: .exe file should return type error
-    });
-
-    test.skip('rejects disallowed file extension', () => {
-      // Integration test required: File API
-      // Test case: .xyz extension should return extension error
-    });
-
-    test.skip('accepts custom file type options', () => {
-      // Integration test required: File API
-      // Test case: Custom allowedTypes should be respected
-    });
-
-    test.skip('accepts allowed image formats', () => {
-      // Integration test required: File API
-      // Test case: .jpg, .png, .gif should all pass validation
-    });
+  test('allows requests within limit', () => {
+    const id = `test-within-${Date.now()}`;
+    for (let i = 0; i < 5; i++) {
+      const result = checkRateLimit(id, 5, 60000);
+      expect(result.allowed).toBe(true);
+    }
   });
 
-  describe('checkRateLimit', () => {
-    test.skip('allows first request', () => {
-      // Integration test required: Stateful in-memory store
-      // Test case: First request should return { allowed: true, remaining: limit-1 }
-    });
-
-    test.skip('allows requests within limit', () => {
-      // Integration test required: Stateful in-memory store
-      // Test case: Requests up to limit should be allowed
-    });
-
-    test.skip('blocks requests exceeding limit', () => {
-      // Integration test required: Stateful in-memory store
-      // Test case: Request #(limit+1) should return { allowed: false }
-    });
-
-    test.skip('resets counter after window expires', () => {
-      // Integration test required: Stateful in-memory store + timing
-      // Test case: After window expires, counter should reset
-    });
-
-    test.skip('uses different counters for different identifiers', () => {
-      // Integration test required: Stateful in-memory store
-      // Test case: Two different IPs should have independent rate limits
-    });
+  test('blocks requests exceeding limit', () => {
+    const id = `test-exceed-${Date.now()}`;
+    // Use up the limit
+    for (let i = 0; i < 5; i++) {
+      checkRateLimit(id, 5, 60000);
+    }
+    // 6th request should be blocked
+    const result = checkRateLimit(id, 5, 60000);
+    expect(result.allowed).toBe(false);
+    expect(result.remaining).toBe(0);
   });
 
-  describe('withRateLimit', () => {
-    test.skip('allows request within rate limit', () => {
-      // Integration test required: NextRequest/NextResponse + stateful store
-      // Test case: Request under limit should call handler
-    });
+  test('resets counter after window expires', () => {
+    const id = `test-reset-${Date.now()}`;
+    // Use very short window (1ms)
+    checkRateLimit(id, 1, 1);
 
-    test.skip('blocks request exceeding rate limit', () => {
-      // Integration test required: NextRequest/NextResponse + stateful store
-      // Test case: Request over limit should return 429
-    });
+    // Wait for window to expire
+    const start = Date.now();
+    while (Date.now() - start < 5) { /* spin */ }
 
-    test.skip('adds rate limit headers to response', () => {
-      // Integration test required: NextRequest/NextResponse + stateful store
-      // Test case: Response should include X-RateLimit-* headers
-    });
-
-    test.skip('uses different identifiers for different IPs', () => {
-      // Integration test required: NextRequest/NextResponse + stateful store
-      // Test case: Different x-forwarded-for headers should have independent limits
-    });
-
-    test.skip('handles missing IP headers', () => {
-      // Integration test required: NextRequest/NextResponse + stateful store
-      // Test case: Request without IP headers should use 'unknown' identifier
-    });
+    const result = checkRateLimit(id, 1, 1);
+    expect(result.allowed).toBe(true);
   });
 
-  // This test ensures Jest recognizes this as a valid test file
-  test('validation middleware requires integration test environment', () => {
-    expect(true).toBe(true);
+  test('uses different counters for different identifiers', () => {
+    const id1 = `test-diff-a-${Date.now()}`;
+    const id2 = `test-diff-b-${Date.now()}`;
+
+    // Use up limit for id1
+    for (let i = 0; i < 3; i++) {
+      checkRateLimit(id1, 3, 60000);
+    }
+    expect(checkRateLimit(id1, 3, 60000).allowed).toBe(false);
+
+    // id2 should still be allowed
+    expect(checkRateLimit(id2, 3, 60000).allowed).toBe(true);
+  });
+});
+
+// ============================================
+// validateFileUpload — Uses File API (available in jsdom)
+// ============================================
+
+describe('validateFileUpload', () => {
+  function createMockFile(name: string, size: number, type: string): File {
+    const content = new ArrayBuffer(size);
+    return new File([content], name, { type });
+  }
+
+  test('validates file within size limit', () => {
+    const file = createMockFile('photo.jpg', 1024 * 1024, 'image/jpeg');
+    const result = validateFileUpload(file);
+    expect(result.success).toBe(true);
+  });
+
+  test('rejects file exceeding size limit', () => {
+    const file = createMockFile('huge.jpg', 20 * 1024 * 1024, 'image/jpeg');
+    const result = validateFileUpload(file);
+    expect(result.success).toBe(false);
+    expect(result.errors?.[0]?.field).toBe('file');
+    expect(result.errors?.[0]?.message).toContain('exceeds maximum');
+  });
+
+  test('rejects disallowed file type', () => {
+    const file = createMockFile('malware.exe', 1024, 'application/x-msdownload');
+    const result = validateFileUpload(file);
+    expect(result.success).toBe(false);
+    expect(result.errors?.some(e => e.message.includes('not allowed'))).toBe(true);
+  });
+
+  test('rejects disallowed file extension', () => {
+    const file = createMockFile('data.xyz', 1024, 'image/jpeg');
+    const result = validateFileUpload(file);
+    expect(result.success).toBe(false);
+    expect(result.errors?.some(e => e.message.includes('.xyz'))).toBe(true);
+  });
+
+  test('accepts custom file type options', () => {
+    const file = createMockFile('doc.txt', 1024, 'text/plain');
+    const result = validateFileUpload(file, {
+      allowedTypes: ['text/plain'],
+      allowedExtensions: ['.txt'],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test('accepts allowed image formats', () => {
+    const formats = [
+      { name: 'photo.jpg', type: 'image/jpeg' },
+      { name: 'photo.png', type: 'image/png' },
+      { name: 'photo.gif', type: 'image/gif' },
+    ];
+
+    formats.forEach(({ name, type }) => {
+      const file = createMockFile(name, 1024, type);
+      expect(validateFileUpload(file).success).toBe(true);
+    });
+  });
+});
+
+// ============================================
+// validatePathParams — Takes plain objects
+// ============================================
+
+describe('validatePathParams', () => {
+  const uuidSchema = z.object({
+    id: z.string().uuid(),
+  });
+
+  test('validates valid path parameters', () => {
+    const result = validatePathParams(
+      { id: '550e8400-e29b-41d4-a716-446655440000' },
+      uuidSchema
+    );
+    expect(result.success).toBe(true);
+    expect(result.data?.id).toBe('550e8400-e29b-41d4-a716-446655440000');
+  });
+
+  test('returns errors for invalid UUID format', () => {
+    const result = validatePathParams({ id: 'not-a-uuid' }, uuidSchema);
+    expect(result.success).toBe(false);
+    expect(result.errors?.[0]?.field).toBe('id');
+  });
+
+  test('returns errors for missing required params', () => {
+    const result = validatePathParams({}, uuidSchema);
+    expect(result.success).toBe(false);
+  });
+});
+
+// ============================================
+// validateRequestBody — Mocked NextRequest
+// ============================================
+
+describe('validateRequestBody', () => {
+  const schema = z.object({
+    name: z.string(),
+    amount: z.number(),
+  });
+
+  test('validates valid request body', async () => {
+    const req = new NextRequest('http://localhost/api/test', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Test', amount: 100 }),
+    });
+    const result = await validateRequestBody(req, schema);
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual({ name: 'Test', amount: 100 });
+  });
+
+  test('returns errors for invalid request body', async () => {
+    const req = new NextRequest('http://localhost/api/test', {
+      method: 'POST',
+      body: JSON.stringify({ name: 123, amount: 'wrong' }),
+    });
+    const result = await validateRequestBody(req, schema);
+    expect(result.success).toBe(false);
+    expect(result.errors?.length).toBeGreaterThan(0);
+  });
+
+  test('returns error for missing required fields', async () => {
+    const req = new NextRequest('http://localhost/api/test', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+    const result = await validateRequestBody(req, schema);
+    expect(result.success).toBe(false);
+    expect(result.errors?.some(e => e.field === 'name')).toBe(true);
+  });
+});
+
+// ============================================
+// validateQueryParams — Mocked NextRequest
+// ============================================
+
+describe('validateQueryParams', () => {
+  const schema = z.object({
+    page: z.string().optional(),
+    status: z.enum(['active', 'inactive']).optional(),
+  });
+
+  test('validates valid query parameters', () => {
+    const req = new NextRequest('http://localhost/api/test?page=1&status=active');
+    const result = validateQueryParams(req, schema);
+    expect(result.success).toBe(true);
+    expect(result.data?.status).toBe('active');
+  });
+
+  test('returns errors for invalid enum values', () => {
+    const req = new NextRequest('http://localhost/api/test?status=invalid');
+    const result = validateQueryParams(req, schema);
+    expect(result.success).toBe(false);
+  });
+
+  test('handles empty query string', () => {
+    const req = new NextRequest('http://localhost/api/test');
+    const result = validateQueryParams(req, schema);
+    expect(result.success).toBe(true);
+  });
+});
+
+// ============================================
+// withRateLimit — Mocked NextRequest/NextResponse
+// ============================================
+
+describe('withRateLimit', () => {
+  const successHandler = async () => {
+    return NextResponse.json({ success: true });
+  };
+
+  test('allows request within rate limit', async () => {
+    const limited = withRateLimit(10, 60000)(successHandler);
+    const req = new NextRequest('http://localhost/api/test', {
+      headers: { 'x-forwarded-for': `rate-allow-${Date.now()}` },
+    });
+    const resp = await limited(req);
+    const body = await resp.json();
+    expect(body.success).toBe(true);
+  });
+
+  test('blocks request exceeding rate limit', async () => {
+    const ip = `rate-block-${Date.now()}`;
+    const limited = withRateLimit(2, 60000)(successHandler);
+
+    // First 2 requests OK
+    for (let i = 0; i < 2; i++) {
+      const req = new NextRequest('http://localhost/api/test', {
+        headers: { 'x-forwarded-for': ip },
+      });
+      await limited(req);
+    }
+
+    // 3rd request blocked
+    const req = new NextRequest('http://localhost/api/test', {
+      headers: { 'x-forwarded-for': ip },
+    });
+    const resp = await limited(req);
+    expect(resp.status).toBe(429);
+  });
+
+  test('adds rate limit headers to success response', async () => {
+    const limited = withRateLimit(100, 60000)(successHandler);
+    const req = new NextRequest('http://localhost/api/test', {
+      headers: { 'x-forwarded-for': `rate-headers-${Date.now()}` },
+    });
+    const resp = await limited(req);
+    expect(resp.headers.get('x-ratelimit-limit')).toBe('100');
+  });
+
+  test('uses different identifiers for different IPs', async () => {
+    const limited = withRateLimit(1, 60000)(successHandler);
+
+    const req1 = new NextRequest('http://localhost/api/test', {
+      headers: { 'x-forwarded-for': `ip-a-${Date.now()}` },
+    });
+    const resp1 = await limited(req1);
+    expect(resp1.status).toBe(200);
+
+    const req2 = new NextRequest('http://localhost/api/test', {
+      headers: { 'x-forwarded-for': `ip-b-${Date.now()}` },
+    });
+    const resp2 = await limited(req2);
+    expect(resp2.status).toBe(200);
+  });
+
+  test('handles missing IP headers', async () => {
+    const limited = withRateLimit(100, 60000)(successHandler);
+    const req = new NextRequest('http://localhost/api/test');
+    const resp = await limited(req);
+    const body = await resp.json();
+    expect(body.success).toBe(true);
+  });
+});
+
+// ============================================
+// withValidation — Mocked NextRequest/NextResponse
+// ============================================
+
+describe('withValidation', () => {
+  const bodySchema = z.object({ name: z.string() });
+
+  test('passes validated body to handler', async () => {
+    const handler = jest.fn(async (_req: NextRequest, ctx: { body?: { name: string } }) => {
+      return NextResponse.json({ received: ctx.body?.name });
+    });
+
+    const validated = withValidation(handler, { body: bodySchema });
+    const req = new NextRequest('http://localhost/api/test', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Austin' }),
+    });
+
+    await validated(req, {});
+    expect(handler).toHaveBeenCalled();
+    const ctx = handler.mock.calls[0][1];
+    expect(ctx.body?.name).toBe('Austin');
+  });
+
+  test('returns 400 for invalid body', async () => {
+    const handler = jest.fn(async () => NextResponse.json({ ok: true }));
+    const validated = withValidation(handler, { body: bodySchema });
+
+    const req = new NextRequest('http://localhost/api/test', {
+      method: 'POST',
+      body: JSON.stringify({ name: 123 }),
+    });
+
+    const resp = await validated(req, {});
+    expect(resp.status).toBe(400);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  test('skips body validation for GET requests', async () => {
+    const handler = jest.fn(async () => NextResponse.json({ ok: true }));
+    const validated = withValidation(handler, { body: bodySchema });
+
+    const req = new NextRequest('http://localhost/api/test', { method: 'GET' });
+    await validated(req, {});
+    expect(handler).toHaveBeenCalled();
   });
 });

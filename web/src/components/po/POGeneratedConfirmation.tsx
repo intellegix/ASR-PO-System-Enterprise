@@ -48,14 +48,14 @@ export default function POGeneratedConfirmation({
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 4, px: 2 }}>
+    <Box data-testid="po-confirmation" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 4, px: 2 }}>
       {/* Success check animation */}
       <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: 'success.light', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <CheckCircleIcon sx={{ width: 40, height: 40, color: 'success.main' }} />
       </Box>
 
       {/* PO Number - large & prominent with color coding */}
-      <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <Box data-testid="po-number-display" sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1.5 }}>
           PO Number
         </Typography>

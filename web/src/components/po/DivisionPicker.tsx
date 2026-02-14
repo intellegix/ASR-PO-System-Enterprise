@@ -27,7 +27,7 @@ const DIVISION_ICONS: Record<string, typeof HomeIcon> = {
 
 export default function DivisionPicker({ divisions, selectedId, userDivisionId, onSelect }: DivisionPickerProps) {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box data-testid="division-picker" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box>
         <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}>
           Pick Division
@@ -46,6 +46,7 @@ export default function DivisionPicker({ divisions, selectedId, userDivisionId, 
           return (
             <Button
               key={div.id}
+              data-testid={`division-option-${div.division_code}`}
               onClick={() => onSelect(div)}
               variant={isSelected ? 'contained' : 'outlined'}
               color={isSelected ? 'warning' : 'inherit'}
